@@ -1,0 +1,23 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          dauth:
+            client-id:  ${DAUTH_CLIENT_ID}
+            client-secret: ${DAUTH_CLIENT_SECRET}
+            scope:
+              - openid
+              - read:profile
+              - phone
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name:  DAuth
+            client-authentication-method: client_secret_post
+        provider:
+          dauth:
+            issuer-uri: <https://dauth.b1nd.com>
+            authorization-uri: <https://dauth.b1nd.com/oauth/authorize>
+            token-uri:  <https://dauth.b1nd.com/oauth/token>
+            user-info-uri: <https://dauth.b1nd.com/oauth/userinfo>
+            user-name-attribute: sub

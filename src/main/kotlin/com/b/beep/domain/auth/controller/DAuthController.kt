@@ -6,6 +6,10 @@ import com.b.beep.domain.auth.service.AuthService
 import com.b.beep.global.security.jwt.dto.response.TokenResponse
 import com.b.beep.global.common.dto.response.BaseResponse
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.core.user.OAuth2User
+import org.springframework.ui.Model
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -16,8 +20,17 @@ import org.springframework.web.bind.annotation.RestController
 class DAuthController(
     private val authService: AuthService
 ) : DAuthDocs {
-    @PostMapping("/login")
+    @PostMapping("/token")
     override fun login(@RequestBody request: LoginRequest): ResponseEntity<BaseResponse<TokenResponse>> {
-        return BaseResponse.of(authService.login(request))
+        return BaseResponse.of(authService.login())
+    }
+
+    @GetMapping("/home")
+    fun home(@AuthenticationPrincipal oauth2User: OAuth2User, model: Model): String {
+        model. addAttribute("name", oauth2User.getAttribute<String>("name"))
+        model.addAttribute("email", oauth2User.getAttribute<String>("email"))
+        model.addAttribute("profileImage", oauth2User.getAttribute<String>("profile_image"))
+        model.addAttribute("role", oauth2User.getAttribute<String>("role"))
+        return "home"
     }
 }

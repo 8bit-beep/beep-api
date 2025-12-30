@@ -8,6 +8,7 @@ import com.b.beep.domain.user.domain.UserRole
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.entity.AttendanceEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,22 +21,22 @@ class StudentInfoService(
     private val studentInfoRepository: StudentInfoRepository,
     private val attendanceRepository: AttendanceRepository,
 ) {
-    fun getOrCreateUser(dodamUser: DAuthUserResponse): UserEntity {
-        val email = dodamUser.data.email
+    fun getOrCreateUser(dodamUser: DAuthUser): UserEntity {
+        val email = dodamUser.email
 
         return userRepository.findByEmail(email) ?: run {
             val newUser = UserEntity(
                 email = email,
-                username = dodamUser.data.name,
-                role = if (dodamUser.data.role == "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
-                profileImage = dodamUser.data.profileImage,
+                username = dodamUser.name,
+                role = if (dodamUser.role== "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
+                profileImage = dodamUser.profileImage,
                 currentStatus = AttendanceType.NOT_ATTEND
             )
             userRepository.save(newUser)
         }
     }
 
-    fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUserResponse): StudentInfoEntity {
+    fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUser): StudentInfoEntity {
         return studentInfoRepository.findByUser(user) ?: run {
             listOf(8, 9, 10, 11).forEach {
                 attendanceRepository.save(
@@ -53,7 +54,7 @@ class StudentInfoService(
                 user = user,
                 grade = dodamUser.data.grade,
                 cls = dodamUser.data.room,
-                num = dodamUser.data.number
+                num = dodamUser.data.number //todo dauth 값 요청
             )
             studentInfoRepository.save(newStudentInfo)
         }
