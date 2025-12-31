@@ -47,15 +47,7 @@ class AttendanceService(
 
         attendanceRepository.save(attendance)
 
-        // 8교시 출석 시 9교시도 자동 출석 처리
-        if (period == 8) {
-            val nextPeriodAttendance = attendanceRepository.findByUserIdAndPeriodAndDate(user.id!!, 9, LocalDate.now())
-            if (nextPeriodAttendance != null && nextPeriodAttendance.type == AttendanceType.NOT_ATTEND) {
-                nextPeriodAttendance.type = request.attendanceType
-                nextPeriodAttendance.room = request.room
-                attendanceRepository.save(nextPeriodAttendance)
-            }
-        }
+        // 1교시 출석 시 추가 처리 로직 제거 (1, 2, 3교시만 존재)
 
         userRepository.save(user)
     }
