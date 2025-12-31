@@ -33,8 +33,8 @@ class AttendanceScheduler(
     /*
     * 현재 유저의 출석 상태 업데이트
     * */
-    @Scheduled(cron = "1 10 19 * * MON-THU")
-    @Scheduled(cron = "1 40 20 * * MON-THU")
+    @Scheduled(cron = "1 21 13 * * MON-THU")
+    @Scheduled(cron = "1 1 19 * * MON-THU")
     @Transactional
     fun updateCurrentStatus() {
         val today = LocalDate.now()
@@ -58,8 +58,8 @@ class AttendanceScheduler(
     /*
     * 실이동 수락하기
     * */
-    @Scheduled(cron = "0 26 16 * * MON-THU")
-    @Scheduled(cron = "0 11 19 * * MON-THU")
+    @Scheduled(cron = "0 1 9 * * MON-THU")
+    @Scheduled(cron = "0 21 13 * * MON-THU")
     fun acceptShifts() {
         val period = PeriodResolver.getCurrentPeriod()
         val attendances = attendanceRepository
@@ -81,7 +81,7 @@ class AttendanceScheduler(
     @Scheduled(cron = "0 1 0 * * MON-THU")
     fun createAttendanceRecordToday() {
         val today = LocalDate.now()
-        val periods = listOf(8, 9, 10, 11)
+        val periods = listOf(1, 2, 3)
         val students = userRepository.findAllByRole(UserRole.STUDENT)
 
         // 모든 학생의 currentStatus를 NOT_ATTEND로 초기화
@@ -110,7 +110,7 @@ class AttendanceScheduler(
     @Transactional
     fun createApprovalsToday() {
         val today = LocalDate.now()
-        val periods = listOf(8, 10, 11)
+        val periods = listOf(1, 2, 3)
         val rooms = Room.entries.toTypedArray()
 
         val approvals = rooms.flatMap { room ->
@@ -137,7 +137,7 @@ class AttendanceScheduler(
             user.currentStatus = AttendanceType.OUTGOING
             userRepository.save(user)
 
-            // 출석 기록(8~11교시)도 외박으로 변경
+            // 출석 기록(1~3교시)도 외박으로 변경
             val attendances = attendanceRepository.findByUserAndDate(user, today)
             attendances
                 .forEach { it.type = AttendanceType.OUTGOING }
@@ -146,31 +146,31 @@ class AttendanceScheduler(
         }
     }
 
-//    // 출석 시간 알림 전송
-//    @Scheduled(cron = "0 25 16 * * MON-THU")  // 8교시 4:25 ~ 4:40
-//    @Scheduled(cron = "0 10 19 * * MON-THU")  // 10교시 7:10 ~ 7:30
-//    @Scheduled(cron = "0 40 20 * * MON-THU")  // 최종 출석 8:40 ~ 8:55
-//    fun sendAttendanceNotificationToAll() {
-//        logger.info("출석 알림 전송 시작 - 전체 학생")
-//        notificationService.sendToAll(
-//            title = "출석 시간입니다! 출석하세요",
-//            body = "지금부터 20분 간 출석이 가능합니다.",
-//            imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
-//        )
-//        logger.info("출석 알림 전송 완료 - 전체 학생")
-//    }
-//
-//    // 미출석자 알림 전송
-//    @Scheduled(cron = "0 35 16 * * MON-THU")  // 8교시 4:25 ~ 4:40
-//    @Scheduled(cron = "0 25 19 * * MON-THU")  // 10교시 7:10 ~ 7:30
-//    @Scheduled(cron = "0 55 20 * * MON-THU")  // 최종 출석 8:40 ~ 8:59
-//    fun sendAttendanceReminderToNotAttended() {
-//        logger.info("미출석자 알림 전송 시작")
-//        notificationService.sendToNotAttended(
-//            title = "아직 출석하지 않았습니다!",
-//            body = "출석 시간이 5분 후 종료됩니다. 지금 출석해주세요.",
-//            imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
-//        )
-//        logger.info("미출석자 알림 전송 완료")
-//    }
+    // 출석 시간 알림 전송
+    @Scheduled(cron = "0 0 9 * * MON-THU")  // 1교시 9:00 ~ 9:20
+    @Scheduled(cron = "0 20 13 * * MON-THU")  // 2교시 13:20 ~ 13:40
+    @Scheduled(cron = "0 0 19 * * MON-THU")  // 3교시 19:00 ~ 19:20
+    fun sendAttendanceNotificationToAll() {
+        logger.info("출석 알림 전송 시작 - 전체 학생")
+        notificationService.sendToAll(
+            title = "출석 시간입니다! 출석하세요",
+            body = "지금부터 20분 간 출석이 가능합니다.",
+            imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
+        )
+        logger.info("출석 알림 전송 완료 - 전체 학생")
+    }
+
+    // 미출석자 알림 전송
+    @Scheduled(cron = "0 15 9 * * MON-THU")  // 1교시 9:00 ~ 9:20
+    @Scheduled(cron = "0 35 13 * * MON-THU")  // 2교시 13:20 ~ 13:40
+    @Scheduled(cron = "0 15 19 * * MON-THU")  // 3교시 19:00 ~ 19:20
+    fun sendAttendanceReminderToNotAttended() {
+        logger.info("미출석자 알림 전송 시작")
+        notificationService.sendToNotAttended(
+            title = "아직 출석하지 않았습니다!",
+            body = "출석 시간이 5분 후 종료됩니다. 지금 출석해주세요.",
+            imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
+        )
+        logger.info("미출석자 알림 전송 완료")
+    }
 }
