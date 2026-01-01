@@ -6,5 +6,9 @@ data class DAuthUser(
     val email: String,         // 이메일
     val profileImage: String?  = null,  // 프로필 이미지
     val role: String?  = null,          // 역할 (STUDENT, TEACHER 등)
-    val phone: String? = null          // 전화번호
+    val phone: String? = null,  // 전화번호
+    val grade: Int,
+    val number: Int ,
+    val room: Int ,
+//    val clubs: List<String> //enum 변경
 )
