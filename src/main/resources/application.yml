@@ -37,8 +37,8 @@ spring:
             scope:
               - read:profile
               - phone
-            authorization-grant-type: authorization_code
             redirect-uri: "https://beepapi.com/login/oauth2/code/dauth"
+            authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
         provider:
           dauth:
