@@ -35,6 +35,7 @@ class AttendanceScheduler(
     * */
     @Scheduled(cron = "1 21 13 * * MON-THU")
     @Scheduled(cron = "1 1 19 * * MON-THU")
+    @Scheduled(cron = "1 1 9 * * FRI")  // 금요일 1교시
     @Transactional
     fun updateCurrentStatus() {
         val today = LocalDate.now()
@@ -58,8 +59,8 @@ class AttendanceScheduler(
     /*
     * 실이동 수락하기
     * */
-    @Scheduled(cron = "0 1 9 * * MON-THU")
-    @Scheduled(cron = "0 21 13 * * MON-THU")
+    @Scheduled(cron = "0 1 9 * * TUE-FRI")  // 1교시 (월요일 제외)
+    @Scheduled(cron = "0 21 13 * * MON-THU")  // 2교시 (금요일 제외)
     fun acceptShifts() {
         val period = PeriodResolver.getCurrentPeriod()
         val attendances = attendanceRepository
@@ -78,7 +79,7 @@ class AttendanceScheduler(
     * 오늘의 출석 레코드 생성
     * */
     @Transactional
-    @Scheduled(cron = "0 1 0 * * MON-THU")
+    @Scheduled(cron = "0 1 0 * * MON-FRI")
     fun createAttendanceRecordToday() {
         val today = LocalDate.now()
         val periods = listOf(1, 2, 3)
@@ -106,7 +107,7 @@ class AttendanceScheduler(
     /*
     * 실 승인 데이터 생성
     * */
-    @Scheduled(cron = "0 10 0 * * MON-THU")
+    @Scheduled(cron = "0 10 0 * * MON-FRI")
     @Transactional
     fun createApprovalsToday() {
         val today = LocalDate.now()
@@ -125,7 +126,7 @@ class AttendanceScheduler(
         approvalRepository.saveAll(approvals)
     }
 
-    @Scheduled(cron = "0 20 0 * * MON-THU")
+    @Scheduled(cron = "0 20 0 * * MON-FRI")
     @Transactional
     fun changeStatusAbsenceStudents() {
         val today = LocalDate.now()
