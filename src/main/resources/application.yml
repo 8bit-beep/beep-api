@@ -39,8 +39,7 @@ spring:
               - read:profile
               - phone
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            client-name: DAuth
+            redirect-uri: "https://beep.cher1shrxd.me/callback/dauth"
             client-authentication-method: client_secret_post
         provider:
           dauth:
