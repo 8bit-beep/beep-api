@@ -22,6 +22,7 @@ class DAuthService(
         val webClient: WebClient = WebClient.create("https://dauthapi.b1nd.com")
 
         val clientId = dAuthProperties.clientId
+        val clientSecret = dAuthProperties.clientSecret
 
         val response = webClient.post()
             .uri("/oauth/token")
@@ -32,6 +33,7 @@ class DAuthService(
                     .with("grant_type", "authorization_code")
                     .with("redirect_uri", "https://beepapi.com/login/oauth2/code/dauth")
                     .with("client_id", clientId)
+                    .with("client_secret", clientSecret)
             )
             .retrieve()
             .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
