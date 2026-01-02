@@ -26,7 +26,8 @@ class SecurityConfig(
     private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
-    private val jwtExceptionFilter: JwtExceptionFilter
+    private val jwtExceptionFilter: JwtExceptionFilter,
+    private val customOAuth2UserService: CustomOAuth2UserService
 ) {
     @Bean
     fun passwordEncoder() = BCryptPasswordEncoder()
@@ -108,7 +109,7 @@ class SecurityConfig(
                     )
                 }
                 .userInfoEndpoint { userInfo ->
-                    userInfo.userService(customOAuth2UserService())
+                    userInfo.userService(customOAuth2UserService)
                 }
 //                .successHandler(oAuth2SuccessHandler)
 
@@ -130,8 +131,5 @@ class SecurityConfig(
         })
     }
 
-    @Bean
-    fun customOAuth2UserService(): OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-        return CustomOAuth2UserService()
-    }
+
 }

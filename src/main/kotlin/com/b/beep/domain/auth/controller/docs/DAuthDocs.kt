@@ -9,6 +9,6 @@ import org.springframework.http.ResponseEntity
 
 @Tag(name = "도담 로그인", description = "도담 OAuth 로그인 API")
 interface DAuthDocs {
-    @Operation(summary = "로그인", description = "도담 OAuth를 통해 로그인합니다.")
-    fun login(request: LoginRequest): ResponseEntity<BaseResponse<TokenResponse>>
+//    @Operation(summary = "로그인", description = "도담 OAuth를 통해 로그인합니다.")
+//    fun login(request: LoginRequest): ResponseEntity<BaseResponse<TokenResponse>>
 }
