@@ -7,8 +7,11 @@ data class DAuthTokenResponse(
     val accessToken: String,
     @JsonProperty("refresh_token")
     val refreshToken: String,
+    @JsonProperty("id_token")
+    val idToken: String,
     @JsonProperty("token_type")
     val tokenType: String,
     @JsonProperty("expires_in")
-    val expiresIn: String
+    val expiresIn: String,
+    val scope: String,
 )
