@@ -39,7 +39,7 @@ spring:
               - read:profile
               - phone
             authorization-grant-type: authorization_code
-            redirect-uri: "https://beep.cher1shrxd.me/callback/dauth"
+            redirect-uri: "https://beepapi.com/login/oauth2/code/dauth"
             client-authentication-method: client_secret_post
         provider:
           dauth:
