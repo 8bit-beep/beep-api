@@ -57,8 +57,9 @@ class OAuth2SuccessHandler(
         if (user.role == UserRole.STUDENT) {
             studentInfoService.getOrCreateStudentInfo(user, dauthUser)
         }
-        val refreshToken = jwtProvider.generateToken(user.email).refreshToken.toString()
-        val accessToken = jwtProvider.generateToken(user.email).refreshToken.toString()
+        val tokens = jwtProvider.generateToken(user.email)
+        val refreshToken = tokens.refreshToken
+        val accessToken = tokens.accessToken
 
         SecurityContextHolder.clearContext()
         response.sendRedirect("https://beep.cher1shrxd.me/callback/dauth?refreshToken=$refreshToken&accessToken=$accessToken")

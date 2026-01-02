@@ -8,7 +8,9 @@ import com.b.beep.domain.auth.infrastructure.GetDAuthTokenRequest
 import com.b.beep.domain.user.domain.UserError
 import com.b.beep.global.exception.CustomException
 import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
@@ -17,15 +19,19 @@ class DAuthService(
     private val dAuthProperties: DAuthProperties
 ) {
     fun getDAuthToken(code: String): String {
-        val webClient: WebClient = WebClient.create("https://dauth.b1nd.com")
+        val webClient: WebClient = WebClient.create("https://dauthapi.b1nd.com")
 
         val clientId = dAuthProperties.clientId
-        val clientSecret = dAuthProperties.clientSecret
 
         val response = webClient.post()
-            .uri("/api/token")
-            .header("Content-Type", "application/json")
-            .bodyValue(GetDAuthTokenRequest(code, clientId, clientSecret))
+            .uri("/oauth/token")
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .body(
+                BodyInserters
+                    .fromFormData("code", code)
+                    .with("redirect_uri", "https://beepapi.com/login/oauth2/code/dauth")
+                    .with("client_id", clientId)
+            )
             .retrieve()
             .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java)

@@ -63,8 +63,8 @@ springdoc:
     operationsSorter: method
     path: /swagger-ui.html
 dauth:
-  client_id: ${DAUTH_ID}
-  client_secret: ${DAUTH_SECRET}
+  client_id: ${DAUTH_CLIENT_ID}
+  client_secret: ${DAUTH_CLIENT_SECRET}
 cloud:
   aws:
     s3:
