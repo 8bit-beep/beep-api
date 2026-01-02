@@ -33,7 +33,7 @@ class DataGenerator(
             }
 
             if (approvalRepository.count() == 0L) {
-                val periods = listOf(8, 10, 11)
+                val periods = listOf(1, 2, 3)
                 val rooms = Room.entries.toTypedArray()
                 val today = LocalDate.now()
                 val approvals = rooms.flatMap { room ->
