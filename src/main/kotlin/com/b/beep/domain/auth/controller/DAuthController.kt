@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController
 class DAuthController(
     private val authService: AuthService
 ) : DAuthDocs {
-    @PostMapping("/token")
-    override fun login(@RequestBody request: LoginRequest): ResponseEntity<BaseResponse<TokenResponse>> {
-        return BaseResponse.of(authService.login())
-    }
+//    @PostMapping("/token")
+//    override fun login(@RequestBody request: LoginRequest): ResponseEntity<BaseResponse<TokenResponse>> {
+//        return BaseResponse.of(authService.login())
+//    }
 
     @GetMapping("/home")
     fun home(@AuthenticationPrincipal oauth2User: OAuth2User, model: Model): TestResponse {
