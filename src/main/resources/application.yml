@@ -35,7 +35,6 @@ spring:
             client-id: ${DAUTH_CLIENT_ID}
             client-secret: ${DAUTH_CLIENT_SECRET}
             scope:
-              - openid
               - read:profile
               - phone
             authorization-grant-type: authorization_code
