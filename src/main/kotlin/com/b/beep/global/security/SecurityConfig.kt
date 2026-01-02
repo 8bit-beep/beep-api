@@ -93,27 +93,11 @@ class SecurityConfig(
         }
         .oauth2Login { oauth2 ->
             oauth2
-                .defaultSuccessUrl("/home", true)
-                .failureHandler { request, response, exception ->
-                    response.status = 401
-                    response.contentType = "application/json"
-
-                    response.writer.write(
-                        """
-                    {
-                      "error": "OAUTH_LOGIN_FAILED",
-                      "message": "${exception.message}"
-                    }
-                    """.trimIndent()
-                    )
-                }
                 .userInfoEndpoint { userInfo ->
                     userInfo.userService(customOAuth2UserService)
                 }
                 .successHandler(oAuth2SuccessHandler)
-
         }
-
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
         .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter::class.java)
 
