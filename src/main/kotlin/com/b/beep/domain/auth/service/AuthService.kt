@@ -21,23 +21,21 @@ class AuthService(
     private val studentInfoService: StudentInfoService,
     private val jwtProvider: JwtProvider,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val jwtExtractor: JwtExtractor
+    private val jwtExtractor: JwtExtractor,
+    private val dAuthService: DAuthService,
 ) {
-//    fun login(): TokenResponse {
-//        val dauthUser: DAuthUser = run {
-//            val auth = SecurityContextHolder.getContext().authentication
-//            if (auth?.principal is CustomOAuth2User) {
-//                (auth.principal as CustomOAuth2User).dauthUser
-//            } else throw CustomException(AuthError.DAUTH_LOGIN)
-//        }
-//        val user = studentInfoService.getOrCreateUser(dauthUser)
-//
-//        if (user.role == UserRole.STUDENT) {
-//            studentInfoService.getOrCreateStudentInfo(user, dauthUser)
-//        }
-//
-//        return jwtProvider.generateToken(user.email)
-//    }
+    fun login(request: LoginRequest): TokenResponse {
+        val token = dAuthService.getDAuthToken(request.code)
+        val dodamUser = dAuthService.getDAuthUser(token)
+        val user = studentInfoService.getOrCreateUser(dodamUser)
+
+        if (user.role == UserRole.STUDENT) {
+            studentInfoService.getOrCreateStudentInfo(user, dodamUser)
+        }
+
+        return jwtProvider.generateToken(user.email)
+    }
+
 
     fun refresh(refreshToken: String): TokenResponse {
         val email = jwtExtractor.getEmail(refreshToken)

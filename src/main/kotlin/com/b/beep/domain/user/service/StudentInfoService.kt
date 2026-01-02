@@ -35,6 +35,20 @@ class StudentInfoService(
             userRepository.save(newUser)
         }
     }
+    fun getOrCreateUser(dodamUser: DAuthUserResponse): UserEntity {
+        val email = dodamUser.data.email
+
+        return userRepository.findByEmail(email) ?: run {
+            val newUser = UserEntity(
+                email = email,
+                username = dodamUser.data.name,
+                role = if (dodamUser.data.role == "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
+                profileImage = dodamUser.data.profileImage,
+                currentStatus = AttendanceType.NOT_ATTEND
+            )
+            userRepository.save(newUser)
+        }
+    }
 
     fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUser): StudentInfoEntity {
         return studentInfoRepository.findByUser(user) ?: run {
@@ -55,6 +69,30 @@ class StudentInfoService(
                 grade = dodamUser.grade,
                 cls = dodamUser.room,
                 num = dodamUser.number
+            )
+            studentInfoRepository.save(newStudentInfo)
+        }
+    }
+
+    fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUserResponse): StudentInfoEntity {
+        return studentInfoRepository.findByUser(user) ?: run {
+            listOf(8, 9, 10, 11).forEach {
+                attendanceRepository.save(
+                    AttendanceEntity(
+                        period = it,
+                        type = AttendanceType.NOT_ATTEND,
+                        user = user,
+                        room = null,
+                        date = LocalDate.now()
+                    )
+                )
+            }
+
+            val newStudentInfo = StudentInfoEntity(
+                user = user,
+                grade = dodamUser.data.grade,
+                cls = dodamUser.data.room,
+                num = dodamUser.data.number
             )
             studentInfoRepository.save(newStudentInfo)
         }
