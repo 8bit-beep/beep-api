@@ -23,6 +23,8 @@ class CustomOAuth2UserService : OAuth2UserService<OAuth2UserRequest, OAuth2User>
 
         val attributes = oauth2User.attributes
 
+        println(attributes.toString())
+
         val email = attributes["email"] as? String
             ?: throw CustomException(AuthError.NULL_EMAIL)
         val name = attributes["name"] as? String
