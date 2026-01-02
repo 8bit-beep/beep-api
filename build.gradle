@@ -25,6 +25,9 @@ dependencies {
     implementation("software.amazon.awssdk:s3:2.20.35") // 최신 버전 사용
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 
+    //oauth
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+
     // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     kapt 'com.querydsl:querydsl-apt:5.0.0:jakarta'
