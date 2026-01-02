@@ -44,10 +44,10 @@ class DAuthService(
     }
 
     fun getDAuthUser(token: String): DAuthUserResponse {
-        val webClient: WebClient = WebClient.create("https://opendodam.b1nd.com")
+        val webClient: WebClient = WebClient.create("https://dauthapi.b1nd.com")
 
         val response = webClient.get()
-            .uri("/api/user")
+            .uri("/oauth/userinfo")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
