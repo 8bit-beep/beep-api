@@ -29,6 +29,7 @@ class DAuthService(
             .body(
                 BodyInserters
                     .fromFormData("code", code)
+                    .with("grant_type", "authorization_code")
                     .with("redirect_uri", "https://beepapi.com/login/oauth2/code/dauth")
                     .with("client_id", clientId)
             )
