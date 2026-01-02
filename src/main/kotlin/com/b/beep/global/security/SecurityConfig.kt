@@ -1,6 +1,7 @@
 package com.b.beep.global.security
 
 import com.b.beep.domain.auth.service.CustomOAuth2UserService
+import com.b.beep.domain.auth.service.OAuth2SuccessHandler
 import com.b.beep.global.security.jwt.filter.JwtAuthenticationFilter
 import com.b.beep.global.security.jwt.filter.JwtExceptionFilter
 import com.b.beep.global.security.jwt.handler.JwtAccessDeniedHandler
@@ -11,9 +12,6 @@ import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService
-import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
@@ -27,7 +25,8 @@ class SecurityConfig(
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val jwtExceptionFilter: JwtExceptionFilter,
-    private val customOAuth2UserService: CustomOAuth2UserService
+    private val customOAuth2UserService: CustomOAuth2UserService,
+    private val oAuth2SuccessHandler: OAuth2SuccessHandler
 ) {
     @Bean
     fun passwordEncoder() = BCryptPasswordEncoder()
@@ -111,7 +110,7 @@ class SecurityConfig(
                 .userInfoEndpoint { userInfo ->
                     userInfo.userService(customOAuth2UserService)
                 }
-//                .successHandler(oAuth2SuccessHandler)
+                .successHandler(oAuth2SuccessHandler)
 
         }
 
