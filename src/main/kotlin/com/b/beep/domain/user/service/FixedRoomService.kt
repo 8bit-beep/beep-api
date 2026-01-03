@@ -20,6 +20,10 @@ class FixedRoomService(
     fun add(request: AddFixedRoomRequest) {
         val user = contextHolder.user
 
+        if (fixedRoomRepository.existsByUserAndTypeAndRoom(user, request.type, request.room)) {
+            throw CustomException(FixedRoomError.ALREADY_EXIST_COMBINATION)
+        }
+
         val fixedRoom = FixedRoomEntity(
             user = user,
             room = request.room,
@@ -34,6 +38,17 @@ class FixedRoomService(
         val user = contextHolder.user
 
         if (fixedRoom.user.id != user.id) throw CustomException(FixedRoomError.NO_PERMISSION_TO_UPDATE)
+
+        val finalType = request.type ?: fixedRoom.type
+        val finalRoom = request.room ?: fixedRoom.room
+
+        val existingFixedRooms = fixedRoomRepository.findAllByUser(user)
+        val conflict = existingFixedRooms.any {
+            it.id != fixedRoomId && it.type == finalType && it.room == finalRoom
+        }
+        if (conflict) {
+            throw CustomException(FixedRoomError.ALREADY_EXIST_COMBINATION)
+        }
 
         request.room?.let { newRoom ->
             fixedRoom.room = newRoom
