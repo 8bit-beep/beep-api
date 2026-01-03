@@ -20,9 +20,6 @@ class FixedRoomService(
     fun add(request: AddFixedRoomRequest) {
         val user = contextHolder.user
 
-        if (fixedRoomRepository.existsByUserAndType(user, request.type))
-            throw CustomException(FixedRoomError.ALREADY_EXIST_TYPE)
-
         val fixedRoom = FixedRoomEntity(
             user = user,
             room = request.room,
