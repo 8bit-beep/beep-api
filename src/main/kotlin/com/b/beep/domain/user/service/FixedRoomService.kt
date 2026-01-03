@@ -39,11 +39,7 @@ class FixedRoomService(
             fixedRoom.room = newRoom
         }
 
-        // type 중복 검사
         request.type?.let { newType ->
-            val conflict = fixedRoomRepository.findAllByUser(user)
-                .any { it.type == newType && it.id != fixedRoomId }
-            if (conflict) throw CustomException(FixedRoomError.ALREADY_EXIST_TYPE)
             fixedRoom.type = newType
         }
 

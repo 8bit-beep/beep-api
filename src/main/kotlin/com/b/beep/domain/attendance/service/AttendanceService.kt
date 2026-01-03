@@ -26,11 +26,15 @@ class AttendanceService(
         val user = contextHolder.user
         val period = PeriodResolver.getCurrentAttendancePeriod()
 
-        // 고정실 검증
-        val fixedRoom = fixedRoomRepository.findByUserAndType(user, request.attendanceType)
-            ?: throw CustomException(AttendanceError.NOT_EXISTS_ATTEND_TYPE)
+        // 고정실 검증 - 해당 타입의 모든 고정실 중 요청한 room이 있는지 확인
+        val fixedRooms = fixedRoomRepository.findAllByUserAndType(user, request.attendanceType)
 
-        if (request.room != fixedRoom.room) {
+        if (fixedRooms.isEmpty()) {
+            throw CustomException(AttendanceError.NOT_EXISTS_ATTEND_TYPE)
+        }
+
+        val hasMatchingRoom = fixedRooms.any { it.room == request.room }
+        if (!hasMatchingRoom) {
             throw CustomException(AttendanceError.ROOM_MISMATCH)
         }
 
