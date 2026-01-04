@@ -1,7 +1,7 @@
 package com.b.beep.domain.attendance.service
 
 import com.b.beep.domain.attendance.controller.dto.request.AttendRequest
-import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.period.service.PeriodService
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
@@ -20,11 +20,12 @@ class AttendanceService(
     private val contextHolder: ContextHolder,
     private val fixedRoomRepository: FixedRoomRepository,
     private val userRepository: UserRepository,
+    private val periodService: PeriodService,
 ) {
     @Transactional
     fun attend(request: AttendRequest) {
         val user = contextHolder.user
-        val period = PeriodResolver.getCurrentAttendancePeriod()
+        val period = periodService.getCurrentAttendancePeriod()
 
         // 고정실 검증 - 해당 타입의 모든 고정실 중 요청한 room이 있는지 확인
         val fixedRooms = fixedRoomRepository.findAllByUserAndType(user, request.attendanceType)
@@ -59,7 +60,7 @@ class AttendanceService(
     @Transactional
     fun cancelAttendance() {
         val user = contextHolder.user
-        val period = PeriodResolver.getCurrentAttendancePeriod()
+        val period = periodService.getCurrentAttendancePeriod()
 
         val attendance = attendanceRepository.findByUserIdAndPeriodAndDate(user.id!!, period, LocalDate.now())
             ?: throw CustomException(AttendanceError.ATTENDANCE_NOT_FOUND)

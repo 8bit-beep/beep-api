@@ -3,7 +3,7 @@ package com.b.beep.domain.scheduling
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.approval.entity.ApprovalEntity
 import com.b.beep.domain.approval.repository.ApprovalRepository
-import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.period.service.PeriodService
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.entity.AttendanceEntity
@@ -24,7 +24,8 @@ class AttendanceScheduler(
     private val approvalRepository: ApprovalRepository,
     private val absenceRepository: AbsenceRepository,
     private val notificationService: NotificationService,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val periodService: PeriodService,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -39,7 +40,7 @@ class AttendanceScheduler(
     @Transactional
     fun updateCurrentStatus() {
         val today = LocalDate.now()
-        val currentPeriod = PeriodResolver.getCurrentPeriod()
+        val currentPeriod = periodService.getCurrentPeriod()
 
         val students = userRepository.findAllByRole(UserRole.STUDENT)
 
@@ -62,7 +63,7 @@ class AttendanceScheduler(
     @Scheduled(cron = "0 1 9 * * TUE-FRI")  // 1교시 (월요일 제외)
     @Scheduled(cron = "0 21 13 * * MON-THU")  // 2교시 (금요일 제외)
     fun acceptShifts() {
-        val period = PeriodResolver.getCurrentPeriod()
+        val period = periodService.getCurrentPeriod()
         val attendances = attendanceRepository
             .findByPeriodAndDateAndType(period, LocalDate.now(), AttendanceType.SHIFT_ATTEND)
 

@@ -5,7 +5,7 @@ import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.period.service.PeriodService
 import com.b.beep.domain.user.domain.UserError
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Service
@@ -17,7 +17,8 @@ import java.time.LocalDate
 class StudentManagementService(
     private val studentInfoRepository: StudentInfoRepository,
     private val userRepository: UserRepository,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val periodService: PeriodService,
 ) {
     fun createPresetAttendance(grade: Int, cls: Int, num: Int, status: AttendanceType, period: Int) {
         val studentInfo = studentInfoRepository.findByGradeAndClsAndNum(grade, cls, num)
@@ -25,7 +26,7 @@ class StudentManagementService(
 
         val user = studentInfo.user
 
-        if (period == PeriodResolver.getCurrentPeriod()) {
+        if (period == periodService.getCurrentPeriod()) {
             user.currentStatus = status
             userRepository.save(user)
         }
@@ -57,7 +58,7 @@ class StudentManagementService(
         user.currentStatus = status
         userRepository.save(user)
 
-        val period = PeriodResolver.getCurrentPeriod()
+        val period = periodService.getCurrentPeriod()
         val attendance = attendanceRepository.findByPeriodAndUserAndDate(period, user, LocalDate.now())
 
         if (attendance != null) {
