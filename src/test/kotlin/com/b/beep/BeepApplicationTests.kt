@@ -1,6 +1,5 @@
 package com.b.beep
 
-import com.b.beep.domain.notification.config.FirebaseConfig
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
@@ -44,15 +43,12 @@ class BeepApplicationTests {
         }
     }
 
-    // S3와 Firebase는 Mock으로 처리 (실제 서비스 불필요)
+    // S3는 Mock으로 처리 (실제 서비스 불필요)
     @MockitoBean
     private lateinit var s3Client: S3Client
 
     @MockitoBean
     private lateinit var s3Presigner: S3Presigner
-
-    @MockitoBean
-    private lateinit var firebaseConfig: FirebaseConfig
 
     @Test
     fun contextLoads() {
