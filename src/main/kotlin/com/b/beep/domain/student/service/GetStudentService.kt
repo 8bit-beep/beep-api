@@ -1,8 +1,9 @@
 package com.b.beep.domain.student.service
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.room.error.RoomError
+import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.student.controller.dto.response.StudentResponse
 import com.b.beep.domain.student.repository.StudentQueryRepository
 import com.b.beep.domain.user.domain.UserError
@@ -10,6 +11,7 @@ import com.b.beep.domain.room.fixedroom.repository.FixedRoomRepository
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -21,9 +23,12 @@ class GetStudentService(
     private val studentQueryRepository: StudentQueryRepository,
     private val studentInfoRepository: StudentInfoRepository,
     private val fixedRoomRepository: FixedRoomRepository,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val roomRepository: RoomRepository,
 ) {
-    fun getAllByRoomAndType(room: Room, type: AttendanceType): List<StudentResponse> {
+    fun getAllByRoomAndType(roomId: Long, type: AttendanceType): List<StudentResponse> {
+        val room = roomRepository.findByIdOrNull(roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val users = studentQueryRepository.findAllByStatusAndRoomAndType(room, type)
         return users.map { user ->
             val studentInfo = studentInfoRepository.findByUser(user)

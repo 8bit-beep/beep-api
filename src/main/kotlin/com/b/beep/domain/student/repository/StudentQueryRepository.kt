@@ -1,11 +1,11 @@
 package com.b.beep.domain.student.repository
 
-import com.b.beep.domain.user.entity.QFixedRoomEntity
+import com.b.beep.domain.room.entity.RoomEntity
+import com.b.beep.domain.room.fixedroom.entity.QFixedRoomEntity
 import com.b.beep.domain.user.entity.QStudentInfoEntity
 import com.b.beep.domain.user.entity.QUserEntity
 import com.b.beep.domain.user.entity.UserEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.user.domain.UserRole
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
@@ -36,7 +36,7 @@ class StudentQueryRepository(
     }
 
     fun findAllByStatusAndRoomAndType(
-        room: Room,
+        room: RoomEntity,
         type: AttendanceType,
         status: AttendanceType? = null,
     ): List<UserEntity> {
@@ -48,7 +48,7 @@ class StudentQueryRepository(
             .join(fixedRoomEntity)
             .on(fixedRoomEntity.user.id.eq(userEntity.id))
             .where(
-                fixedRoomEntity.room.eq(room),
+                fixedRoomEntity.room.id.eq(room.id),
                 fixedRoomEntity.type.eq(type),
                 status?.let { userEntity.currentStatus.eq(it) },
                 userEntity.role.eq(UserRole.STUDENT)

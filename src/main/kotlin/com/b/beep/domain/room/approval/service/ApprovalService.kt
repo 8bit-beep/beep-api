@@ -1,16 +1,14 @@
 package com.b.beep.domain.room.approval.service
 
-import com.b.beep.global.security.ContextHolder
-import com.b.beep.domain.room.approval.controller.dto.request.ApproveRequest
-import com.b.beep.domain.room.approval.repository.ApprovalRepository
-import com.b.beep.global.exception.CustomException
-import com.b.beep.domain.room.approval.entity.ApprovalEntity
-import com.b.beep.domain.room.approval.error.ApprovalError
 import com.b.beep.domain.attendance.domain.PeriodResolver
-import com.b.beep.domain.attendance.domain.enums.Room
+import com.b.beep.domain.room.approval.controller.dto.request.ApproveRequest
 import com.b.beep.domain.room.approval.controller.dto.response.ApprovalResponse
+import com.b.beep.domain.room.approval.error.ApprovalError
+import com.b.beep.domain.room.approval.repository.ApprovalRepository
 import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
+import com.b.beep.global.exception.CustomException
+import com.b.beep.global.security.ContextHolder
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
