@@ -1,4 +1,4 @@
-package com.b.beep.domain.approval.error
+package com.b.beep.domain.room.approval.error
 
 import com.b.beep.global.exception.CustomError
 import org.springframework.http.HttpStatus

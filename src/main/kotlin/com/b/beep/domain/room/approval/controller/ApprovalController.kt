@@ -1,9 +1,9 @@
-package com.b.beep.domain.approval.controller
+package com.b.beep.domain.room.approval.controller
 
-import com.b.beep.domain.approval.controller.docs.ApprovalDocs
-import com.b.beep.domain.approval.controller.dto.request.ApproveRequest
-import com.b.beep.domain.approval.controller.dto.response.ApprovalResponse
-import com.b.beep.domain.approval.service.ApprovalService
+import com.b.beep.domain.room.approval.controller.docs.ApprovalDocs
+import com.b.beep.domain.room.approval.controller.dto.request.ApproveRequest
+import com.b.beep.domain.room.approval.controller.dto.response.ApprovalResponse
+import com.b.beep.domain.room.approval.service.ApprovalService
 import com.b.beep.domain.attendance.domain.enums.Room
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -22,18 +22,18 @@ class ApprovalController(
     @GetMapping("/not")
     @ResponseStatus(HttpStatus.OK)
     override fun getAllNotApprovedRooms(): List<ApprovalResponse> {
-        return approvalService.getNotApprovedRooms().map { ApprovalResponse.of(it) }
+        return approvalService.getNotApprovedRooms()
     }
 
-    @GetMapping("/{roomName}")
+    @GetMapping("/{roomId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun getApprovalStatusByRoom(@PathVariable roomName: Room): ApprovalResponse {
-        return ApprovalResponse.of(approvalService.getApprovalStatusByRoom(roomName))
+    override fun getApprovalStatusByRoom(@PathVariable roomId: Long): ApprovalResponse {
+        return approvalService.getApprovalStatusByRoom(roomId)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     override fun getAllApprovals(): List<ApprovalResponse> {
-        return approvalService.getAllApprovalStatus().map { ApprovalResponse.of(it) }
+        return approvalService.getAllApprovalStatus()
     }
 }

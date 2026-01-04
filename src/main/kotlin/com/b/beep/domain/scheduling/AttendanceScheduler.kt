@@ -5,10 +5,10 @@ import com.b.beep.domain.room.approval.entity.ApprovalEntity
 import com.b.beep.domain.room.approval.repository.ApprovalRepository
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.entity.AttendanceEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.notification.service.NotificationService
+import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.domain.UserRole
 import com.b.beep.domain.user.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -23,7 +23,8 @@ class AttendanceScheduler(
     private val approvalRepository: ApprovalRepository,
     private val absenceRepository: AbsenceRepository,
     private val notificationService: NotificationService,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val roomRepository: RoomRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -111,7 +112,7 @@ class AttendanceScheduler(
     fun createApprovalsToday() {
         val today = LocalDate.now()
         val periods = listOf(1, 2, 3)
-        val rooms = Room.entries.toTypedArray()
+        val rooms = roomRepository.findAll()
 
         val approvals = rooms.flatMap { room ->
             periods.map { period ->
