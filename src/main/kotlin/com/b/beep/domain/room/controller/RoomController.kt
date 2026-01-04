@@ -24,6 +24,11 @@ class RoomController(
         return roomService.getRooms()
     }
 
+    @GetMapping("/{roomId}")
+    override fun getRoom(@PathVariable roomId: Long): RoomResponse {
+        return roomService.getRoom(roomId)
+    }
+
     @PatchMapping("/{roomId}")
     override fun updateRoom(
         @PathVariable roomId: Long,

@@ -9,11 +9,13 @@ import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class RoomService(
     private val roomRepository: RoomRepository,
 ) {
+    @Transactional
     fun createRoom(request: CreateRoomRequest) {
         roomRepository.save(
             RoomEntity(
@@ -24,10 +26,19 @@ class RoomService(
         )
     }
 
+    @Transactional(readOnly = true)
     fun getRooms(): List<RoomResponse> {
         return roomRepository.findAll().map { RoomResponse.from(it) }
     }
 
+    @Transactional(readOnly = true)
+    fun getRoom(roomId: Long): RoomResponse {
+        val room = roomRepository.findByIdOrNull(roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        return RoomResponse.from(room)
+    }
+
+    @Transactional
     fun updateRoom(roomId: Long, request: UpdateRoomRequest) {
         val room = roomRepository.findByIdOrNull(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
@@ -35,8 +46,11 @@ class RoomService(
         room.name = request.name ?: room.name
         room.grade = request.grade ?: room.grade
         room.classNumber = request.classNumber ?: room.classNumber
+
+        roomRepository.save(room)
     }
 
+    @Transactional
     fun deleteRoom(roomId: Long) {
         val room = roomRepository.findByIdOrNull(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)

@@ -14,6 +14,9 @@ interface RoomDocs {
     @Operation(summary = "실 목록 조회", description = "전체 실 목록을 조회합니다.")
     fun getRooms(): List<RoomResponse>
 
+    @Operation(summary = "실 단일 조회", description = "실을 조회합니다.")
+    fun getRoom(roomId: Long): RoomResponse
+
     @Operation(summary = "실 수정", description = "실을 수정합니다.")
     fun updateRoom(roomId: Long, request: UpdateRoomRequest)
 

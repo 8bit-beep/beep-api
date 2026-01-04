@@ -1,5 +1,6 @@
 package com.b.beep.domain.room.entity
 
+import com.b.beep.global.common.entity.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -21,4 +22,4 @@ class RoomEntity(
 
     @Column
     var classNumber: Long? = null,
-)
+) : BaseEntity()
