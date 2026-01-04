@@ -1,7 +1,6 @@
 package com.b.beep.domain.room.fixedroom.repository
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.room.entity.RoomEntity
 import com.b.beep.domain.room.fixedroom.entity.FixedRoomEntity
 import com.b.beep.domain.user.entity.UserEntity
