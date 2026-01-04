@@ -4,7 +4,6 @@ import com.b.beep.domain.room.approval.controller.docs.ApprovalDocs
 import com.b.beep.domain.room.approval.controller.dto.request.ApproveRequest
 import com.b.beep.domain.room.approval.controller.dto.response.ApprovalResponse
 import com.b.beep.domain.room.approval.service.ApprovalService
-import com.b.beep.domain.attendance.domain.enums.Room
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
