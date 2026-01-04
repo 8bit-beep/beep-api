@@ -7,7 +7,7 @@ import com.b.beep.domain.student.controller.dto.response.StudentResponse
 import com.b.beep.domain.student.repository.StudentQueryRepository
 import com.b.beep.domain.user.domain.UserError
 import com.b.beep.domain.user.domain.UserRole
-import com.b.beep.domain.user.repository.FixedRoomRepository
+import com.b.beep.domain.room.fixedroom.repository.FixedRoomRepository
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
