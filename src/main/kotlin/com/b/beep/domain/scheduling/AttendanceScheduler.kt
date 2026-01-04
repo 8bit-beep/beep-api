@@ -1,8 +1,8 @@
 package com.b.beep.domain.scheduling
 
 import com.b.beep.domain.absence.repository.AbsenceRepository
-import com.b.beep.domain.approval.entity.ApprovalEntity
-import com.b.beep.domain.approval.repository.ApprovalRepository
+import com.b.beep.domain.room.approval.entity.ApprovalEntity
+import com.b.beep.domain.room.approval.repository.ApprovalRepository
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
@@ -16,7 +16,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 @Component
 class AttendanceScheduler(

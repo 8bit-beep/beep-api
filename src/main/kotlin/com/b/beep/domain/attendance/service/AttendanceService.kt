@@ -5,10 +5,13 @@ import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.user.repository.FixedRoomRepository
+import com.b.beep.domain.room.error.RoomError
+import com.b.beep.domain.room.fixedroom.repository.FixedRoomRepository
+import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -20,11 +23,14 @@ class AttendanceService(
     private val contextHolder: ContextHolder,
     private val fixedRoomRepository: FixedRoomRepository,
     private val userRepository: UserRepository,
+    private val roomRepository: RoomRepository
 ) {
     @Transactional
     fun attend(request: AttendRequest) {
         val user = contextHolder.user
         val period = PeriodResolver.getCurrentAttendancePeriod()
+        val room = roomRepository.findByIdOrNull(request.roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
 
         // 고정실 검증 - 해당 타입의 모든 고정실 중 요청한 room이 있는지 확인
         val fixedRooms = fixedRoomRepository.findAllByUserAndType(user, request.attendanceType)
@@ -33,7 +39,7 @@ class AttendanceService(
             throw CustomException(AttendanceError.NOT_EXISTS_ATTEND_TYPE)
         }
 
-        val hasMatchingRoom = fixedRooms.any { it.room == request.room }
+        val hasMatchingRoom = fixedRooms.any { it.room.id == room.id }
         if (!hasMatchingRoom) {
             throw CustomException(AttendanceError.ROOM_MISMATCH)
         }
@@ -46,7 +52,7 @@ class AttendanceService(
         }
 
         attendance.type = request.attendanceType
-        attendance.room = request.room
+        attendance.room = room
         user.currentStatus = request.attendanceType
 
         attendanceRepository.save(attendance)

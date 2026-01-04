@@ -1,8 +1,8 @@
 package com.b.beep.domain.attendance.entity
 
-import com.b.beep.domain.user.entity.UserEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
+import com.b.beep.domain.room.entity.RoomEntity
+import com.b.beep.domain.user.entity.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -28,9 +28,9 @@ class AttendanceEntity(
     @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "room", nullable = true)
-    var room: Room? = null,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = true)
+    var room: RoomEntity? = null,
 
     @Column(nullable = false)
     val date: LocalDate,
