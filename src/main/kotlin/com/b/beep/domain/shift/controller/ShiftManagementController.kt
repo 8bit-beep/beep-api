@@ -17,13 +17,13 @@ class ShiftManagementController(
     override fun getShifts(): List<ShiftResponse> {
         return shiftManagementService.getAll().map {
             val studentInfo = userService.getStudentInfo(it.user)
-            ShiftResponse.of(it, studentInfo)
+            ShiftResponse.from(it, studentInfo)
         }
     }
 
     @PatchMapping("/{shiftId}/status")
     override fun updateShiftStatus(
-        @PathVariable("shiftId") shiftId: Long,
+        @PathVariable shiftId: Long,
         @RequestParam status: ShiftStatus
     ) {
         shiftManagementService.updateStatus(shiftId, status)

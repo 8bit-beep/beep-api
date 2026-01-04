@@ -1,5 +1,7 @@
 package com.b.beep.domain.shift.service
 
+import com.b.beep.domain.room.error.RoomError
+import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.shift.controller.dto.request.CreateShiftRequest
 import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
@@ -20,9 +22,10 @@ import java.time.ZoneId
 class ShiftService(
     private val shiftRepository: ShiftRepository,
     private val contextHolder: ContextHolder,
+    private val roomRepository: RoomRepository,
 ) {
     @Transactional
-    fun create(request: CreateShiftRequest) {
+    fun createShift(request: CreateShiftRequest) {
         val user = contextHolder.user
 
         if (shiftRepository.existsByUserAndDateAndPeriod(user, request.date, request.period))
@@ -31,9 +34,12 @@ class ShiftService(
         if (!isShiftTimeValid(request.date, request.period))
             throw CustomException(ShiftError.PASSED_TIME)
 
+        val room = roomRepository.findByIdOrNull(request.roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+
         val shift = ShiftEntity(
             user = user,
-            room = request.room,
+            room = room,
             period = request.period,
             reason = request.reason,
             status = ShiftStatus.WAITING,
@@ -42,7 +48,7 @@ class ShiftService(
         shiftRepository.save(shift)
     }
 
-    fun update(id: Long, request: UpdateShiftRequest) {
+    fun updateShift(id: Long, request: UpdateShiftRequest) {
         val shift = shiftRepository.findByIdOrNull(id)
             ?: throw CustomException(ShiftError.SHIFT_NOT_FOUND)
 
@@ -51,8 +57,11 @@ class ShiftService(
 
         request.reason?.let { shift.reason = it }
         request.date?.let { shift.date = it }
-        request.room?.let { shift.room = it }
         request.period?.let { shift.period = it }
+        request.roomId?.let {
+            shift.room = roomRepository.findByIdOrNull(it)
+                ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        }
 
         if (shiftRepository.existsByUserAndDateAndPeriod(shift.user, shift.date, shift.period))
             throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
@@ -63,7 +72,7 @@ class ShiftService(
         shiftRepository.save(shift)
     }
 
-    fun delete(id: Long) {
+    fun deleteShift(id: Long) {
         shiftRepository.deleteById(id)
     }
 

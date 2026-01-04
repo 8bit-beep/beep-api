@@ -1,11 +1,10 @@
 package com.b.beep.domain.shift.controller.dto.request
 
-import com.b.beep.domain.attendance.domain.enums.Room
 import java.time.LocalDate
 
 data class UpdateShiftRequest(
     val shiftId: Long,
-    val room: Room?,
+    val roomId: Long?,
     val reason: String?,
     val period: Int?,
     val date: LocalDate?,

@@ -1,13 +1,14 @@
 package com.b.beep.domain.shift.service
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.domain.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.shift.entity.ShiftEntity
-import com.b.beep.domain.shift.repository.ShiftRepository
+import com.b.beep.domain.room.entity.RoomEntity
+import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.domain.error.ShiftError
+import com.b.beep.domain.shift.entity.ShiftEntity
+import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.user.entity.UserEntity
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
@@ -39,7 +40,7 @@ class ShiftManagementService(
         shiftRepository.save(shift)
     }
 
-    private fun updateAttendanceWithNext(period: Int, user: UserEntity, room: Room, status: ShiftStatus) {
+    private fun updateAttendanceWithNext(period: Int, user: UserEntity, room: RoomEntity, status: ShiftStatus) {
         val today = LocalDate.now()
         updateAttendanceForShift(period, user, room, today, status)
         updateAttendanceForShift(period + 1, user, room, today, status)
@@ -48,7 +49,7 @@ class ShiftManagementService(
     private fun updateAttendanceForShift(
         period: Int,
         user: UserEntity,
-        room: Room,
+        room: RoomEntity,
         date: LocalDate,
         status: ShiftStatus
     ) {

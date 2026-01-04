@@ -18,25 +18,25 @@ class ShiftController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     override fun createShift(@RequestBody request: CreateShiftRequest) {
-        shiftService.create(request)
+        shiftService.createShift(request)
     }
 
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     override fun getMyShifts(): List<ShiftResponse> {
         val studentInfo = userService.getMyStudentInfo()
-        return shiftService.getMyShifts().map { ShiftResponse.of(it, studentInfo) }
+        return shiftService.getMyShifts().map { ShiftResponse.from(it, studentInfo) }
     }
 
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
     override fun updateShift(@RequestBody request: UpdateShiftRequest) {
-        shiftService.update(request.shiftId, request)
+        shiftService.updateShift(request.shiftId, request)
     }
 
     @DeleteMapping("/{shiftId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     override fun deleteShift(@PathVariable("shiftId") id: Long) {
-        shiftService.delete(id)
+        shiftService.deleteShift(id)
     }
 }
