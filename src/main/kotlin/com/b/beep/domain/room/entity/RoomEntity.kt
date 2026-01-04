@@ -14,7 +14,7 @@ class RoomEntity(
     val id: Long? = null,
 
     @Column(nullable = false, unique = true)
-    val name: String,
+    var name: String,
 
     @Column
     var grade: Long? = null,
