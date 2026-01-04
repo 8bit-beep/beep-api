@@ -93,7 +93,7 @@ class FixedRoomService(
         val existingFixedRooms = fixedRoomRepository.findAllByUser(user)
 
         return existingFixedRooms.any {
-            it.id != fixedRoomId && it.type == finalType && it.room == finalRoom
+            it.id != fixedRoomId && it.type == finalType && it.room.id == finalRoom.id
         }
     }
 }
