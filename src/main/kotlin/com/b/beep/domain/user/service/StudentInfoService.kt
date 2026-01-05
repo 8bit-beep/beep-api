@@ -66,9 +66,9 @@ class StudentInfoService(
 
             val newStudentInfo = StudentInfoEntity(
                 user = user,
-                grade = dodamUser.grade,
-                cls = dodamUser.room,
-                num = dodamUser.number
+                grade = dodamUser.grade!!,
+                cls = dodamUser.room!!,
+                num = dodamUser.number!!
             )
             studentInfoRepository.save(newStudentInfo)
         }

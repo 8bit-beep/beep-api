@@ -23,31 +23,6 @@ class CustomOAuth2UserService : OAuth2UserService<OAuth2UserRequest, OAuth2User>
 
         val attributes = oauth2User.attributes
 
-        println(attributes.toString())
-
-        val email = attributes["email"] as? String
-            ?: throw CustomException(AuthError.NULL_EMAIL)
-        val name = attributes["name"] as? String
-            ?:throw CustomException(AuthError.NULL_NAME)
-        val grade = (attributes["grade"] as? Number)?.toInt()
-            ?:throw CustomException(AuthError.NULL_STU_NUM)
-        val room = (attributes["room"] as? Number)?.toInt()
-            ?:throw CustomException(AuthError.NULL_STU_NUM)
-        val number = (attributes["number"] as? Number)?.toInt()
-            ?:throw CustomException(AuthError.NULL_STU_NUM)
-
-        val dauthUser = DAuthUser(
-            id = attributes["sub"] as String,
-            name = name,
-            email = email,
-            profileImage = attributes["profile_image"] as? String,
-            role = attributes["role"] as? String,
-            phone = attributes["phone"] as? String,
-            grade = grade,
-            room = room,
-            number = number
-        )
-
         return DefaultOAuth2User(
             setOf(SimpleGrantedAuthority("ROLE_USER")),
             attributes,

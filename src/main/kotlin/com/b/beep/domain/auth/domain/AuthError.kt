@@ -8,6 +8,7 @@ enum class AuthError(override val status: HttpStatus, override val message: Stri
     NULL_EMAIL(HttpStatus.UNAUTHORIZED, "이메일 값이 null 입니다"),
     NULL_NAME(HttpStatus.UNAUTHORIZED, "이름 값이 null 입니다"),
     NULL_STU_NUM(HttpStatus.UNAUTHORIZED, "학번이 넘어오지 않았습니다"),
+    NULL_ROLE(HttpStatus.UNAUTHORIZED, "role이 null 입니다."),
     DAUTH_LOGIN(HttpStatus.UNAUTHORIZED, "로그인해 주세요")
 
 }

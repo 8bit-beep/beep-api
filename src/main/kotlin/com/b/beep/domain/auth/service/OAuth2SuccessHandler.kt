@@ -29,23 +29,37 @@ class OAuth2SuccessHandler(
         val oauth2User = authentication.principal as OAuth2User
         val attributes = oauth2User.attributes
 
+        val roleString = attributes["role"] as? String
+            ?: throw CustomException(AuthError.NULL_ROLE)
+
+        val role = UserRole.valueOf(roleString)
+
         val email = attributes["email"] as? String
             ?: throw CustomException(AuthError.NULL_EMAIL)
+
         val name = attributes["name"] as? String
-            ?:throw CustomException(AuthError.NULL_NAME)
-        val grade = (attributes["grade"] as? Number)?.toInt()
-            ?:throw CustomException(AuthError.NULL_STU_NUM)
-        val room = (attributes["room"] as? Number)?.toInt()
-            ?:throw CustomException(AuthError.NULL_STU_NUM)
-        val number = (attributes["number"] as? Number)?.toInt()
-            ?:throw CustomException(AuthError.NULL_STU_NUM)
+            ?: throw CustomException(AuthError.NULL_NAME)
+
+        val (grade, room, number) =
+            if (role == UserRole.STUDENT) {
+                Triple(
+                    (attributes["grade"] as? Number)?.toInt()
+                        ?: throw CustomException(AuthError.NULL_STU_NUM),
+                    (attributes["room"] as? Number)?.toInt()
+                        ?: throw CustomException(AuthError.NULL_STU_NUM),
+                    (attributes["number"] as? Number)?.toInt()
+                        ?: throw CustomException(AuthError.NULL_STU_NUM)
+                )
+            } else {
+                Triple(null, null, null)
+            }
 
         val dauthUser = DAuthUser(
             id = attributes["sub"] as String,
             name = name,
             email = email,
             profileImage = attributes["profile_image"] as? String,
-            role = attributes["role"] as? String,
+            role = roleString,
             phone = attributes["phone"] as? String,
             grade = grade,
             room = room,
