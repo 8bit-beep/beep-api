@@ -11,7 +11,7 @@ object PeriodResolver {
 
         return if (now.isAfter(LocalTime.of(9, 0)) && now.isBefore(LocalTime.of(9, 20))) 1
         else if (now.isAfter(LocalTime.of(13, 20)) && now.isBefore(LocalTime.of(13, 40))) 2
-        else if (now.isAfter(LocalTime.of(19, 0)) && now.isBefore(LocalTime.of(19, 20))) 3
+        else if (now.isAfter(LocalTime.of(19, 0)) && now.isBefore(LocalTime.of(19, 40))) 3
         else throw CustomException(AttendanceError.TIME_UNAVAILABLE)
     }
 

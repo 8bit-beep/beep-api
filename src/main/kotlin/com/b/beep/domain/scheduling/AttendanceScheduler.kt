@@ -164,7 +164,7 @@ class AttendanceScheduler(
     // 미출석자 알림 전송
     @Scheduled(cron = "0 15 9 * * TUE-FRI")  // 1교시 9:00 ~ 9:20 (월요일 제외)
     @Scheduled(cron = "0 35 13 * * MON-THU")  // 2교시 13:20 ~ 13:40 (금요일 제외)
-    @Scheduled(cron = "0 15 19 * * MON-THU")  // 3교시 19:00 ~ 19:20 (금요일 제외)
+    @Scheduled(cron = "0 35 19 * * MON-THU")  // 3교시 19:00 ~ 19:20 (금요일 제외)
     fun sendAttendanceReminderToNotAttended() {
         logger.info("미출석자 알림 전송 시작")
         notificationService.sendToNotAttended(

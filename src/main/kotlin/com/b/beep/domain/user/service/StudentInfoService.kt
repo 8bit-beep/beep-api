@@ -76,7 +76,7 @@ class StudentInfoService(
 
     fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUserResponse): StudentInfoEntity {
         return studentInfoRepository.findByUser(user) ?: run {
-            listOf(8, 9, 10, 11).forEach {
+            listOf(1, 2, 3).forEach {
                 attendanceRepository.save(
                     AttendanceEntity(
                         period = it,
