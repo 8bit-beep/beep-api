@@ -16,7 +16,7 @@ class FcmTokenService(
     fun saveToken(request: SaveTokenRequest) {
         val user = contextHolder.user
 
-        val existingToken = fcmTokenRepository.findByUserAndDevice(user, request.device)
+        val existingToken = fcmTokenRepository.findByUser(user)
 
         if (existingToken != null) {
             existingToken.token = request.token

@@ -5,7 +5,10 @@ import com.b.beep.global.common.entity.BaseEntity
 import jakarta.persistence.*
 
 @Entity
-@Table(name = "fcm_tokens")
+@Table(
+    name = "fcm_tokens",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])]
+)
 class FcmTokenEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,

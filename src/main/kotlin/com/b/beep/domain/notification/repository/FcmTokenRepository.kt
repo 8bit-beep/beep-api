@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface FcmTokenRepository : JpaRepository<FcmTokenEntity, Long> {
     fun findByUserAndDevice(user: UserEntity, device: String): FcmTokenEntity?
+    fun findByUser(user: UserEntity): FcmTokenEntity?
 }
