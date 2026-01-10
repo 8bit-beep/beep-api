@@ -8,16 +8,20 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long> {
     fun findAllByUser(user: UserEntity): List<StudentScheduleEntity>
+    fun findByUserAndDayOfWeekAndPeriod(
+        user: UserEntity,
+        dayOfWeek: DayOfWeek,
+        period: Int
+    ): StudentScheduleEntity?
     fun findByUserAndDayOfWeekAndPeriodAndType(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
         period: Int,
         type: AttendanceType
     ): StudentScheduleEntity?
-    fun existsByUserAndDayOfWeekAndPeriodAndType(
+    fun existsByUserAndDayOfWeekAndPeriod(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
-        period: Int,
-        type: AttendanceType
+        period: Int
     ): Boolean
 }

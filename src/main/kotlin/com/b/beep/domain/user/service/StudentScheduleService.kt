@@ -24,8 +24,8 @@ class StudentScheduleService(
         validateDayOfWeek(request.dayOfWeek)
         validatePeriod(request.period)
 
-        if (studentScheduleRepository.existsByUserAndDayOfWeekAndPeriodAndType(
-                user, request.dayOfWeek, request.period, request.type
+        if (studentScheduleRepository.existsByUserAndDayOfWeekAndPeriod(
+                user, request.dayOfWeek, request.period
             )) {
             throw CustomException(StudentScheduleError.ALREADY_EXIST_SCHEDULE)
         }
@@ -54,14 +54,12 @@ class StudentScheduleService(
 
         val finalDayOfWeek = request.dayOfWeek ?: schedule.dayOfWeek
         val finalPeriod = request.period ?: schedule.period
-        val finalType = request.type ?: schedule.type
 
         val existingSchedules = studentScheduleRepository.findAllByUser(user)
         val conflict = existingSchedules.any {
             it.id != scheduleId &&
             it.dayOfWeek == finalDayOfWeek &&
-            it.period == finalPeriod &&
-            it.type == finalType
+            it.period == finalPeriod
         }
         if (conflict) {
             throw CustomException(StudentScheduleError.ALREADY_EXIST_SCHEDULE)

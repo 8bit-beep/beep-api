@@ -11,7 +11,7 @@ import jakarta.persistence.*
     uniqueConstraints = [
         UniqueConstraint(
             name = "uk_student_schedule",
-            columnNames = ["user_id", "day_of_week", "period", "type"]
+            columnNames = ["user_id", "day_of_week", "period"]
         )
     ]
 )

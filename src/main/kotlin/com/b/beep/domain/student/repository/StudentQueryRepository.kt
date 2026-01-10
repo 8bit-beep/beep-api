@@ -46,7 +46,7 @@ class StudentQueryRepository(
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
         val today = LocalDate.now()
         val dayOfWeek = today.dayOfWeek
-        val period = PeriodResolver.getCurrentAttendancePeriod()
+        val period = PeriodResolver.getCurrentPeriod()
 
         return queryFactory
             .selectFrom(userEntity)
