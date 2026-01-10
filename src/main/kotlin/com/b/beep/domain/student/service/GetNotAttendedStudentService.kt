@@ -7,7 +7,6 @@ import com.b.beep.domain.student.controller.dto.response.StudentResponse
 import com.b.beep.domain.student.repository.StudentQueryRepository
 import com.b.beep.domain.user.domain.UserError
 import com.b.beep.domain.user.domain.UserRole
-import com.b.beep.domain.user.repository.FixedRoomRepository
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
@@ -21,7 +20,6 @@ class GetNotAttendedStudentService(
     private val userRepository: UserRepository,
     private val studentQueryRepository: StudentQueryRepository,
     private val studentInfoRepository: StudentInfoRepository,
-    private val fixedRoomRepository: FixedRoomRepository,
     private val attendanceRepository: AttendanceRepository
 ) {
     fun getAll(type: AttendanceType): List<StudentResponse> {
@@ -29,9 +27,8 @@ class GetNotAttendedStudentService(
         return users.map { user ->
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
-            val fixedRooms = fixedRoomRepository.findAllByUserAndType(user, type)
             val attendances = attendanceRepository.findByUserAndDate(user, LocalDate.now())
-            StudentResponse.of(user, studentInfo, fixedRooms, attendances)
+            StudentResponse.of(user, studentInfo, attendances)
         }
     }
 
@@ -40,9 +37,8 @@ class GetNotAttendedStudentService(
         return users.map { user ->
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
-            val fixedRooms = fixedRoomRepository.findAllByUserAndType(user, type)
             val attendances = attendanceRepository.findByUserAndDate(user, LocalDate.now())
-            StudentResponse.of(user, studentInfo, fixedRooms, attendances)
+            StudentResponse.of(user, studentInfo, attendances)
         }
     }
 
@@ -52,7 +48,7 @@ class GetNotAttendedStudentService(
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
             val attendances = attendanceRepository.findByUserAndDate(user, LocalDate.now())
-            StudentResponse.of(user, studentInfo, null, attendances)
+            StudentResponse.of(user, studentInfo, attendances)
         }
     }
 }
