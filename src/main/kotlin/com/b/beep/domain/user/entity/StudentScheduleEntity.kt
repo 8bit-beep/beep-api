@@ -2,17 +2,33 @@ package com.b.beep.domain.user.entity
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
+import java.time.DayOfWeek
 import jakarta.persistence.*
 
 @Entity
-@Table(name = "fixed_rooms")
-class FixedRoomEntity(
+@Table(
+    name = "student_schedules",
+    uniqueConstraints = [
+        UniqueConstraint(
+            name = "uk_student_schedule",
+            columnNames = ["user_id", "day_of_week", "period"]
+        )
+    ]
+)
+class StudentScheduleEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week", nullable = false)
+    var dayOfWeek: DayOfWeek,
+
+    @Column(name = "period", nullable = false)
+    var period: Int,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)

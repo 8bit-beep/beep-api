@@ -1,14 +1,16 @@
 package com.b.beep.domain.student.repository
 
-import com.b.beep.domain.user.entity.QFixedRoomEntity
 import com.b.beep.domain.user.entity.QStudentInfoEntity
 import com.b.beep.domain.user.entity.QUserEntity
+import com.b.beep.domain.user.entity.QStudentScheduleEntity
 import com.b.beep.domain.user.entity.UserEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
+import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.user.domain.UserRole
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 
 @Repository
 class StudentQueryRepository(
@@ -41,15 +43,20 @@ class StudentQueryRepository(
         status: AttendanceType? = null,
     ): List<UserEntity> {
         val userEntity = QUserEntity.userEntity
-        val fixedRoomEntity = QFixedRoomEntity.fixedRoomEntity
+        val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
+        val today = LocalDate.now()
+        val dayOfWeek = today.dayOfWeek
+        val period = PeriodResolver.getCurrentPeriod()
 
         return queryFactory
             .selectFrom(userEntity)
-            .join(fixedRoomEntity)
-            .on(fixedRoomEntity.user.id.eq(userEntity.id))
+            .join(scheduleEntity)
+            .on(scheduleEntity.user.id.eq(userEntity.id))
             .where(
-                fixedRoomEntity.room.eq(room),
-                fixedRoomEntity.type.eq(type),
+                scheduleEntity.room.eq(room),
+                scheduleEntity.type.eq(type),
+                scheduleEntity.dayOfWeek.eq(dayOfWeek),
+                scheduleEntity.period.eq(period),
                 status?.let { userEntity.currentStatus.eq(it) },
                 userEntity.role.eq(UserRole.STUDENT)
             )
