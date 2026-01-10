@@ -19,8 +19,8 @@ class StudentScheduleController(
         studentScheduleService.add(request)
     }
 
-    @GetMapping
-    override fun getSchedules(): ResponseEntity<BaseResponse<List<StudentScheduleResponse>>> {
+    @GetMapping("/me")
+    override fun getMySchedules(): ResponseEntity<BaseResponse<List<StudentScheduleResponse>>> {
         return BaseResponse.of(studentScheduleService.getAll().map { StudentScheduleResponse.of(it) })
     }
 

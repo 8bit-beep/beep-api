@@ -100,7 +100,7 @@ class StudentScheduleService(
     }
 
     private fun validatePeriod(period: Int) {
-        if (period !in listOf(8, 9, 10)) {
+        if (period !in listOf(1, 2, 3)) {
             throw CustomException(StudentScheduleError.INVALID_PERIOD)
         }
     }

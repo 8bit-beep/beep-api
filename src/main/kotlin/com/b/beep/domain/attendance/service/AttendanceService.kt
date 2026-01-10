@@ -35,7 +35,7 @@ class AttendanceService(
         )
 
         if (schedule == null) {
-            throw CustomException(AttendanceError.NOT_EXISTS_ATTEND_TYPE)
+            throw CustomException(AttendanceError.SCHEDULE_NOT_FOUND)
         }
 
         if (schedule.room != request.room) {

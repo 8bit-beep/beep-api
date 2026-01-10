@@ -13,8 +13,8 @@ interface StudentScheduleDocs {
     @Operation(summary = "스케줄 추가", description = "교시별 실을 등록합니다.")
     fun addSchedule(request: AddStudentScheduleRequest)
 
-    @Operation(summary = "스케줄 목록 조회", description = "등록된 스케줄 목록을 조회합니다.")
-    fun getSchedules(): ResponseEntity<BaseResponse<List<StudentScheduleResponse>>>
+    @Operation(summary = "내 스케줄 조회", description = "로그인한 사용자의 스케줄 목록을 조회합니다.")
+    fun getMySchedules(): ResponseEntity<BaseResponse<List<StudentScheduleResponse>>>
 
     @Operation(summary = "스케줄 수정", description = "스케줄 정보를 수정합니다.")
     fun updateSchedule(scheduleId: Long, request: UpdateStudentScheduleRequest)
