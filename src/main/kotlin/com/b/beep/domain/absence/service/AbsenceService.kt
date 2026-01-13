@@ -58,6 +58,18 @@ class AbsenceService(
 
         validateDateRange(request.startDate, request.endDate)
 
+        val userId = absence.user.id ?: throw CustomException(UserError.USER_NOT_FOUND)
+        val hasOverlappingAbsence = absenceRepository.existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(
+            userId = userId,
+            endDate = request.endDate,
+            startDate = request.startDate,
+            id = id
+        )
+
+        if (hasOverlappingAbsence) {
+            throw CustomException(AbsenceError.ABSENCE_ALREADY_EXISTS)
+        }
+
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason

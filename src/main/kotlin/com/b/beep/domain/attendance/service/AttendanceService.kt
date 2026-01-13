@@ -6,7 +6,6 @@ import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
-import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
 import org.springframework.stereotype.Service
@@ -20,7 +19,6 @@ class AttendanceService(
     private val attendanceRepository: AttendanceRepository,
     private val contextHolder: ContextHolder,
     private val studentScheduleRepository: StudentScheduleRepository,
-    private val userRepository: UserRepository,
     private val periodResolver: PeriodResolver,
 ) {
     @Transactional
@@ -51,11 +49,8 @@ class AttendanceService(
 
         attendance.type = request.attendanceType
         attendance.room = request.room
-        user.currentStatus = request.attendanceType
 
         attendanceRepository.save(attendance)
-
-        userRepository.save(user)
     }
 
     @Transactional
@@ -68,9 +63,7 @@ class AttendanceService(
 
         attendance.type = AttendanceType.NOT_ATTEND
         attendance.room = null
-        user.currentStatus = AttendanceType.NOT_ATTEND
 
         attendanceRepository.save(attendance)
-        userRepository.save(user)
     }
 }

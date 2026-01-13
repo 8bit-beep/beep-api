@@ -5,8 +5,8 @@ import com.b.beep.domain.user.entity.StudentInfoEntity
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.domain.user.domain.UserRole
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
@@ -28,13 +28,13 @@ class StudentInfoService(
             val newUser = UserEntity(
                 email = email,
                 username = dodamUser.name,
-                role = if (dodamUser.role== "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
-                profileImage = dodamUser.profileImage,
-                currentStatus = AttendanceType.NOT_ATTEND
+                role = if (dodamUser.role == "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
+                profileImage = dodamUser.profileImage
             )
             userRepository.save(newUser)
         }
     }
+
     fun getOrCreateUser(dodamUser: DAuthUserResponse): UserEntity {
         val email = dodamUser.data.email
 
@@ -43,8 +43,7 @@ class StudentInfoService(
                 email = email,
                 username = dodamUser.data.name,
                 role = if (dodamUser.data.role == "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
-                profileImage = dodamUser.data.profileImage,
-                currentStatus = AttendanceType.NOT_ATTEND
+                profileImage = dodamUser.data.profileImage
             )
             userRepository.save(newUser)
         }

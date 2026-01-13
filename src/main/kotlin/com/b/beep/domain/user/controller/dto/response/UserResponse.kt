@@ -12,10 +12,14 @@ data class UserResponse(
     val role: UserRole,
     val profileImage: String? = null,
     var studentInfo: StudentInfoResponse? = null,
-    val currentStatus: AttendanceType
+    val currentStatus: AttendanceType? = null
 ) {
     companion object {
-        fun of(user: UserEntity, studentInfo: StudentInfoEntity? = null): UserResponse {
+        fun of(
+            user: UserEntity,
+            studentInfo: StudentInfoEntity? = null,
+            currentStatus: AttendanceType? = null
+        ): UserResponse {
             return UserResponse(
                 id = user.id,
                 email = user.email,
@@ -23,7 +27,7 @@ data class UserResponse(
                 role = user.role,
                 profileImage = user.profileImage,
                 studentInfo = studentInfo?.let { StudentInfoResponse.of(it) },
-                currentStatus = user.currentStatus
+                currentStatus = currentStatus
             )
         }
     }

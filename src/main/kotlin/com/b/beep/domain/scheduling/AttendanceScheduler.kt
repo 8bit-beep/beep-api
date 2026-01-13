@@ -3,7 +3,6 @@ package com.b.beep.domain.scheduling
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.approval.entity.ApprovalEntity
 import com.b.beep.domain.approval.repository.ApprovalRepository
-import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.entity.AttendanceEntity
@@ -16,7 +15,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 @Component
 class AttendanceScheduler(
@@ -24,57 +22,13 @@ class AttendanceScheduler(
     private val approvalRepository: ApprovalRepository,
     private val absenceRepository: AbsenceRepository,
     private val notificationService: NotificationService,
-    private val attendanceRepository: AttendanceRepository,
-    private val periodResolver: PeriodResolver
+    private val attendanceRepository: AttendanceRepository
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     // 로깅디비랑 백업디비 만들기
 
-    /*
-    * 현재 유저의 출석 상태 업데이트
-    * */
-    @Scheduled(cron = "1 21 13 * * MON-THU")
-    @Scheduled(cron = "1 1 19 * * MON-THU")
-    @Scheduled(cron = "1 1 9 * * FRI")  // 금요일 1교시
-    @Transactional
-    fun updateCurrentStatus() {
-        val today = LocalDate.now()
-        val currentPeriod = periodResolver.getCurrentPeriod()
 
-        val students = userRepository.findAllByRole(UserRole.STUDENT)
-
-        students.forEach { student ->
-            val currentAttendance = attendanceRepository
-                .findByPeriodAndUserAndDate(currentPeriod, student, today)
-
-            currentAttendance?.let { attendance ->
-                    // 사용자의 현재 상태 업데이트
-                    student.currentStatus = attendance.type
-            }
-        }
-
-        userRepository.saveAll(students)
-    }
-
-    /*
-    * 실이동 수락하기
-    * */
-    @Scheduled(cron = "0 1 9 * * TUE-FRI")  // 1교시 (월요일 제외)
-    @Scheduled(cron = "0 21 13 * * MON-THU")  // 2교시 (금요일 제외)
-    fun acceptShifts() {
-        val period = periodResolver.getCurrentPeriod()
-        val attendances = attendanceRepository
-            .findByPeriodAndDateAndType(period, LocalDate.now(), AttendanceType.SHIFT_ATTEND)
-
-        attendances.forEach { attendance ->
-            val user = attendance.user
-
-            user.currentStatus = AttendanceType.SHIFT_ATTEND
-
-            userRepository.save(user)
-        }
-    }
 
     /*
     * 오늘의 출석 레코드 생성
@@ -85,12 +39,6 @@ class AttendanceScheduler(
         val today = LocalDate.now()
         val periods = listOf(1, 2, 3)
         val students = userRepository.findAllByRole(UserRole.STUDENT)
-
-        // 모든 학생의 currentStatus를 NOT_ATTEND로 초기화
-        students.forEach { student ->
-            student.currentStatus = AttendanceType.NOT_ATTEND
-        }
-        userRepository.saveAll(students)
 
         val records = students.flatMap { student ->
             periods.map { period ->
@@ -136,13 +84,8 @@ class AttendanceScheduler(
         absences.forEach { absence ->
             val user = absence.user
 
-            user.currentStatus = AttendanceType.OUTGOING
-            userRepository.save(user)
-
-            // 출석 기록(1~3교시)도 외박으로 변경
             val attendances = attendanceRepository.findByUserAndDate(user, today)
-            attendances
-                .forEach { it.type = AttendanceType.OUTGOING }
+            attendances.forEach { it.type = AttendanceType.OUTGOING }
 
             attendanceRepository.saveAll(attendances)
         }

@@ -8,6 +8,7 @@ import java.time.LocalDate
 interface ShiftRepository : JpaRepository<ShiftEntity, Long> {
     fun findAllByUserAndDate(user: UserEntity, date: LocalDate): List<ShiftEntity>
     fun existsByUserAndDateAndPeriod(user: UserEntity, date: LocalDate, period: Int): Boolean
+    fun existsByUserAndDateAndPeriodAndIdNot(user: UserEntity, date: LocalDate, period: Int, id: Long): Boolean
     fun findAllByDateGreaterThanEqual(date: LocalDate): List<ShiftEntity>
     fun deleteByDateBefore(date: LocalDate)
 }

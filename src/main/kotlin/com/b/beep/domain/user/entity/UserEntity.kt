@@ -1,7 +1,6 @@
 package com.b.beep.domain.user.entity
 
 import com.b.beep.global.common.entity.BaseEntity
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.user.domain.UserRole
 import jakarta.persistence.*
 
@@ -22,9 +21,5 @@ class UserEntity(
     val role: UserRole,
 
     @Column(name = "profile_image", nullable = true)
-    var profileImage: String? = null,
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "current_status", nullable = false)
-    var currentStatus: AttendanceType
+    var profileImage: String? = null
 ) : BaseEntity()

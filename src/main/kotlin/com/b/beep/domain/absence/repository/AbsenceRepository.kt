@@ -26,4 +26,11 @@ interface AbsenceRepository : JpaRepository<AbsenceEntity, Long> {
         endDate: LocalDate,
         startDate: LocalDate
     ): Boolean
+
+    fun existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(
+        userId: Long,
+        endDate: LocalDate,
+        startDate: LocalDate,
+        id: Long
+    ): Boolean
 }

@@ -21,4 +21,11 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
     ): AttendanceEntity?
 
     fun findByPeriodAndDateAndType(period: Int, date: LocalDate, type: AttendanceType): List<AttendanceEntity>
+
+    @Query("SELECT a FROM AttendanceEntity a WHERE a.user IN :users AND a.period = :period AND a.date = :date")
+    fun findByUsersAndPeriodAndDate(
+        @Param("users") users: List<UserEntity>,
+        @Param("period") period: Int,
+        @Param("date") date: LocalDate
+    ): List<AttendanceEntity>
 }

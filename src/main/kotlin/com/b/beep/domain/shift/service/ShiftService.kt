@@ -48,6 +48,11 @@ class ShiftService(
         val shift = shiftRepository.findByIdOrNull(id)
             ?: throw CustomException(ShiftError.SHIFT_NOT_FOUND)
 
+        val user = contextHolder.user
+        if (shift.user.id != user.id) {
+            throw CustomException(ShiftError.SHIFT_NOT_FOUND)
+        }
+
         if (!isShiftTimeValid(request.date, request.period))
             throw CustomException(ShiftError.PASSED_TIME)
 
@@ -56,7 +61,7 @@ class ShiftService(
         request.room?.let { shift.room = it }
         request.period?.let { shift.period = it }
 
-        if (shiftRepository.existsByUserAndDateAndPeriod(shift.user, shift.date, shift.period))
+        if (shiftRepository.existsByUserAndDateAndPeriodAndIdNot(shift.user, shift.date, shift.period, id))
             throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
 
         shift.status = ShiftStatus.WAITING
@@ -65,7 +70,15 @@ class ShiftService(
     }
 
     fun delete(id: Long) {
-        shiftRepository.deleteById(id)
+        val shift = shiftRepository.findByIdOrNull(id)
+            ?: throw CustomException(ShiftError.SHIFT_NOT_FOUND)
+
+        val user = contextHolder.user
+        if (shift.user.id != user.id) {
+            throw CustomException(ShiftError.SHIFT_NOT_FOUND)
+        }
+
+        shiftRepository.delete(shift)
     }
 
     @Transactional(readOnly = true)

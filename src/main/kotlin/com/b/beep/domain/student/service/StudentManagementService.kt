@@ -3,7 +3,6 @@ package com.b.beep.domain.student.service
 import com.b.beep.domain.attendance.entity.AttendanceEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.user.repository.StudentInfoRepository
-import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.user.error.UserError
@@ -16,7 +15,6 @@ import java.time.LocalDate
 @Transactional
 class StudentManagementService(
     private val studentInfoRepository: StudentInfoRepository,
-    private val userRepository: UserRepository,
     private val attendanceRepository: AttendanceRepository,
     private val periodResolver: PeriodResolver
 ) {
@@ -25,12 +23,6 @@ class StudentManagementService(
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
         val user = studentInfo.user
-
-        if (period == periodResolver.getCurrentPeriod()) {
-            user.currentStatus = status
-            userRepository.save(user)
-        }
-
         val attendance = attendanceRepository.findByPeriodAndUserAndDate(period, user, LocalDate.now())
 
         if (attendance != null) {
@@ -54,10 +46,6 @@ class StudentManagementService(
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
         val user = studentInfo.user
-
-        user.currentStatus = status
-        userRepository.save(user)
-
         val period = periodResolver.getCurrentPeriod()
         val attendance = attendanceRepository.findByPeriodAndUserAndDate(period, user, LocalDate.now())
 
