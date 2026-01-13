@@ -3,7 +3,7 @@ package com.b.beep.domain.attendance.service
 import com.b.beep.domain.attendance.controller.dto.request.AttendRequest
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.error.AttendanceError
+import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.domain.user.repository.UserRepository
@@ -21,11 +21,12 @@ class AttendanceService(
     private val contextHolder: ContextHolder,
     private val studentScheduleRepository: StudentScheduleRepository,
     private val userRepository: UserRepository,
+    private val periodResolver: PeriodResolver,
 ) {
     @Transactional
     fun attend(request: AttendRequest) {
         val user = contextHolder.user
-        val period = PeriodResolver.getCurrentAttendancePeriod()
+        val period = periodResolver.getCurrentAttendancePeriod()
         val today = LocalDate.now()
         val dayOfWeek = today.dayOfWeek
 
@@ -63,7 +64,7 @@ class AttendanceService(
     @Transactional
     fun cancelAttendance() {
         val user = contextHolder.user
-        val period = PeriodResolver.getCurrentAttendancePeriod()
+        val period = periodResolver.getCurrentAttendancePeriod()
 
         val attendance = attendanceRepository.findByUserIdAndPeriodAndDate(user.id!!, period, LocalDate.now())
             ?: throw CustomException(AttendanceError.ATTENDANCE_NOT_FOUND)

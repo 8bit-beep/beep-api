@@ -1,11 +1,11 @@
 package com.b.beep.domain.auth.service
 
-import com.b.beep.domain.auth.domain.AuthError
+import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthProperties
 import com.b.beep.domain.auth.infrastructure.DAuthTokenResponse
 import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
 import com.b.beep.domain.auth.infrastructure.GetDAuthTokenRequest
-import com.b.beep.domain.user.domain.UserError
+import com.b.beep.domain.user.error.UserError
 import com.b.beep.global.exception.CustomException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType

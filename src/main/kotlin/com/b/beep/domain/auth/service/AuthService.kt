@@ -1,7 +1,7 @@
 package com.b.beep.domain.auth.service
 
 import com.b.beep.domain.auth.controller.dto.request.LoginRequest
-import com.b.beep.domain.auth.domain.AuthError
+import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.auth.repository.RefreshTokenRepository
 import com.b.beep.domain.user.service.StudentInfoService

@@ -7,7 +7,7 @@ import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.global.exception.CustomException
-import com.b.beep.domain.user.domain.UserError
+import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.entity.UserEntity
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -24,10 +24,7 @@ class AbsenceService(
         val studentInfo = studentInfoRepository.findByGradeAndClsAndNum(request.grade, request.cls, request.num)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
-        // 날짜 유효성 검증
-        if (request.startDate.isAfter(request.endDate)) {
-            throw CustomException(AbsenceError.INVALID_DATE_RANGE)
-        }
+        validateDateRange(request.startDate, request.endDate)
 
         // 같은 학생의 겹치는 날짜 범위 중복 체크
         val userId = studentInfo.user.id ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
@@ -56,20 +53,23 @@ class AbsenceService(
         return absenceRepository.findAll()
     }
 
-    fun edit(id: Long, request: UpdateAbsenceRequest) {
+    fun update(id: Long, request: UpdateAbsenceRequest) {
         val absence = absenceRepository.findByIdOrNull(id)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
 
-        // 날짜 유효성 검증
-        if (request.startDate.isAfter(request.endDate)) {
-            throw CustomException(AbsenceError.INVALID_DATE_RANGE)
-        }
+        validateDateRange(request.startDate, request.endDate)
 
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason
 
         absenceRepository.save(absence)
+    }
+
+    private fun validateDateRange(startDate: LocalDate, endDate: LocalDate) {
+        if (startDate.isAfter(endDate)) {
+            throw CustomException(AbsenceError.INVALID_DATE_RANGE)
+        }
     }
 
     fun delete(id: Long) {

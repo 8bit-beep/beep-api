@@ -32,7 +32,7 @@ class AbsenceController(
     @PatchMapping("/{absenceId}")
     @ResponseStatus(HttpStatus.OK)
     override fun updateAbsence(@PathVariable("absenceId") id: Long, @RequestBody request: UpdateAbsenceRequest) {
-        absenceService.edit(id, request)
+        absenceService.update(id, request)
     }
 
     @DeleteMapping("/{absenceId}")

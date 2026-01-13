@@ -6,7 +6,7 @@ import com.b.beep.global.security.jwt.config.JwtProperties
 import com.b.beep.global.security.jwt.enums.JwtType
 import com.b.beep.global.security.jwt.error.JwtError
 import com.b.beep.global.exception.CustomException
-import com.b.beep.domain.user.domain.UserError
+import com.b.beep.domain.user.error.UserError
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys

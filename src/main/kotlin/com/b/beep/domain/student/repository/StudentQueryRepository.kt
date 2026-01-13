@@ -14,7 +14,8 @@ import java.time.LocalDate
 
 @Repository
 class StudentQueryRepository(
-    private val queryFactory: JPAQueryFactory
+    private val queryFactory: JPAQueryFactory,
+    private val periodResolver: PeriodResolver
 ) {
     fun findAllByStatusAndGradeAndCls(
         grade: Int,
@@ -46,7 +47,7 @@ class StudentQueryRepository(
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
         val today = LocalDate.now()
         val dayOfWeek = today.dayOfWeek
-        val period = PeriodResolver.getCurrentPeriod()
+        val period = periodResolver.getCurrentPeriod()
 
         return queryFactory
             .selectFrom(userEntity)
