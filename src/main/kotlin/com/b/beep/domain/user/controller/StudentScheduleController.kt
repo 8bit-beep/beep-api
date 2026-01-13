@@ -1,7 +1,7 @@
 package com.b.beep.domain.user.controller
 
 import com.b.beep.domain.user.controller.docs.StudentScheduleDocs
-import com.b.beep.domain.user.controller.dto.request.AddStudentScheduleRequest
+import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
 import com.b.beep.domain.user.service.StudentScheduleService
@@ -15,8 +15,8 @@ class StudentScheduleController(
     private val studentScheduleService: StudentScheduleService
 ) : StudentScheduleDocs {
     @PostMapping
-    override fun addSchedule(@RequestBody request: AddStudentScheduleRequest) {
-        studentScheduleService.add(request)
+    override fun createSchedule(@RequestBody request: CreateStudentScheduleRequest) {
+        studentScheduleService.create(request)
     }
 
     @GetMapping("/me")

@@ -1,6 +1,6 @@
 package com.b.beep.domain.user.service
 
-import com.b.beep.domain.user.controller.dto.request.AddStudentScheduleRequest
+import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.error.StudentScheduleError
 import com.b.beep.domain.user.entity.StudentScheduleEntity
@@ -18,7 +18,7 @@ class StudentScheduleService(
     private val studentScheduleValidator: StudentScheduleValidator,
     private val contextHolder: ContextHolder
 ) {
-    fun add(request: AddStudentScheduleRequest) {
+    fun create(request: CreateStudentScheduleRequest) {
         val user = contextHolder.user
 
         studentScheduleValidator.validateDayOfWeek(request.dayOfWeek)
