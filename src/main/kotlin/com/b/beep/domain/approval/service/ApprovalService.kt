@@ -15,11 +15,12 @@ import java.time.LocalDate
 @Service
 class ApprovalService(
     private val approvalRepository: ApprovalRepository,
-    private val contextHolder: ContextHolder
+    private val contextHolder: ContextHolder,
+    private val periodResolver: PeriodResolver
 ) {
     @Transactional
     fun approve(request: ApproveRequest) {
-        val period = PeriodResolver.getCurrentPeriod()
+        val period = periodResolver.getCurrentPeriod()
         val approval = approvalRepository.findByPeriodAndRoomAndDate(period, request.roomName, LocalDate.now())
             ?: throw CustomException(ApprovalError.APPROVAL_NOT_FOUND)
 
@@ -31,15 +32,15 @@ class ApprovalService(
 
     fun getNotApprovedRooms(): List<ApprovalEntity> {
         return approvalRepository
-            .findAllByPeriodAndDateAndTeacherIsNull(PeriodResolver.getCurrentPeriod(), LocalDate.now())
+            .findAllByPeriodAndDateAndTeacherIsNull(periodResolver.getCurrentPeriod(), LocalDate.now())
     }
 
     fun getAllApprovalStatus(): List<ApprovalEntity> {
-        return approvalRepository.findAllByPeriodAndDate(PeriodResolver.getCurrentPeriod(), LocalDate.now())
+        return approvalRepository.findAllByPeriodAndDate(periodResolver.getCurrentPeriod(), LocalDate.now())
     }
 
     fun getApprovalStatusByRoom(room: Room): ApprovalEntity {
-        val period = PeriodResolver.getCurrentPeriod()
+        val period = periodResolver.getCurrentPeriod()
 
         return approvalRepository.findByPeriodAndRoomAndDate(period, room, LocalDate.now())
             ?: throw CustomException(ApprovalError.APPROVAL_NOT_FOUND)

@@ -1,4 +1,4 @@
-package com.b.beep.domain.attendance.domain.error
+package com.b.beep.domain.attendance.error
 
 import com.b.beep.global.exception.CustomError
 import org.springframework.http.HttpStatus

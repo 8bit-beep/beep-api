@@ -1,6 +1,6 @@
 package com.b.beep.domain.user.controller.docs
 
-import com.b.beep.domain.user.controller.dto.request.AddStudentScheduleRequest
+import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
 import com.b.beep.global.common.dto.response.BaseResponse
@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity
 
 @Tag(name = "학생 스케줄", description = "학생 교시별 실 등록 API")
 interface StudentScheduleDocs {
-    @Operation(summary = "스케줄 추가", description = "교시별 실을 등록합니다.")
-    fun addSchedule(request: AddStudentScheduleRequest)
+    @Operation(summary = "스케줄 생성", description = "교시별 실을 등록합니다.")
+    fun createSchedule(request: CreateStudentScheduleRequest)
 
     @Operation(summary = "내 스케줄 조회", description = "로그인한 사용자의 스케줄 목록을 조회합니다.")
     fun getMySchedules(): ResponseEntity<BaseResponse<List<StudentScheduleResponse>>>

@@ -1,26 +1,39 @@
 package com.b.beep.domain.attendance.domain
 
-import com.b.beep.domain.attendance.domain.error.AttendanceError
+import com.b.beep.domain.attendance.error.AttendanceError
+import com.b.beep.global.common.SchedulePolicy
 import com.b.beep.global.exception.CustomException
+import org.springframework.stereotype.Component
 import java.time.LocalTime
 import java.time.ZoneId
 
-object PeriodResolver {
+@Component
+class PeriodResolver(
+    private val schedulePolicy: SchedulePolicy
+) {
     fun getCurrentAttendancePeriod(): Int {
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
 
-        return if (now.isAfter(LocalTime.of(9, 0)) && now.isBefore(LocalTime.of(9, 20))) 1
-        else if (now.isAfter(LocalTime.of(13, 20)) && now.isBefore(LocalTime.of(13, 40))) 2
-        else if (now.isAfter(LocalTime.of(19, 0)) && now.isBefore(LocalTime.of(19, 40))) 3
-        else throw CustomException(AttendanceError.TIME_UNAVAILABLE)
+        for (period in schedulePolicy.validPeriods) {
+            val start = schedulePolicy.getAttendanceStartTime(period) ?: continue
+            val end = schedulePolicy.getAttendanceEndTime(period) ?: continue
+            if (now.isAfter(start) && now.isBefore(end)) {
+                return period
+            }
+        }
+        throw CustomException(AttendanceError.TIME_UNAVAILABLE)
     }
 
     fun getCurrentPeriod(): Int {
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
 
-        return if (now.isAfter(LocalTime.of(9, 0)) && now.isBefore(LocalTime.of(13, 19, 59))) 1
-        else if (now.isAfter(LocalTime.of(13, 20)) && now.isBefore(LocalTime.of(18, 59, 59))) 2
-        else if (now.isAfter(LocalTime.of(19, 0)) && now.isBefore(LocalTime.of(21, 40))) 3
-        else 0
+        for (period in schedulePolicy.validPeriods) {
+            val start = schedulePolicy.getPeriodStartTime(period) ?: continue
+            val end = schedulePolicy.getPeriodEndTime(period) ?: continue
+            if (now.isAfter(start) && now.isBefore(end)) {
+                return period
+            }
+        }
+        return 0
     }
 }

@@ -3,7 +3,7 @@ package com.b.beep.global.security
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.domain.user.entity.UserEntity
-import com.b.beep.domain.user.domain.UserError
+import com.b.beep.domain.user.error.UserError
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 

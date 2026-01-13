@@ -4,7 +4,7 @@ import com.b.beep.domain.memo.entity.MemoEntity
 import com.b.beep.domain.memo.repository.MemoRepository
 import com.b.beep.domain.memo.controller.dto.request.CreateMemoRequest
 import com.b.beep.domain.memo.controller.dto.request.UpdateMemoRequest
-import com.b.beep.domain.memo.domain.error.MemoError
+import com.b.beep.domain.memo.error.MemoError
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

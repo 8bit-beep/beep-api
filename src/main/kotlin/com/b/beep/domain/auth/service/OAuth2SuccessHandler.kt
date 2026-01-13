@@ -1,6 +1,6 @@
 package com.b.beep.domain.auth.service
 
-import com.b.beep.domain.auth.domain.AuthError
+import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.user.domain.UserRole
 import com.b.beep.domain.user.repository.UserRepository

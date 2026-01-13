@@ -4,7 +4,7 @@ import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
 import java.time.DayOfWeek
 
-data class AddStudentScheduleRequest(
+data class CreateStudentScheduleRequest(
     val dayOfWeek: DayOfWeek,
     val period: Int,
     val type: AttendanceType,
