@@ -59,7 +59,6 @@ class ShiftService(
         if (shiftRepository.existsByUserAndDateAndPeriod(shift.user, shift.date, shift.period))
             throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
 
-        // 변경 후 대기 중으로 변경
         shift.status = ShiftStatus.WAITING
 
         shiftRepository.save(shift)

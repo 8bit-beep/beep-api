@@ -4,6 +4,7 @@ import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleReques
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.error.StudentScheduleError
 import com.b.beep.domain.user.entity.StudentScheduleEntity
+import com.b.beep.domain.user.entity.UserEntity
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
@@ -79,7 +80,7 @@ class StudentScheduleService(
             ?: throw CustomException(StudentScheduleError.SCHEDULE_NOT_FOUND)
     }
 
-    private fun validateOwnership(schedule: StudentScheduleEntity, user: com.b.beep.domain.user.entity.UserEntity) {
+    private fun validateOwnership(schedule: StudentScheduleEntity, user: UserEntity) {
         if (schedule.user.id != user.id) {
             throw CustomException(StudentScheduleError.NO_PERMISSION)
         }

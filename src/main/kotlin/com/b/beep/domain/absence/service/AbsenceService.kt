@@ -26,7 +26,6 @@ class AbsenceService(
 
         validateDateRange(request.startDate, request.endDate)
 
-        // 같은 학생의 겹치는 날짜 범위 중복 체크
         val userId = studentInfo.user.id ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
         val hasOverlappingAbsence = absenceRepository.existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
             userId = userId,

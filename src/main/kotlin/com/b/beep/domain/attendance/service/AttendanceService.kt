@@ -30,7 +30,6 @@ class AttendanceService(
         val today = LocalDate.now()
         val dayOfWeek = today.dayOfWeek
 
-        // 스케줄 검증 - 오늘 요일 + 현재 교시 + 타입으로 등록된 스케줄 확인
         val schedule = studentScheduleRepository.findByUserAndDayOfWeekAndPeriodAndType(
             user, dayOfWeek, period, request.attendanceType
         )
@@ -55,8 +54,6 @@ class AttendanceService(
         user.currentStatus = request.attendanceType
 
         attendanceRepository.save(attendance)
-
-        // 1교시 출석 시 추가 처리 로직 제거 (1, 2, 3교시만 존재)
 
         userRepository.save(user)
     }
