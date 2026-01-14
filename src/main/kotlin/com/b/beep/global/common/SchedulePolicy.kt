@@ -37,15 +37,15 @@ class DefaultSchedulePolicy : SchedulePolicy {
         ),
         2 to PeriodTime(
             start = LocalTime.of(13, 20),
-            end = LocalTime.of(18, 59, 59),
+            end = LocalTime.of(18, 49, 59),
             attendanceStart = LocalTime.of(13, 20),
             attendanceEnd = LocalTime.of(13, 40)
         ),
         3 to PeriodTime(
-            start = LocalTime.of(19, 0),
+            start = LocalTime.of(18, 50),
             end = LocalTime.of(21, 40),
-            attendanceStart = LocalTime.of(19, 0),
-            attendanceEnd = LocalTime.of(19, 40)
+            attendanceStart = LocalTime.of(18, 50),
+            attendanceEnd = LocalTime.of(19, 10)
         )
     )
 
