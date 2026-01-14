@@ -1,12 +1,12 @@
 package com.b.beep.domain.shift.service
 
+import com.b.beep.domain.period.repository.PeriodRepository
 import com.b.beep.domain.shift.controller.dto.request.CreateShiftRequest
 import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
 import com.b.beep.domain.shift.entity.ShiftEntity
 import com.b.beep.domain.shift.repository.ShiftRepository
-import com.b.beep.global.common.SchedulePolicy
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
 import org.springframework.data.repository.findByIdOrNull
@@ -21,7 +21,7 @@ import java.time.ZoneId
 class ShiftService(
     private val shiftRepository: ShiftRepository,
     private val contextHolder: ContextHolder,
-    private val schedulePolicy: SchedulePolicy,
+    private val periodRepository: PeriodRepository,
 ) {
     @Transactional
     fun create(request: CreateShiftRequest) {
@@ -94,14 +94,14 @@ class ShiftService(
         if (date == null) return true
         if (date.isBefore(now)) return false
 
-        if (period != null && period !in schedulePolicy.shiftablePeriods) {
+        if (period != null && !periodRepository.existsByPeriod(period)) {
             return false
         }
 
         if (date.isEqual(now) && period != null) {
-            val periodStartTime = schedulePolicy.getPeriodStartTime(period) ?: return false
+            val periodEntity = periodRepository.findByPeriod(period) ?: return false
 
-            if (currentTime >= periodStartTime) {
+            if (currentTime >= periodEntity.startTime) {
                 return false
             }
         }

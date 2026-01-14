@@ -1,7 +1,7 @@
 package com.b.beep.domain.attendance.domain
 
 import com.b.beep.domain.attendance.error.AttendanceError
-import com.b.beep.global.common.SchedulePolicy
+import com.b.beep.domain.period.repository.PeriodRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Component
 import java.time.LocalTime
@@ -9,16 +9,15 @@ import java.time.ZoneId
 
 @Component
 class PeriodResolver(
-    private val schedulePolicy: SchedulePolicy
+    private val periodRepository: PeriodRepository
 ) {
     fun getCurrentAttendancePeriod(): Int {
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        val periods = periodRepository.findAll()
 
-        for (period in schedulePolicy.validPeriods) {
-            val start = schedulePolicy.getAttendanceStartTime(period) ?: continue
-            val end = schedulePolicy.getAttendanceEndTime(period) ?: continue
-            if (now.isAfter(start) && now.isBefore(end)) {
-                return period
+        for (period in periods) {
+            if (!now.isBefore(period.attendStartTime) && now.isBefore(period.attendEndTime)) {
+                return period.period
             }
         }
         throw CustomException(AttendanceError.TIME_UNAVAILABLE)
@@ -26,12 +25,11 @@ class PeriodResolver(
 
     fun getCurrentPeriod(): Int {
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        val periods = periodRepository.findAll()
 
-        for (period in schedulePolicy.validPeriods) {
-            val start = schedulePolicy.getPeriodStartTime(period) ?: continue
-            val end = schedulePolicy.getPeriodEndTime(period) ?: continue
-            if (now.isAfter(start) && now.isBefore(end)) {
-                return period
+        for (period in periods) {
+            if (!now.isBefore(period.startTime) && now.isBefore(period.endTime)) {
+                return period.period
             }
         }
         return 0

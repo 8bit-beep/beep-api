@@ -1,4 +1,4 @@
-package com.b.beep.domain.scheduling
+package com.b.beep.domain.attendance.service
 
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.approval.entity.ApprovalEntity
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 @Component
-class AttendanceScheduler(
+class AttendanceScheduleService(
     private val userRepository: UserRepository,
     private val approvalRepository: ApprovalRepository,
     private val absenceRepository: AbsenceRepository,
