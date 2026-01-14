@@ -26,7 +26,7 @@ class AttendanceHistoryService(
 
         val records = students.mapNotNull { student ->
             val studentInfo = studentInfoRepository.findByUser(student) ?: return@mapNotNull null
-            val attendances = attendanceRepository.findByUserAndDate(student, date)
+            val attendances = attendanceRepository.findAllByUserAndDate(student, date)
 
             val period1 = attendances.find { it.period == 1 }?.type?.toDisplayName() ?: "미기록"
             val period2 = attendances.find { it.period == 2 }?.type?.toDisplayName() ?: "미기록"
@@ -68,7 +68,7 @@ class AttendanceHistoryService(
             val todaySchedules = schedules.filter { it.dayOfWeek == dayOfWeek }
 
             todaySchedules.map { schedule ->
-                val attendances = attendanceRepository.findByUserAndDate(student, date)
+                val attendances = attendanceRepository.findAllByUserAndDate(student, date)
 
                 val period1 = attendances.find { it.period == 1 }?.type?.toDisplayName() ?: "미기록"
                 val period2 = attendances.find { it.period == 2 }?.type?.toDisplayName() ?: "미기록"
@@ -108,7 +108,7 @@ class AttendanceHistoryService(
 
         return students.mapNotNull { student ->
             val studentInfo = studentInfoRepository.findByUser(student) ?: return@mapNotNull null
-            val attendances = attendanceRepository.findByUserAndDate(student, date)
+            val attendances = attendanceRepository.findAllByUserAndDate(student, date)
 
             val period1 = attendances.find { it.period == 1 }?.type?.toDisplayName() ?: "미기록"
             val period2 = attendances.find { it.period == 2 }?.type?.toDisplayName() ?: "미기록"

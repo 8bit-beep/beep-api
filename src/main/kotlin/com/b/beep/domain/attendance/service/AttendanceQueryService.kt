@@ -25,7 +25,7 @@ class AttendanceQueryService(
         val currentPeriod = periodResolver.getCurrentPeriod()
         if (currentPeriod == 0) return users.associate { it.id!! to AttendanceType.NOT_ATTEND }
         val attendances = attendanceRepository
-            .findByUsersAndPeriodAndDate(users, currentPeriod, LocalDate.now())
+            .findAllByUsersAndPeriodAndDate(users, currentPeriod, LocalDate.now())
         val attendanceMap = attendances.associate { it.user.id!! to it.type }
         return users.associate { it.id!! to (attendanceMap[it.id] ?: AttendanceType.NOT_ATTEND) }
     }

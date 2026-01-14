@@ -84,7 +84,7 @@ class AttendanceScheduler(
         absences.forEach { absence ->
             val user = absence.user
 
-            val attendances = attendanceRepository.findByUserAndDate(user, today)
+            val attendances = attendanceRepository.findAllByUserAndDate(user, today)
             attendances.forEach { it.type = AttendanceType.OUTGOING }
 
             attendanceRepository.saveAll(attendances)

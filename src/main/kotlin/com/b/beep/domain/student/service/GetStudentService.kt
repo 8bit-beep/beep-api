@@ -29,7 +29,7 @@ class GetStudentService(
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
             val schedules = studentScheduleRepository.findAllByUser(user)
-            val attendances = attendanceRepository.findByUserAndDate(user, LocalDate.now())
+            val attendances = attendanceRepository.findAllByUserAndDate(user, LocalDate.now())
             StudentResponse.of(user, studentInfo, schedules, attendances)
         }
     }
@@ -40,7 +40,7 @@ class GetStudentService(
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
             val schedules = studentScheduleRepository.findAllByUser(user)
-            val attendances = attendanceRepository.findByUserAndDate(user, LocalDate.now())
+            val attendances = attendanceRepository.findAllByUserAndDate(user, LocalDate.now())
             StudentResponse.of(user, studentInfo, schedules, attendances)
         }
     }

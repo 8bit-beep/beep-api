@@ -29,14 +29,14 @@ class GetNotAttendedStudentService(
         val period = periodResolver.getCurrentPeriod()
         if (period == 0) return emptyList()
 
-        val attendances = attendanceRepository.findByPeriodAndDateAndType(period, today, AttendanceType.NOT_ATTEND)
+        val attendances = attendanceRepository.findAllByPeriodAndDateAndType(period, today, AttendanceType.NOT_ATTEND)
         val users = attendances.map { it.user }.filter { it.role == UserRole.STUDENT }
 
         return users.map { user ->
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
             val schedules = studentScheduleRepository.findAllByUser(user)
-            val userAttendances = attendanceRepository.findByUserAndDate(user, today)
+            val userAttendances = attendanceRepository.findAllByUserAndDate(user, today)
             StudentResponse.of(user, studentInfo, schedules, userAttendances)
         }
     }
@@ -47,7 +47,7 @@ class GetNotAttendedStudentService(
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
             val schedules = studentScheduleRepository.findAllByUser(user)
-            val attendances = attendanceRepository.findByUserAndDate(user, LocalDate.now())
+            val attendances = attendanceRepository.findAllByUserAndDate(user, LocalDate.now())
             StudentResponse.of(user, studentInfo, schedules, attendances)
         }
     }
@@ -58,7 +58,7 @@ class GetNotAttendedStudentService(
             val studentInfo = studentInfoRepository.findByUser(user)
                 ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
             val schedules = studentScheduleRepository.findAllByUser(user)
-            val attendances = attendanceRepository.findByUserAndDate(user, LocalDate.now())
+            val attendances = attendanceRepository.findAllByUserAndDate(user, LocalDate.now())
             StudentResponse.of(user, studentInfo, schedules, attendances)
         }
     }

@@ -42,6 +42,6 @@ class NotificationService(
 
     private fun findTargetUser(isAll: Boolean): List<FcmTokenEntity> {
         if (isAll) return fcmTokenRepository.findAll()
-        return fcmTokenQueryRepository.findByNotAttendStatus()
+        return fcmTokenQueryRepository.findAllByNotAttendStatus()
     }
 }

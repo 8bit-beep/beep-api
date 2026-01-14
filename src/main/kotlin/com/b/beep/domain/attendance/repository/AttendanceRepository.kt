@@ -10,8 +10,8 @@ import java.time.LocalDate
 
 interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
     fun findByPeriodAndUserAndDate(period: Int, user: UserEntity, date: LocalDate): AttendanceEntity?
-    fun findByUser(user: UserEntity): List<AttendanceEntity>
-    fun findByUserAndDate(user: UserEntity, date: LocalDate): List<AttendanceEntity>
+    fun findAllByUser(user: UserEntity): List<AttendanceEntity>
+    fun findAllByUserAndDate(user: UserEntity, date: LocalDate): List<AttendanceEntity>
 
     @Query("SELECT a FROM AttendanceEntity a WHERE a.user.id = :userId AND a.period = :period AND a.date = :date")
     fun findByUserIdAndPeriodAndDate(
@@ -20,10 +20,10 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
         @Param("date") date: LocalDate
     ): AttendanceEntity?
 
-    fun findByPeriodAndDateAndType(period: Int, date: LocalDate, type: AttendanceType): List<AttendanceEntity>
+    fun findAllByPeriodAndDateAndType(period: Int, date: LocalDate, type: AttendanceType): List<AttendanceEntity>
 
     @Query("SELECT a FROM AttendanceEntity a WHERE a.user IN :users AND a.period = :period AND a.date = :date")
-    fun findByUsersAndPeriodAndDate(
+    fun findAllByUsersAndPeriodAndDate(
         @Param("users") users: List<UserEntity>,
         @Param("period") period: Int,
         @Param("date") date: LocalDate

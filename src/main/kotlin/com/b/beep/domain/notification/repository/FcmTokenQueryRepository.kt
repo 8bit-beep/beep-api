@@ -15,7 +15,7 @@ class FcmTokenQueryRepository(
     private val queryFactory: JPAQueryFactory,
     private val periodResolver: PeriodResolver
 ) {
-    fun findByNotAttendStatus(): List<FcmTokenEntity> {
+    fun findAllByNotAttendStatus(): List<FcmTokenEntity> {
         val fcm = QFcmTokenEntity.fcmTokenEntity
         val user = QUserEntity.userEntity
         val attendance = QAttendanceEntity.attendanceEntity
