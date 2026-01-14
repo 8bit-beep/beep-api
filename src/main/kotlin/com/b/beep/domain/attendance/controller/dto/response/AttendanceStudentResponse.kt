@@ -1,4 +1,4 @@
-package com.b.beep.domain.student.controller.dto.response
+package com.b.beep.domain.attendance.controller.dto.response
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
@@ -8,7 +8,7 @@ import com.b.beep.domain.user.entity.StudentScheduleEntity
 import com.b.beep.domain.attendance.entity.AttendanceEntity
 import java.time.DayOfWeek
 
-data class StudentResponse(
+data class AttendanceStudentResponse(
     val username: String,
     val studentId: String,
     val schedules: List<ScheduleResponse>,
@@ -20,8 +20,8 @@ data class StudentResponse(
             studentInfo: StudentInfoEntity,
             schedules: List<StudentScheduleEntity>,
             attendances: List<AttendanceEntity>
-        ): StudentResponse {
-            return StudentResponse(
+        ): AttendanceStudentResponse {
+            return AttendanceStudentResponse(
                 username = user.username,
                 studentId = String.format("%d%d%02d", studentInfo.grade, studentInfo.cls, studentInfo.num),
                 schedules = schedules.map { ScheduleResponse.of(it) },

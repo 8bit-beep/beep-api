@@ -1,11 +1,11 @@
-package com.b.beep.domain.student.service
+package com.b.beep.domain.attendance.service
 
+import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.entity.AttendanceEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.user.repository.StudentInfoRepository
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.user.error.UserError
+import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 @Service
 @Transactional
-class StudentManagementService(
+class AttendanceManagementService(
     private val studentInfoRepository: StudentInfoRepository,
     private val attendanceRepository: AttendanceRepository,
     private val periodResolver: PeriodResolver

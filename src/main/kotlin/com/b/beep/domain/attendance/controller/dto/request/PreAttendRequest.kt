@@ -1,8 +1,8 @@
-package com.b.beep.domain.student.controller.dto.request
+package com.b.beep.domain.attendance.controller.dto.request
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 
-data class StudentPreAttendRequest(
+data class PreAttendRequest(
     val grade: Int,
     val cls: Int,
     val num: Int,
