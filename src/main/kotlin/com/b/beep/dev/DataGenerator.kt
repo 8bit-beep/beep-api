@@ -5,6 +5,7 @@ import com.b.beep.domain.approval.repository.ApprovalRepository
 import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.memo.entity.MemoEntity
 import com.b.beep.domain.memo.repository.MemoRepository
+import com.b.beep.domain.period.repository.PeriodRepository
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,6 +15,7 @@ import java.time.LocalDate
 class DataGenerator(
     private val memoRepository: MemoRepository,
     private val approvalRepository: ApprovalRepository,
+    private val periodRepository: PeriodRepository,
 ) {
     @Bean
     fun initializeData(): ApplicationRunner {
@@ -33,7 +35,7 @@ class DataGenerator(
             }
 
             if (approvalRepository.count() == 0L) {
-                val periods = listOf(1, 2, 3)
+                val periods = periodRepository.findAll().map { it.period }
                 val rooms = Room.entries.toTypedArray()
                 val today = LocalDate.now()
                 val approvals = rooms.flatMap { room ->

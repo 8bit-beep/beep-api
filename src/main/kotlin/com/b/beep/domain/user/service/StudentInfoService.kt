@@ -10,6 +10,7 @@ import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
+import com.b.beep.domain.period.repository.PeriodRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -20,6 +21,7 @@ class StudentInfoService(
     private val userRepository: UserRepository,
     private val studentInfoRepository: StudentInfoRepository,
     private val attendanceRepository: AttendanceRepository,
+    private val periodRepository: PeriodRepository,
 ) {
     fun getOrCreateUser(dodamUser: DAuthUser): UserEntity {
         val email = dodamUser.email
@@ -51,10 +53,10 @@ class StudentInfoService(
 
     fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUser): StudentInfoEntity {
         return studentInfoRepository.findByUser(user) ?: run {
-            listOf(1, 2, 3).forEach {
+            periodRepository.findAll().forEach {
                 attendanceRepository.save(
                     AttendanceEntity(
-                        period = it,
+                        period = it.period,
                         type = AttendanceType.NOT_ATTEND,
                         user = user,
                         room = null,
@@ -75,10 +77,10 @@ class StudentInfoService(
 
     fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUserResponse): StudentInfoEntity {
         return studentInfoRepository.findByUser(user) ?: run {
-            listOf(1, 2, 3).forEach {
+            periodRepository.findAll().forEach {
                 attendanceRepository.save(
                     AttendanceEntity(
-                        period = it,
+                        period = it.period,
                         type = AttendanceType.NOT_ATTEND,
                         user = user,
                         room = null,
