@@ -1,6 +1,6 @@
 package com.b.beep.domain.user.controller
 
-import com.b.beep.domain.attendance.service.AttendanceQueryService
+import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.user.controller.docs.UserDocs
 import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/users")
 class UserController(
     private val userService: UserService,
-    private val attendanceQueryService: AttendanceQueryService
+    private val attendanceQueryRepository: AttendanceQueryRepository
 ) : UserDocs {
     @GetMapping("/me")
     override fun getMe(): ResponseEntity<BaseResponse<UserResponse>> {
         val me = userService.getMe()
-        val currentStatus = attendanceQueryService.getCurrentStatus(me)
+        val currentStatus = attendanceQueryRepository.findCurrentStatus(me)
 
         val response = UserResponse.of(me, null, currentStatus)
 

@@ -4,7 +4,7 @@ import com.b.beep.domain.attendance.domain.enums.AttendanceType
 
 data class UpdateStatusRequest(
     val grade: Int,
-    val cls: Int,
+    val classNumber: Int,
     val num: Int,
     val status: AttendanceType
 )

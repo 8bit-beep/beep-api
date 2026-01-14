@@ -20,8 +20,8 @@ class AttendanceStudentController(
         @RequestParam(required = false) type: AttendanceType?,
         @RequestParam(required = false) status: AttendanceType?,
         @RequestParam(required = false) grade: Int?,
-        @RequestParam(required = false) cls: Int?
+        @RequestParam(required = false) classNumber: Int?
     ): List<AttendanceStudentResponse> {
-        return attendanceStudentService.findAll(room, type, status, grade, cls)
+        return attendanceStudentService.findAll(room, type, status, grade, classNumber)
     }
 }

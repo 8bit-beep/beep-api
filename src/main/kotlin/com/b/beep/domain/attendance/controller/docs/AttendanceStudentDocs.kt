@@ -15,6 +15,6 @@ interface AttendanceStudentDocs {
         @Parameter(description = "출석 타입") type: AttendanceType?,
         @Parameter(description = "출석 상태 필터") status: AttendanceType?,
         @Parameter(description = "학년") grade: Int?,
-        @Parameter(description = "반") cls: Int?
+        @Parameter(description = "반") classNumber: Int?
     ): List<AttendanceStudentResponse>
 }

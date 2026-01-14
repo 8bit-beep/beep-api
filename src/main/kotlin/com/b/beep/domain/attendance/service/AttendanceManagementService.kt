@@ -18,8 +18,8 @@ class AttendanceManagementService(
     private val attendanceRepository: AttendanceRepository,
     private val periodResolver: PeriodResolver
 ) {
-    fun createPresetAttendance(grade: Int, cls: Int, num: Int, status: AttendanceType, period: Int) {
-        val studentInfo = studentInfoRepository.findByGradeAndClsAndNum(grade, cls, num)
+    fun createPresetAttendance(grade: Int, classNumber: Int, num: Int, status: AttendanceType, period: Int) {
+        val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(grade, classNumber, num)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
         val user = studentInfo.user
@@ -41,8 +41,8 @@ class AttendanceManagementService(
         }
     }
 
-    fun updateCurrentStudentStatus(grade: Int, cls: Int, num: Int, status: AttendanceType) {
-        val studentInfo = studentInfoRepository.findByGradeAndClsAndNum(grade, cls, num)
+    fun updateCurrentStudentStatus(grade: Int, classNumber: Int, num: Int, status: AttendanceType) {
+        val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(grade, classNumber, num)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
         val user = studentInfo.user

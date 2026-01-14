@@ -23,7 +23,7 @@ data class AttendanceStudentResponse(
         ): AttendanceStudentResponse {
             return AttendanceStudentResponse(
                 username = user.username,
-                studentId = String.format("%d%d%02d", studentInfo.grade, studentInfo.cls, studentInfo.num),
+                studentId = String.format("%d%d%02d", studentInfo.grade, studentInfo.classNumber, studentInfo.num),
                 schedules = schedules.map { ScheduleResponse.of(it) },
                 statuses = attendances.map { StatusResponse(it.period, it.type) }
             )

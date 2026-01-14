@@ -21,7 +21,7 @@ class AbsenceService(
     private val studentInfoRepository: StudentInfoRepository
 ) {
     fun create(request: CreateAbsenceRequest) {
-        val studentInfo = studentInfoRepository.findByGradeAndClsAndNum(request.grade, request.cls, request.num)
+        val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(request.grade, request.classNumber, request.num)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
         validateDateRange(request.startDate, request.endDate)

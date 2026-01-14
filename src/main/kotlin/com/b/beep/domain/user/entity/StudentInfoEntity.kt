@@ -13,7 +13,10 @@ class StudentInfoEntity(
     val user: UserEntity,
 
     var grade: Int,
-    var cls: Int,
+
+    @Column(name = "class_number")
+    var classNumber: Int,
+
     var num: Int,
 
     @Column(name = "card_id", unique = true)

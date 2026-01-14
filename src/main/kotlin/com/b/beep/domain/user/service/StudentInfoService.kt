@@ -66,7 +66,7 @@ class StudentInfoService(
             val newStudentInfo = StudentInfoEntity(
                 user = user,
                 grade = dodamUser.grade!!,
-                cls = dodamUser.room!!,
+                classNumber = dodamUser.room!!,
                 num = dodamUser.number!!
             )
             studentInfoRepository.save(newStudentInfo)
@@ -90,7 +90,7 @@ class StudentInfoService(
             val newStudentInfo = StudentInfoEntity(
                 user = user,
                 grade = dodamUser.data.grade,
-                cls = dodamUser.data.room,
+                classNumber = dodamUser.data.room,
                 num = dodamUser.data.number
             )
             studentInfoRepository.save(newStudentInfo)

@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 data class CreateAbsenceRequest(
     val grade: Int,
-    val cls: Int,
+    val classNumber: Int,
     val num: Int,
     val startDate: LocalDate,
     val endDate: LocalDate,

@@ -5,7 +5,7 @@ import com.b.beep.domain.user.entity.StudentInfoEntity
 data class StudentInfoResponse(
     val id: Long? = null,
     val grade: Int,
-    val cls: Int,
+    val classNumber: Int,
     val num: Int,
     val cardId: String? = null,
 ) {
@@ -14,7 +14,7 @@ data class StudentInfoResponse(
             return StudentInfoResponse(
                 id = studentInfo.id,
                 grade = studentInfo.grade,
-                cls = studentInfo.cls,
+                classNumber = studentInfo.classNumber,
                 num = studentInfo.num,
                 cardId = studentInfo.cardId,
             )

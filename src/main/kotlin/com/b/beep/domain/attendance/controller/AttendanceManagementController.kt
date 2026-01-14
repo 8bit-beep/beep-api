@@ -17,7 +17,7 @@ class AttendanceManagementController(
     override fun preAttend(@RequestBody request: PreAttendRequest) {
         attendanceManagementService.createPresetAttendance(
             grade = request.grade,
-            cls = request.cls,
+            classNumber = request.classNumber,
             num = request.num,
             status = request.status,
             period = request.period
@@ -29,7 +29,7 @@ class AttendanceManagementController(
     override fun updateStatus(@RequestBody request: UpdateStatusRequest) {
         attendanceManagementService.updateCurrentStudentStatus(
             grade = request.grade,
-            cls = request.cls,
+            classNumber = request.classNumber,
             num = request.num,
             status = request.status
         )

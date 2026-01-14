@@ -24,7 +24,7 @@ class AttendanceStudentQueryRepository(
         type: AttendanceType? = null,
         status: AttendanceType? = null,
         grade: Int? = null,
-        cls: Int? = null
+        classNumber: Int? = null
     ): List<UserEntity> {
         val userEntity = QUserEntity.userEntity
         val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
@@ -56,7 +56,7 @@ class AttendanceStudentQueryRepository(
         whereBuilder.and(userEntity.role.eq(UserRole.STUDENT))
 
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
-        cls?.let { whereBuilder.and(studentInfoEntity.cls.eq(it)) }
+        classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
         if (room != null && type != null) {
             whereBuilder.and(scheduleEntity.room.eq(room))

@@ -26,14 +26,14 @@ class AttendanceStudentService(
         type: AttendanceType?,
         status: AttendanceType?,
         grade: Int?,
-        cls: Int?
+        classNumber: Int?
     ): List<AttendanceStudentResponse> {
         val users = attendanceStudentQueryRepository.findAllByFilters(
             room = room,
             type = type,
             status = status,
             grade = grade,
-            cls = cls
+            classNumber = classNumber
         )
 
         return users.map { user ->
