@@ -6,8 +6,6 @@ import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
 import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.service.UserService
-import com.b.beep.global.common.dto.response.BaseResponse
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -19,7 +17,7 @@ class UserController(
     private val attendanceQueryRepository: AttendanceQueryRepository
 ) : UserDocs {
     @GetMapping("/me")
-    override fun getMe(): ResponseEntity<BaseResponse<UserResponse>> {
+    override fun getMe(): UserResponse {
         val me = userService.getMe()
         val currentStatus = attendanceQueryRepository.findCurrentStatus(me)
 
@@ -30,6 +28,6 @@ class UserController(
             response.studentInfo = StudentInfoResponse.of(studentInfo)
         }
 
-        return BaseResponse.of(response)
+        return response
     }
 }
