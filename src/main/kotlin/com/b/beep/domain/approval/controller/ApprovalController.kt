@@ -21,18 +21,18 @@ class ApprovalController(
     @GetMapping("/not")
     @ResponseStatus(HttpStatus.OK)
     override fun getAllNotApprovedRooms(): List<ApprovalResponse> {
-        return approvalService.getNotApprovedRooms().map { ApprovalResponse.of(it) }
+        return approvalService.getNotApprovedRooms()
     }
 
     @GetMapping("/{roomId}")
     @ResponseStatus(HttpStatus.OK)
     override fun getApprovalStatusByRoom(@PathVariable roomId: Long): ApprovalResponse {
-        return ApprovalResponse.of(approvalService.getApprovalStatusByRoom(roomId))
+        return approvalService.getApprovalStatusByRoom(roomId)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     override fun getAllApprovals(): List<ApprovalResponse> {
-        return approvalService.getAllApprovalStatus().map { ApprovalResponse.of(it) }
+        return approvalService.getAllApprovalStatus()
     }
 }
