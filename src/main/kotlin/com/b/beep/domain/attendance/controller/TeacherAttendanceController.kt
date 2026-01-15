@@ -17,11 +17,13 @@ class TeacherAttendanceController(
     @PatchMapping("/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     override fun updateStatus(@RequestBody request: UpdateStatusRequest) {
-        teacherAttendanceService.updateCurrentStudentStatus(
+        teacherAttendanceService.updateStudentStatus(
             grade = request.grade,
             classNumber = request.classNumber,
             num = request.num,
-            status = request.status
+            status = request.status,
+            date = request.date,
+            period = request.period
         )
     }
 

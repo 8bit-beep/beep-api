@@ -33,13 +33,21 @@ class TeacherAttendanceService(
     private val absenceRepository: AbsenceRepository,
     private val roomRepository: RoomRepository
 ) {
-    fun updateCurrentStudentStatus(grade: Int, classNumber: Int, num: Int, status: AttendanceType) {
+    fun updateStudentStatus(
+        grade: Int,
+        classNumber: Int,
+        num: Int,
+        status: AttendanceType,
+        date: LocalDate? = null,
+        period: Int? = null
+    ) {
         val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(grade, classNumber, num)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
         val user = studentInfo.user
-        val period = periodResolver.getCurrentPeriod()
-        val attendance = attendanceRepository.findByPeriodAndUserAndDate(period, user, LocalDate.now())
+        val targetDate = date ?: LocalDate.now()
+        val targetPeriod = period ?: periodResolver.getCurrentPeriod()
+        val attendance = attendanceRepository.findByPeriodAndUserAndDate(targetPeriod, user, targetDate)
 
         if (attendance != null) {
             attendance.type = status
@@ -48,10 +56,10 @@ class TeacherAttendanceService(
             attendanceRepository.save(
                 AttendanceEntity(
                     user = user,
-                    period = period,
+                    period = targetPeriod,
                     type = status,
                     room = null,
-                    date = LocalDate.now()
+                    date = targetDate
                 )
             )
         }
