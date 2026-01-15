@@ -34,6 +34,6 @@ class TeacherAttendanceController(
         @RequestParam(required = false) grade: Int?,
         @RequestParam(required = false) classNumber: Int?
     ): List<AttendanceStudentResponse> {
-        return attendanceStudentService.findAll(roomId, type, status, grade, classNumber)
+        return teacherAttendanceService.findAll(roomId, type, status, grade, classNumber)
     }
 }
