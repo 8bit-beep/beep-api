@@ -1,16 +1,15 @@
 package com.b.beep.domain.absence.service
 
-import com.b.beep.domain.absence.domain.entity.AbsenceEntity
-import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.controller.dto.request.CreateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
+import com.b.beep.domain.absence.domain.entity.AbsenceEntity
+import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
+import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.global.exception.CustomException
-import com.b.beep.domain.user.error.UserError
-import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,8 +22,9 @@ class AbsenceService(
     private val studentInfoRepository: StudentInfoRepository
 ) {
     fun create(request: CreateAbsenceRequest) {
-        val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(request.grade, request.classNumber, request.num)
-            ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
+        val studentInfo =
+            studentInfoRepository.findByGradeAndClassNumberAndNum(request.grade, request.classNumber, request.num)
+                ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
         validateDateRange(request.startDate, request.endDate)
 
@@ -61,12 +61,13 @@ class AbsenceService(
         validateDateRange(request.startDate, request.endDate)
 
         val userId = absence.user.id ?: throw CustomException(UserError.USER_NOT_FOUND)
-        val hasOverlappingAbsence = absenceRepository.existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(
-            userId = userId,
-            endDate = request.endDate,
-            startDate = request.startDate,
-            id = id
-        )
+        val hasOverlappingAbsence =
+            absenceRepository.existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(
+                userId = userId,
+                endDate = request.endDate,
+                startDate = request.startDate,
+                id = id
+            )
 
         if (hasOverlappingAbsence) {
             throw CustomException(AbsenceError.ABSENCE_ALREADY_EXISTS)

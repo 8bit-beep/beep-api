@@ -13,12 +13,14 @@ interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long>
         dayOfWeek: DayOfWeek,
         period: Int
     ): StudentScheduleEntity?
+
     fun findByUserAndDayOfWeekAndPeriodAndType(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
         period: Int,
         type: AttendanceType
     ): StudentScheduleEntity?
+
     fun existsByUserAndDayOfWeekAndPeriod(
         user: UserEntity,
         dayOfWeek: DayOfWeek,

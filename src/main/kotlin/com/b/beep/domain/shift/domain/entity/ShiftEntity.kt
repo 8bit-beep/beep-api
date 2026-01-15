@@ -4,18 +4,7 @@ import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.global.common.entity.BaseEntity
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
+import jakarta.persistence.*
 import java.time.LocalDate
 
 @Entity

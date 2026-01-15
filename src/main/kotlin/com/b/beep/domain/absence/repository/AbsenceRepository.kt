@@ -15,7 +15,10 @@ interface AbsenceRepository : JpaRepository<AbsenceEntity, Long> {
         @org.springframework.data.repository.query.Param("endDate") endDate: LocalDate
     ): List<AbsenceEntity>
 
-    fun findAllByStartDateLessThanEqualAndEndDateGreaterThanEqual(startDate: LocalDate, endDate: LocalDate): List<AbsenceEntity>
+    fun findAllByStartDateLessThanEqualAndEndDateGreaterThanEqual(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<AbsenceEntity>
 
     /**
      * 해당 사용자의 날짜 범위와 겹치는 장기결석이 있는지 확인

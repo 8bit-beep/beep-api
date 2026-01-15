@@ -117,7 +117,12 @@ class AttendanceHistoryService(
             val finalStatus = if (period1 != "미출석" && period2 != "미출석" && period3 != "미출석") "출석" else "미출석"
 
             StudentAttendanceRecord(
-                studentNumber = "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}",
+                studentNumber = "${studentInfo.grade}${studentInfo.classNumber}${
+                    String.format(
+                        "%02d",
+                        studentInfo.num
+                    )
+                }",
                 studentName = student.username,
                 period1 = period1,
                 period2 = period2,

@@ -5,9 +5,9 @@ import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
-import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
+import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
@@ -67,6 +67,7 @@ class ShiftManagementService(
                 record.room = room
                 attendanceRepository.save(record)
             }
+
             ShiftStatus.WAITING, ShiftStatus.REJECTED -> {
                 attendance?.let { attendanceRepository.delete(it) }
             }

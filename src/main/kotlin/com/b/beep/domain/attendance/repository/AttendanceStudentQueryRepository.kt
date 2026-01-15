@@ -78,12 +78,14 @@ class AttendanceStudentQueryRepository(
                     whereBuilder.and(attendanceEntity.id.isNull)
                     whereBuilder.and(absenceEntity.id.isNull)
                 }
+
                 AttendanceType.OUTGOING -> {
                     whereBuilder.and(
                         attendanceEntity.type.eq(AttendanceType.OUTGOING)
                             .or(absenceEntity.id.isNotNull)
                     )
                 }
+
                 else -> {
                     whereBuilder.and(attendanceEntity.type.eq(status))
                 }

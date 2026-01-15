@@ -44,12 +44,14 @@ class AttendanceService(
         }
 
         val attendance = attendanceRepository.findByUserIdAndPeriodAndDate(user.id!!, period, today)
-            ?: attendanceRepository.save(AttendanceEntity(
-                user = user,
-                period = period,
-                date = today,
-                type = AttendanceType.NOT_ATTEND
-            ))
+            ?: attendanceRepository.save(
+                AttendanceEntity(
+                    user = user,
+                    period = period,
+                    date = today,
+                    type = AttendanceType.NOT_ATTEND
+                )
+            )
 
         if (attendance.type != AttendanceType.NOT_ATTEND) {
             throw CustomException(AttendanceError.ALREADY_ATTENDED)

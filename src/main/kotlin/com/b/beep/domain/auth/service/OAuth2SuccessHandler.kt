@@ -23,7 +23,7 @@ class OAuth2SuccessHandler(
         request: HttpServletRequest,
         response: HttpServletResponse,
         authentication: Authentication
-    ){
+    ) {
         val oauth2User = authentication.principal as OAuth2User
         val attributes = oauth2User.attributes
 

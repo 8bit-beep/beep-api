@@ -1,8 +1,8 @@
 package com.b.beep.domain.auth.controller.docs
 
 import com.b.beep.domain.auth.controller.dto.request.LoginRequest
-import com.b.beep.global.security.jwt.dto.response.TokenResponse
 import com.b.beep.global.common.dto.response.BaseResponse
+import com.b.beep.global.security.jwt.dto.response.TokenResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity

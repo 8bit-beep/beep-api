@@ -41,8 +41,8 @@ class StudentScheduleValidator(
         val existingSchedules = studentScheduleRepository.findAllByUser(user)
         val conflict = existingSchedules.any {
             it.id != excludeScheduleId &&
-            it.dayOfWeek == dayOfWeek &&
-            it.period == period
+                    it.dayOfWeek == dayOfWeek &&
+                    it.period == period
         }
         if (conflict) {
             throw CustomException(StudentScheduleError.ALREADY_EXIST_SCHEDULE)
