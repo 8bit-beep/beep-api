@@ -1,7 +1,7 @@
 package com.b.beep.domain.notification.service
 
 import com.b.beep.domain.notification.controller.dto.request.SaveTokenRequest
-import com.b.beep.domain.notification.entity.FcmTokenEntity
+import com.b.beep.domain.notification.domain.entity.FcmTokenEntity
 import com.b.beep.domain.notification.repository.FcmTokenRepository
 import com.b.beep.global.security.ContextHolder
 import org.springframework.stereotype.Service

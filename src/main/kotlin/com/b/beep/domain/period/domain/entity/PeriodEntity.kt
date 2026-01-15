@@ -1,4 +1,4 @@
-package com.b.beep.domain.period.entity
+package com.b.beep.domain.period.domain.entity
 
 import jakarta.persistence.*
 import java.time.LocalTime

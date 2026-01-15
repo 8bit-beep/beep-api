@@ -1,6 +1,6 @@
-package com.b.beep.domain.absence.entity
+package com.b.beep.domain.absence.domain.entity
 
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDate
 

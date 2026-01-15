@@ -1,6 +1,6 @@
 package com.b.beep.domain.absence.repository
 
-import com.b.beep.domain.absence.entity.AbsenceEntity
+import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import java.time.LocalDate
 

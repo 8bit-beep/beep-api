@@ -1,6 +1,6 @@
 package com.b.beep.domain.approval.controller.dto.response
 
-import com.b.beep.domain.approval.entity.ApprovalEntity
+import com.b.beep.domain.approval.domain.entity.ApprovalEntity
 import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.user.controller.dto.response.UserResponse
 import java.time.LocalDateTime

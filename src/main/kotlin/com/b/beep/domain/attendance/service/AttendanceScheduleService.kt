@@ -1,15 +1,15 @@
 package com.b.beep.domain.attendance.service
 
 import com.b.beep.domain.absence.repository.AbsenceRepository
-import com.b.beep.domain.approval.entity.ApprovalEntity
+import com.b.beep.domain.approval.domain.entity.ApprovalEntity
 import com.b.beep.domain.approval.repository.ApprovalRepository
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
-import com.b.beep.domain.attendance.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.notification.service.NotificationService
 import com.b.beep.domain.period.repository.PeriodRepository
-import com.b.beep.domain.user.domain.UserRole
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 @Component
+// TODO 클래스 이름이랑 폴더 변경
 class AttendanceScheduleService(
     private val userRepository: UserRepository,
     private val approvalRepository: ApprovalRepository,

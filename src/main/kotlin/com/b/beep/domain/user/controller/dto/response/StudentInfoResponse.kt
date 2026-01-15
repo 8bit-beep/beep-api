@@ -1,6 +1,6 @@
 package com.b.beep.domain.user.controller.dto.response
 
-import com.b.beep.domain.user.entity.StudentInfoEntity
+import com.b.beep.domain.user.domain.enums.entity.StudentInfoEntity
 
 data class StudentInfoResponse(
     val id: Long? = null,

@@ -2,10 +2,10 @@ package com.b.beep.domain.attendance.controller.dto.response
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
-import com.b.beep.domain.user.entity.UserEntity
-import com.b.beep.domain.user.entity.StudentInfoEntity
-import com.b.beep.domain.user.entity.StudentScheduleEntity
-import com.b.beep.domain.attendance.entity.AttendanceEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
+import com.b.beep.domain.user.domain.enums.entity.StudentInfoEntity
+import com.b.beep.domain.user.domain.enums.entity.StudentScheduleEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import java.time.DayOfWeek
 
 data class AttendanceStudentResponse(

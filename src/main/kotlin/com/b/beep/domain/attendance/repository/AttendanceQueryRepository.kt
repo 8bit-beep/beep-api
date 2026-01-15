@@ -2,7 +2,7 @@ package com.b.beep.domain.attendance.repository
 
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 

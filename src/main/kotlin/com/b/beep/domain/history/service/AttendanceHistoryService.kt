@@ -5,7 +5,7 @@ import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.history.controller.dto.response.ClassAttendanceHistoryResponse
 import com.b.beep.domain.history.controller.dto.response.RoomAttendanceHistoryResponse
 import com.b.beep.domain.history.controller.dto.response.StudentAttendanceRecord
-import com.b.beep.domain.user.domain.UserRole
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.domain.user.repository.UserRepository

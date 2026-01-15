@@ -1,8 +1,8 @@
-package com.b.beep.domain.user.service
+package com.b.beep.domain.user.domain
 
 import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.StudentScheduleError
-import com.b.beep.domain.user.entity.UserEntity
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Component

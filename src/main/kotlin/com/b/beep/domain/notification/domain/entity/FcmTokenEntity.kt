@@ -1,6 +1,6 @@
-package com.b.beep.domain.notification.entity
+package com.b.beep.domain.notification.domain.entity
 
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.global.common.entity.BaseEntity
 import jakarta.persistence.*
 

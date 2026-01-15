@@ -3,7 +3,7 @@ package com.b.beep.domain.notification.repository
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.entity.QAttendanceEntity
-import com.b.beep.domain.notification.entity.FcmTokenEntity
+import com.b.beep.domain.notification.domain.entity.FcmTokenEntity
 import com.b.beep.domain.notification.entity.QFcmTokenEntity
 import com.b.beep.domain.user.entity.QUserEntity
 import com.querydsl.jpa.impl.JPAQueryFactory

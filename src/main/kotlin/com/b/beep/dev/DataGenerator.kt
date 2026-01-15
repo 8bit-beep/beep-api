@@ -1,9 +1,9 @@
 package com.b.beep.dev
 
-import com.b.beep.domain.approval.entity.ApprovalEntity
+import com.b.beep.domain.approval.domain.entity.ApprovalEntity
 import com.b.beep.domain.approval.repository.ApprovalRepository
 import com.b.beep.domain.attendance.domain.enums.Room
-import com.b.beep.domain.memo.entity.MemoEntity
+import com.b.beep.domain.memo.domain.entity.MemoEntity
 import com.b.beep.domain.memo.repository.MemoRepository
 import com.b.beep.domain.period.repository.PeriodRepository
 import org.springframework.boot.ApplicationRunner

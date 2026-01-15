@@ -1,6 +1,6 @@
 package com.b.beep.domain.approval.repository
 
-import com.b.beep.domain.approval.entity.ApprovalEntity
+import com.b.beep.domain.approval.domain.entity.ApprovalEntity
 import com.b.beep.domain.attendance.domain.enums.Room
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying

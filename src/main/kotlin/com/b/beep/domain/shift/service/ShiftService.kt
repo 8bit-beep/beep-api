@@ -5,7 +5,7 @@ import com.b.beep.domain.shift.controller.dto.request.CreateShiftRequest
 import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
-import com.b.beep.domain.shift.entity.ShiftEntity
+import com.b.beep.domain.shift.domain.entity.ShiftEntity
 import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder

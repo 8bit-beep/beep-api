@@ -1,6 +1,6 @@
-package com.b.beep.domain.approval.entity
+package com.b.beep.domain.approval.domain.entity
 
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.global.common.entity.BaseEntity
 import com.b.beep.domain.attendance.domain.enums.Room
 import jakarta.persistence.*

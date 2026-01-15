@@ -2,7 +2,7 @@ package com.b.beep.domain.notification.service
 
 import com.b.beep.domain.notification.config.FcmMessageFactory
 import com.b.beep.domain.notification.controller.dto.request.SendNotificationRequest
-import com.b.beep.domain.notification.entity.FcmTokenEntity
+import com.b.beep.domain.notification.domain.entity.FcmTokenEntity
 import com.b.beep.domain.notification.repository.FcmTokenQueryRepository
 import com.b.beep.domain.notification.repository.FcmTokenRepository
 import com.google.firebase.messaging.FirebaseMessaging

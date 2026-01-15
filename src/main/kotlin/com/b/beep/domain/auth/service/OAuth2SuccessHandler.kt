@@ -2,7 +2,7 @@ package com.b.beep.domain.auth.service
 
 import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthUser
-import com.b.beep.domain.user.domain.UserRole
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.jwt.JwtProvider

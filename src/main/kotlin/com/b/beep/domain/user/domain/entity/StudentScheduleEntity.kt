@@ -1,4 +1,4 @@
-package com.b.beep.domain.user.entity
+package com.b.beep.domain.user.domain.entity
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room

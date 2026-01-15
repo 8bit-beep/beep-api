@@ -1,4 +1,4 @@
-package com.b.beep.domain.user.domain
+package com.b.beep.domain.user.domain.enums
 
 enum class UserRole {
     STUDENT, TEACHER

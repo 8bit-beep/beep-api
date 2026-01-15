@@ -6,7 +6,7 @@ import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
 import com.b.beep.domain.user.service.UserService
 import com.b.beep.global.common.dto.response.BaseResponse
-import com.b.beep.domain.user.domain.UserRole
+import com.b.beep.domain.user.domain.enums.UserRole
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

@@ -1,8 +1,8 @@
 package com.b.beep.domain.absence.controller.dto.response
 
-import com.b.beep.domain.absence.entity.AbsenceEntity
+import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
-import com.b.beep.domain.user.entity.StudentInfoEntity
+import com.b.beep.domain.user.domain.enums.entity.StudentInfoEntity
 import java.time.LocalDate
 
 data class AbsenceResponse(

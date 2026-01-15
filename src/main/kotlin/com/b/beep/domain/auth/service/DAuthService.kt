@@ -5,7 +5,7 @@ import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthProperties
 import com.b.beep.domain.auth.infrastructure.DAuthTokenResponse
 import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
-import com.b.beep.domain.user.domain.UserRole
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException

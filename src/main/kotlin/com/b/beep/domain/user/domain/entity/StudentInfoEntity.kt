@@ -1,4 +1,4 @@
-package com.b.beep.domain.user.entity
+package com.b.beep.domain.user.domain.entity
 
 import jakarta.persistence.*
 

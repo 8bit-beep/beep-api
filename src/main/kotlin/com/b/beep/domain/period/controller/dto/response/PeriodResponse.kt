@@ -1,6 +1,6 @@
 package com.b.beep.domain.period.controller.dto.response
 
-import com.b.beep.domain.period.entity.PeriodEntity
+import com.b.beep.domain.period.domain.entity.PeriodEntity
 import java.time.LocalTime
 
 data class PeriodResponse(

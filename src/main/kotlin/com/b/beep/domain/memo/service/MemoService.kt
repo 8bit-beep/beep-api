@@ -1,6 +1,6 @@
 package com.b.beep.domain.memo.service
 
-import com.b.beep.domain.memo.entity.MemoEntity
+import com.b.beep.domain.memo.domain.entity.MemoEntity
 import com.b.beep.domain.memo.repository.MemoRepository
 import com.b.beep.domain.memo.controller.dto.request.CreateMemoRequest
 import com.b.beep.domain.memo.controller.dto.request.UpdateMemoRequest

@@ -1,8 +1,15 @@
-package com.b.beep.domain.user.entity
+package com.b.beep.domain.user.domain.entity
 
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.global.common.entity.BaseEntity
-import com.b.beep.domain.user.domain.UserRole
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 
 @Entity
 @Table(name = "users")

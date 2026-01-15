@@ -4,11 +4,11 @@ import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.shift.entity.ShiftEntity
+import com.b.beep.domain.shift.domain.entity.ShiftEntity
 import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

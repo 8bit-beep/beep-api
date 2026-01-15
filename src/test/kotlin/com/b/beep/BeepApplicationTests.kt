@@ -1,6 +1,6 @@
 package com.b.beep
 
-import com.b.beep.domain.notification.config.FirebaseConfig
+import com.b.beep.global.config.FirebaseConfig
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles

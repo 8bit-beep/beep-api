@@ -2,7 +2,7 @@ package com.b.beep.domain.period.service
 
 import com.b.beep.domain.period.controller.dto.request.CreatePeriodRequest
 import com.b.beep.domain.period.controller.dto.request.UpdatePeriodRequest
-import com.b.beep.domain.period.entity.PeriodEntity
+import com.b.beep.domain.period.domain.entity.PeriodEntity
 import com.b.beep.domain.period.error.PeriodError
 import com.b.beep.domain.period.repository.PeriodRepository
 import com.b.beep.global.exception.CustomException

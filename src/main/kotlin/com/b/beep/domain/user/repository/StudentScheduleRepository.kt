@@ -1,10 +1,10 @@
 package com.b.beep.domain.user.repository
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import java.time.DayOfWeek
-import com.b.beep.domain.user.entity.StudentScheduleEntity
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
+import java.time.DayOfWeek
 
 interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long> {
     fun findAllByUser(user: UserEntity): List<StudentScheduleEntity>

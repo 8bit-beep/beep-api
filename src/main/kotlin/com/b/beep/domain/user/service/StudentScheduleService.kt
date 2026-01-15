@@ -2,9 +2,10 @@ package com.b.beep.domain.user.service
 
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
+import com.b.beep.domain.user.domain.StudentScheduleValidator
+import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.StudentScheduleError
-import com.b.beep.domain.user.entity.StudentScheduleEntity
-import com.b.beep.domain.user.entity.UserEntity
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder

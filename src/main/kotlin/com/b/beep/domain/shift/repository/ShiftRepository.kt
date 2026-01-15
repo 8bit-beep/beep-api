@@ -1,7 +1,7 @@
 package com.b.beep.domain.shift.repository
 
-import com.b.beep.domain.shift.entity.ShiftEntity
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.shift.domain.entity.ShiftEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import java.time.LocalDate
 

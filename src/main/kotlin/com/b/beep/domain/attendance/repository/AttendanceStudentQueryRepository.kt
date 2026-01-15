@@ -3,12 +3,12 @@ package com.b.beep.domain.attendance.repository
 import com.b.beep.domain.user.entity.QStudentInfoEntity
 import com.b.beep.domain.user.entity.QUserEntity
 import com.b.beep.domain.user.entity.QStudentScheduleEntity
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.entity.QAttendanceEntity
-import com.b.beep.domain.user.domain.UserRole
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository

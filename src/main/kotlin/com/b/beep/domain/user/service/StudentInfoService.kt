@@ -1,16 +1,16 @@
 package com.b.beep.domain.user.service
 
-import com.b.beep.domain.user.entity.UserEntity
-import com.b.beep.domain.user.entity.StudentInfoEntity
-import com.b.beep.domain.user.repository.StudentInfoRepository
-import com.b.beep.domain.user.repository.UserRepository
-import com.b.beep.domain.user.domain.UserRole
-import com.b.beep.domain.attendance.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
 import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.user.domain.entity.StudentInfoEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
+import com.b.beep.domain.user.domain.enums.UserRole
+import com.b.beep.domain.user.repository.StudentInfoRepository
+import com.b.beep.domain.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
