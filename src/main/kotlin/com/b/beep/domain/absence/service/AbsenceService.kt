@@ -4,7 +4,9 @@ import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.controller.dto.request.CreateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
+import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
 import com.b.beep.domain.absence.repository.AbsenceRepository
+import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.domain.user.error.UserError
@@ -48,8 +50,8 @@ class AbsenceService(
     }
 
     @Transactional(readOnly = true)
-    fun getAll(): List<AbsenceEntity> {
-        return absenceRepository.findAll()
+    fun getAll(): List<AbsenceResponse> {
+        return absenceRepository.findAll().map { it.toResponse() }
     }
 
     fun update(id: Long, request: UpdateAbsenceRequest) {
@@ -90,9 +92,17 @@ class AbsenceService(
         absenceRepository.delete(absence)
     }
 
-    @Transactional(readOnly = true)
-    fun getUsersInLongAbsence(date: LocalDate): List<UserEntity> {
-        val absences = absenceRepository.findAllByStartDateLessThanEqualAndEndDateGreaterThanEqualWithUser(date, date)
-        return absences.map { it.user }
+    private fun AbsenceEntity.toResponse(): AbsenceResponse {
+        val studentInfo = studentInfoRepository.findByUser(user)
+            ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
+
+        return AbsenceResponse(
+            absenceId = this.id!!,
+            studentName = this.user.username,
+            studentInfo = StudentInfoResponse.of(studentInfo),
+            startDate = this.startDate,
+            endDate = this.endDate,
+            reason = this.reason
+        )
     }
 }

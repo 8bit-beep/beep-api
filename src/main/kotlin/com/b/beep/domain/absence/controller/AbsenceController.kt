@@ -24,9 +24,7 @@ class AbsenceController(
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     override fun getAllAbsences(): List<AbsenceResponse> {
-        return absenceService.getAll().map {
-            AbsenceResponse.of(it, userService.getStudentInfo(it.user))
-        }
+        return absenceService.getAll()
     }
 
     @PatchMapping("/{absenceId}")
