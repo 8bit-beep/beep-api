@@ -1,5 +1,6 @@
 package com.b.beep.domain.period.service
 
+import com.b.beep.domain.notification.scheduler.DynamicNotificationScheduler
 import com.b.beep.domain.period.controller.dto.request.CreatePeriodRequest
 import com.b.beep.domain.period.controller.dto.request.UpdatePeriodRequest
 import com.b.beep.domain.period.domain.entity.PeriodEntity
@@ -12,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class PeriodService(
-    private val periodRepository: PeriodRepository
+    private val periodRepository: PeriodRepository,
+    private val dynamicNotificationScheduler: DynamicNotificationScheduler
 ) {
     fun create(request: CreatePeriodRequest) {
         if (periodRepository.existsByPeriod(request.period)) {
@@ -27,6 +29,7 @@ class PeriodService(
             attendEndTime = request.attendEndTime
         )
         periodRepository.save(period)
+        dynamicNotificationScheduler.scheduleAllNotifications()
     }
 
     fun update(period: Int, request: UpdatePeriodRequest) {
@@ -36,6 +39,7 @@ class PeriodService(
         entity.attendStartTime = request.attendStartTime
         entity.attendEndTime = request.attendEndTime
         periodRepository.save(entity)
+        dynamicNotificationScheduler.scheduleAllNotifications()
     }
 
     fun delete(period: Int) {
@@ -43,6 +47,7 @@ class PeriodService(
             throw CustomException(PeriodError.PERIOD_NOT_FOUND)
         }
         periodRepository.deleteByPeriod(period)
+        dynamicNotificationScheduler.scheduleAllNotifications()
     }
 
     @Transactional(readOnly = true)
