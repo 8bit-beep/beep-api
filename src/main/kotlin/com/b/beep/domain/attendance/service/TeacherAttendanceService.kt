@@ -4,9 +4,11 @@ import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
 import com.b.beep.domain.attendance.controller.dto.response.ScheduleResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
+import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.attendance.repository.AttendanceStudentQueryRepository
 import com.b.beep.domain.period.repository.PeriodRepository
 import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
@@ -20,16 +22,41 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 @Service
-@Transactional(readOnly = true)
-class AttendanceStudentService(
-    private val attendanceStudentQueryRepository: AttendanceStudentQueryRepository,
+@Transactional
+class TeacherAttendanceService(
     private val studentInfoRepository: StudentInfoRepository,
-    private val studentScheduleRepository: StudentScheduleRepository,
     private val attendanceRepository: AttendanceRepository,
+    private val periodResolver: PeriodResolver,
+    private val attendanceQueryRepository: AttendanceQueryRepository,
+    private val studentScheduleRepository: StudentScheduleRepository,
     private val periodRepository: PeriodRepository,
     private val absenceRepository: AbsenceRepository,
     private val roomRepository: RoomRepository
 ) {
+    fun updateCurrentStudentStatus(grade: Int, classNumber: Int, num: Int, status: AttendanceType) {
+        val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(grade, classNumber, num)
+            ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
+
+        val user = studentInfo.user
+        val period = periodResolver.getCurrentPeriod()
+        val attendance = attendanceRepository.findByPeriodAndUserAndDate(period, user, LocalDate.now())
+
+        if (attendance != null) {
+            attendance.type = status
+            attendanceRepository.save(attendance)
+        } else {
+            attendanceRepository.save(
+                AttendanceEntity(
+                    user = user,
+                    period = period,
+                    type = status,
+                    room = null,
+                    date = LocalDate.now()
+                )
+            )
+        }
+    }
+
     fun findAll(
         roomId: Long?,
         type: AttendanceType?,
@@ -38,7 +65,7 @@ class AttendanceStudentService(
         classNumber: Int?
     ): List<AttendanceStudentResponse> {
         val room = roomId?.let { roomRepository.findById(it).orElse(null) }
-        val users = attendanceStudentQueryRepository.findAllByFilters(
+        val users = attendanceQueryRepository.findAllByFilters(
             room = room,
             type = type,
             status = status,

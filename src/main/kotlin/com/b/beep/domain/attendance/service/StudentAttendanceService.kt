@@ -16,14 +16,13 @@ import java.time.LocalDate
 
 @Service
 @Transactional
-class AttendanceService(
+class StudentAttendanceService(
     private val attendanceRepository: AttendanceRepository,
     private val contextHolder: ContextHolder,
     private val studentScheduleRepository: StudentScheduleRepository,
     private val periodResolver: PeriodResolver,
     private val roomService: RoomService,
 ) {
-    @Transactional
     fun attend(request: AttendRequest) {
         val user = contextHolder.user
         val period = periodResolver.getCurrentAttendancePeriod()
@@ -63,7 +62,6 @@ class AttendanceService(
         attendanceRepository.save(attendance)
     }
 
-    @Transactional
     fun cancelAttendance() {
         val user = contextHolder.user
         val period = periodResolver.getCurrentAttendancePeriod()

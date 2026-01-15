@@ -1,9 +1,18 @@
 package com.b.beep.domain.attendance.repository
 
+import com.b.beep.domain.absence.domain.entity.QAbsenceEntity
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.room.domain.entity.RoomEntity
+import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
+import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
+import com.b.beep.domain.user.domain.entity.QUserEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
+import com.b.beep.domain.user.domain.enums.UserRole
+import com.querydsl.core.BooleanBuilder
+import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
@@ -11,7 +20,8 @@ import java.time.LocalDate
 class AttendanceQueryRepository(
     private val attendanceRepository: AttendanceRepository,
     private val periodResolver: PeriodResolver,
-    private val absenceRepository: AbsenceRepository
+    private val absenceRepository: AbsenceRepository,
+    private val queryFactory: JPAQueryFactory,
 ) {
     fun findCurrentStatus(user: UserEntity): AttendanceType {
         val today = LocalDate.now()
@@ -27,22 +37,78 @@ class AttendanceQueryRepository(
         return if (isAbsent) AttendanceType.OUTGOING else AttendanceType.NOT_ATTEND
     }
 
-    fun findAllCurrentStatuses(users: List<UserEntity>): Map<Long, AttendanceType> {
-        if (users.isEmpty()) return emptyMap()
+    fun findAllByFilters(
+        room: RoomEntity? = null,
+        type: AttendanceType? = null,
+        status: AttendanceType? = null,
+        grade: Int? = null,
+        classNumber: Int? = null
+    ): List<UserEntity> {
+        val userEntity = QUserEntity.userEntity
+        val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
+        val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
+        val attendanceEntity = QAttendanceEntity.attendanceEntity
+        val absenceEntity = QAbsenceEntity.absenceEntity
+
         val today = LocalDate.now()
-        val currentPeriod = periodResolver.getCurrentPeriod()
-        if (currentPeriod == 0) return users.associate { it.id!! to AttendanceType.NOT_ATTEND }
+        val dayOfWeek = today.dayOfWeek
+        val period = periodResolver.getCurrentPeriod()
 
-        val attendances = attendanceRepository.findAllByUsersAndPeriodAndDate(users, currentPeriod, today)
-        val attendanceMap = attendances.associate { it.user.id!! to it.type }
+        val query = queryFactory
+            .selectFrom(userEntity)
+            .distinct()
+            .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        val absences = absenceRepository.findAllByStartDateLessThanEqualAndEndDateGreaterThanEqualWithUser(today, today)
-        val absentUserIds = absences.map { it.user.id }.toSet()
-
-        return users.associate { user ->
-            val status = attendanceMap[user.id]
-                ?: if (absentUserIds.contains(user.id)) AttendanceType.OUTGOING else AttendanceType.NOT_ATTEND
-            user.id!! to status
+        if (room != null && type != null) {
+            query.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
+
+        if (status != null && period > 0) {
+            query.leftJoin(attendanceEntity).on(
+                attendanceEntity.user.id.eq(userEntity.id),
+                attendanceEntity.date.eq(today),
+                attendanceEntity.period.eq(period)
+            )
+            query.leftJoin(absenceEntity).on(
+                absenceEntity.user.id.eq(userEntity.id),
+                absenceEntity.startDate.loe(today),
+                absenceEntity.endDate.goe(today)
+            )
+        }
+
+        val whereBuilder = BooleanBuilder()
+        whereBuilder.and(userEntity.role.eq(UserRole.STUDENT))
+
+        grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
+        classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
+
+        if (room != null && type != null) {
+            whereBuilder.and(scheduleEntity.room.id.eq(room.id))
+            whereBuilder.and(scheduleEntity.type.eq(type))
+            whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
+            whereBuilder.and(scheduleEntity.period.eq(period))
+        }
+
+        if (status != null && period > 0) {
+            when (status) {
+                AttendanceType.NOT_ATTEND -> {
+                    whereBuilder.and(attendanceEntity.id.isNull)
+                    whereBuilder.and(absenceEntity.id.isNull)
+                }
+
+                AttendanceType.OUTGOING -> {
+                    whereBuilder.and(
+                        attendanceEntity.type.eq(AttendanceType.OUTGOING)
+                            .or(absenceEntity.id.isNotNull)
+                    )
+                }
+
+                else -> {
+                    whereBuilder.and(attendanceEntity.type.eq(status))
+                }
+            }
+        }
+
+        return query.where(whereBuilder).fetch()
     }
 }
