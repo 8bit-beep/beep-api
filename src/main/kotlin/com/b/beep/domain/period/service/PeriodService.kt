@@ -9,6 +9,7 @@ import com.b.beep.domain.period.repository.PeriodRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalTime
 
 @Service
 @Transactional
@@ -20,6 +21,8 @@ class PeriodService(
         if (periodRepository.existsByPeriod(request.period)) {
             throw CustomException(PeriodError.PERIOD_ALREADY_EXISTS)
         }
+
+        validateTimeOverlap(request.startTime, request.endTime, excludePeriod = null)
 
         val period = PeriodEntity(
             period = request.period,
@@ -34,6 +37,9 @@ class PeriodService(
 
     fun update(period: Int, request: UpdatePeriodRequest) {
         val entity = getByPeriod(period)
+
+        validateTimeOverlap(request.startTime, request.endTime, excludePeriod = period)
+
         entity.startTime = request.startTime
         entity.endTime = request.endTime
         entity.attendStartTime = request.attendStartTime
@@ -59,5 +65,16 @@ class PeriodService(
     @Transactional(readOnly = true)
     fun findAll(): List<PeriodEntity> {
         return periodRepository.findAll()
+    }
+
+    private fun validateTimeOverlap(startTime: LocalTime, endTime: LocalTime, excludePeriod: Int?) {
+        val existingPeriods = periodRepository.findAll()
+            .filter { excludePeriod == null || it.period != excludePeriod }
+
+        for (existing in existingPeriods) {
+            if (startTime < existing.endTime && existing.startTime < endTime) {
+                throw CustomException(PeriodError.PERIOD_TIME_OVERLAP)
+            }
+        }
     }
 }
