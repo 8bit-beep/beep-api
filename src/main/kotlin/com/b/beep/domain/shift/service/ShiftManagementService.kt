@@ -1,8 +1,8 @@
 package com.b.beep.domain.shift.service
 
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
-import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
 import com.b.beep.domain.shift.repository.ShiftRepository
@@ -52,18 +52,24 @@ class ShiftManagementService(
         date: LocalDate,
         status: ShiftStatus
     ) {
-        val attendance = attendanceRepository
-            .findByPeriodAndUserAndDate(period, user, date)
-            ?: throw CustomException(AttendanceError.ATTENDANCE_NOT_FOUND)
+        val attendance = attendanceRepository.findByPeriodAndUserAndDate(period, user, date)
 
         when (status) {
-            ShiftStatus.APPROVED -> attendance.type = AttendanceType.SHIFT_ATTEND
-            ShiftStatus.WAITING -> attendance.type = AttendanceType.NOT_ATTEND
-            ShiftStatus.REJECTED -> attendance.type = AttendanceType.NOT_ATTEND
+            ShiftStatus.APPROVED -> {
+                val record = attendance ?: AttendanceEntity(
+                    user = user,
+                    period = period,
+                    date = date,
+                    type = AttendanceType.SHIFT_ATTEND,
+                    room = room
+                )
+                record.type = AttendanceType.SHIFT_ATTEND
+                record.room = room
+                attendanceRepository.save(record)
+            }
+            ShiftStatus.WAITING, ShiftStatus.REJECTED -> {
+                attendance?.let { attendanceRepository.delete(it) }
+            }
         }
-
-        attendance.room = room
-
-        attendanceRepository.save(attendance)
     }
 }

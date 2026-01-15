@@ -1,10 +1,16 @@
 package com.b.beep.domain.attendance.service
 
+import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
+import com.b.beep.domain.attendance.controller.dto.response.ScheduleResponse
+import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.repository.AttendanceStudentQueryRepository
+import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.user.domain.entity.StudentInfoEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
@@ -19,7 +25,9 @@ class AttendanceStudentService(
     private val attendanceStudentQueryRepository: AttendanceStudentQueryRepository,
     private val studentInfoRepository: StudentInfoRepository,
     private val studentScheduleRepository: StudentScheduleRepository,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val periodRepository: PeriodRepository,
+    private val absenceRepository: AbsenceRepository
 ) {
     fun findAll(
         room: Room?,
@@ -36,12 +44,36 @@ class AttendanceStudentService(
             classNumber = classNumber
         )
 
-        return users.map { user ->
-            val studentInfo = studentInfoRepository.findByUser(user)
-                ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
-            val schedules = studentScheduleRepository.findAllByUser(user)
-            val attendances = attendanceRepository.findAllByUserAndDate(user, LocalDate.now())
-            AttendanceStudentResponse.of(user, studentInfo, schedules, attendances)
+        return users.map { it.toResponse() }
+    }
+
+    private fun UserEntity.toResponse(): AttendanceStudentResponse {
+        val today = LocalDate.now()
+        val studentInfo = studentInfoRepository.findByUser(this)
+            ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
+        val schedules = studentScheduleRepository.findAllByUser(this)
+        val attendances = attendanceRepository.findAllByUserAndDate(this, today)
+        val periods = periodRepository.findAll()
+        val isAbsent = absenceRepository.existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            this.id!!, today, today
+        )
+
+        val attendanceMap = attendances.associateBy { it.period }
+        val statuses = periods.map { period ->
+            val type = attendanceMap[period.period]?.type
+                ?: if (isAbsent) AttendanceType.OUTGOING else AttendanceType.NOT_ATTEND
+            StatusResponse(period.period, type)
         }
+
+        return AttendanceStudentResponse(
+            username = this.username,
+            studentId = generateStudentId(studentInfo),
+            schedules = schedules.map { ScheduleResponse.of(it) },
+            statuses = statuses
+        )
+    }
+
+    private fun generateStudentId(studentInfo: StudentInfoEntity): String {
+        return String.format("%d%d%02d", studentInfo.grade, studentInfo.classNumber, studentInfo.num)
     }
 }
