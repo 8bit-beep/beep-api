@@ -1,6 +1,6 @@
 package com.b.beep.domain.shift.domain.entity
 
-import com.b.beep.domain.attendance.domain.enums.Room
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.global.common.entity.BaseEntity
@@ -33,9 +33,9 @@ class ShiftEntity(
     @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "room", nullable = false)
-    var room: Room,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false)
+    var room: RoomEntity,
 
     @Column(name = "period", nullable = false)
     var period: Int,

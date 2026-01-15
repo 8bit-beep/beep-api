@@ -2,8 +2,8 @@ package com.b.beep.domain.shift.service
 
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
 import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
@@ -39,7 +39,7 @@ class ShiftManagementService(
         shiftRepository.save(shift)
     }
 
-    private fun updateAttendanceWithNext(period: Int, user: UserEntity, room: Room, status: ShiftStatus) {
+    private fun updateAttendanceWithNext(period: Int, user: UserEntity, room: RoomEntity, status: ShiftStatus) {
         val today = LocalDate.now()
         updateAttendanceForShift(period, user, room, today, status)
         updateAttendanceForShift(period + 1, user, room, today, status)
@@ -48,7 +48,7 @@ class ShiftManagementService(
     private fun updateAttendanceForShift(
         period: Int,
         user: UserEntity,
-        room: Room,
+        room: RoomEntity,
         date: LocalDate,
         status: ShiftStatus
     ) {

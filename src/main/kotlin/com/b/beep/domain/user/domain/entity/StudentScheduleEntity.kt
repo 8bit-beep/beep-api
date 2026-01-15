@@ -1,9 +1,9 @@
 package com.b.beep.domain.user.domain.entity
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
-import java.time.DayOfWeek
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import jakarta.persistence.*
+import java.time.DayOfWeek
 
 @Entity
 @Table(
@@ -34,7 +34,7 @@ class StudentScheduleEntity(
     @Column(name = "type", nullable = false)
     var type: AttendanceType,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "room", nullable = false)
-    var room: Room
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false)
+    var room: RoomEntity
 )

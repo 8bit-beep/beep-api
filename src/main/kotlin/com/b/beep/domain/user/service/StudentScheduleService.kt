@@ -1,5 +1,6 @@
 package com.b.beep.domain.user.service
 
+import com.b.beep.domain.room.service.RoomService
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.domain.StudentScheduleValidator
@@ -18,10 +19,12 @@ import org.springframework.transaction.annotation.Transactional
 class StudentScheduleService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val studentScheduleValidator: StudentScheduleValidator,
-    private val contextHolder: ContextHolder
+    private val contextHolder: ContextHolder,
+    private val roomService: RoomService
 ) {
     fun create(request: CreateStudentScheduleRequest) {
         val user = contextHolder.user
+        val room = roomService.getRoomById(request.roomId)
 
         studentScheduleValidator.validateDayOfWeek(request.dayOfWeek)
         studentScheduleValidator.validatePeriod(request.period)
@@ -32,7 +35,7 @@ class StudentScheduleService(
             dayOfWeek = request.dayOfWeek,
             period = request.period,
             type = request.type,
-            room = request.room
+            room = room
         )
         studentScheduleRepository.save(schedule)
     }
@@ -56,7 +59,7 @@ class StudentScheduleService(
         request.dayOfWeek?.let { schedule.dayOfWeek = it }
         request.period?.let { schedule.period = it }
         request.type?.let { schedule.type = it }
-        request.room?.let { schedule.room = it }
+        request.roomId?.let { schedule.room = roomService.getRoomById(it) }
 
         studentScheduleRepository.save(schedule)
     }

@@ -5,10 +5,10 @@ import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentRes
 import com.b.beep.domain.attendance.controller.dto.response.ScheduleResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.repository.AttendanceStudentQueryRepository
 import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.UserError
@@ -27,15 +27,17 @@ class AttendanceStudentService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val attendanceRepository: AttendanceRepository,
     private val periodRepository: PeriodRepository,
-    private val absenceRepository: AbsenceRepository
+    private val absenceRepository: AbsenceRepository,
+    private val roomRepository: RoomRepository
 ) {
     fun findAll(
-        room: Room?,
+        roomId: Long?,
         type: AttendanceType?,
         status: AttendanceType?,
         grade: Int?,
         classNumber: Int?
     ): List<AttendanceStudentResponse> {
+        val room = roomId?.let { roomRepository.findById(it).orElse(null) }
         val users = attendanceStudentQueryRepository.findAllByFilters(
             room = room,
             type = type,

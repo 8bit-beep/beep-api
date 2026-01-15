@@ -4,7 +4,6 @@ import com.b.beep.domain.approval.controller.docs.ApprovalDocs
 import com.b.beep.domain.approval.controller.dto.request.ApproveRequest
 import com.b.beep.domain.approval.controller.dto.response.ApprovalResponse
 import com.b.beep.domain.approval.service.ApprovalService
-import com.b.beep.domain.attendance.domain.enums.Room
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
@@ -25,10 +24,10 @@ class ApprovalController(
         return approvalService.getNotApprovedRooms().map { ApprovalResponse.of(it) }
     }
 
-    @GetMapping("/{roomName}")
+    @GetMapping("/{roomId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun getApprovalStatusByRoom(@PathVariable roomName: Room): ApprovalResponse {
-        return ApprovalResponse.of(approvalService.getApprovalStatusByRoom(roomName))
+    override fun getApprovalStatusByRoom(@PathVariable roomId: Long): ApprovalResponse {
+        return ApprovalResponse.of(approvalService.getApprovalStatusByRoom(roomId))
     }
 
     @GetMapping

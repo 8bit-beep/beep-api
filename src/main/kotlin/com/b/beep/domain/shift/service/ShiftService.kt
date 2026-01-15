@@ -1,6 +1,7 @@
 package com.b.beep.domain.shift.service
 
 import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.room.service.RoomService
 import com.b.beep.domain.shift.controller.dto.request.CreateShiftRequest
 import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
@@ -22,10 +23,12 @@ class ShiftService(
     private val shiftRepository: ShiftRepository,
     private val contextHolder: ContextHolder,
     private val periodRepository: PeriodRepository,
+    private val roomService: RoomService,
 ) {
     @Transactional
     fun create(request: CreateShiftRequest) {
         val user = contextHolder.user
+        val room = roomService.getRoomById(request.roomId)
 
         if (shiftRepository.existsByUserAndDateAndPeriod(user, request.date, request.period))
             throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
@@ -35,7 +38,7 @@ class ShiftService(
 
         val shift = ShiftEntity(
             user = user,
-            room = request.room,
+            room = room,
             period = request.period,
             reason = request.reason,
             status = ShiftStatus.WAITING,
@@ -58,7 +61,7 @@ class ShiftService(
 
         request.reason?.let { shift.reason = it }
         request.date?.let { shift.date = it }
-        request.room?.let { shift.room = it }
+        request.roomId?.let { shift.room = roomService.getRoomById(it) }
         request.period?.let { shift.period = it }
 
         if (shiftRepository.existsByUserAndDateAndPeriodAndIdNot(shift.user, shift.date, shift.period, id))

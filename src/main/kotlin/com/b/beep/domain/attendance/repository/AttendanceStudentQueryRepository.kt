@@ -4,7 +4,7 @@ import com.b.beep.domain.absence.domain.entity.QAbsenceEntity
 import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
 import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.QUserEntity
@@ -21,7 +21,7 @@ class AttendanceStudentQueryRepository(
     private val periodResolver: PeriodResolver
 ) {
     fun findAllByFilters(
-        room: Room? = null,
+        room: RoomEntity? = null,
         type: AttendanceType? = null,
         status: AttendanceType? = null,
         grade: Int? = null,
@@ -66,7 +66,7 @@ class AttendanceStudentQueryRepository(
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
         if (room != null && type != null) {
-            whereBuilder.and(scheduleEntity.room.eq(room))
+            whereBuilder.and(scheduleEntity.room.id.eq(room.id))
             whereBuilder.and(scheduleEntity.type.eq(type))
             whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
             whereBuilder.and(scheduleEntity.period.eq(period))

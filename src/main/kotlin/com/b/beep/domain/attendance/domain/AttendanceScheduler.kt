@@ -2,9 +2,9 @@ package com.b.beep.domain.attendance.domain
 
 import com.b.beep.domain.approval.domain.entity.ApprovalEntity
 import com.b.beep.domain.approval.repository.ApprovalRepository
-import com.b.beep.domain.attendance.domain.enums.Room
 import com.b.beep.domain.notification.service.NotificationService
 import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.room.repository.RoomRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -16,6 +16,7 @@ class AttendanceScheduler(
     private val approvalRepository: ApprovalRepository,
     private val notificationService: NotificationService,
     private val periodRepository: PeriodRepository,
+    private val roomRepository: RoomRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -24,7 +25,7 @@ class AttendanceScheduler(
     fun createApprovalsToday() {
         val today = LocalDate.now()
         val periods = periodRepository.findAll().map { it.period }
-        val rooms = Room.entries.toTypedArray()
+        val rooms = roomRepository.findAll()
 
         val approvals = rooms.flatMap { room ->
             periods.map { period ->
