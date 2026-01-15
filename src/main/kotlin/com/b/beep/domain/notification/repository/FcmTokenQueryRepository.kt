@@ -1,11 +1,11 @@
 package com.b.beep.domain.notification.repository
 
+import com.b.beep.domain.absence.domain.entity.QAbsenceEntity
 import com.b.beep.domain.attendance.domain.PeriodResolver
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.entity.QAttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.notification.domain.entity.FcmTokenEntity
-import com.b.beep.domain.notification.entity.QFcmTokenEntity
-import com.b.beep.domain.user.entity.QUserEntity
+import com.b.beep.domain.notification.domain.entity.QFcmTokenEntity
+import com.b.beep.domain.user.domain.entity.QUserEntity
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -19,6 +19,7 @@ class FcmTokenQueryRepository(
         val fcm = QFcmTokenEntity.fcmTokenEntity
         val user = QUserEntity.userEntity
         val attendance = QAttendanceEntity.attendanceEntity
+        val absence = QAbsenceEntity.absenceEntity
         val today = LocalDate.now()
         val period = periodResolver.getCurrentPeriod()
 
@@ -33,9 +34,15 @@ class FcmTokenQueryRepository(
                 attendance.date.eq(today),
                 attendance.period.eq(period)
             )
+            .leftJoin(absence)
+            .on(
+                absence.user.id.eq(user.id),
+                absence.startDate.loe(today),
+                absence.endDate.goe(today)
+            )
             .where(
-                attendance.type.eq(AttendanceType.NOT_ATTEND)
-                    .or(attendance.id.isNull)
+                attendance.id.isNull
+                    .and(absence.id.isNull)
             )
             .fetch()
     }

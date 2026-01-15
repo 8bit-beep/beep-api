@@ -1,13 +1,14 @@
 package com.b.beep.domain.attendance.repository
 
-import com.b.beep.domain.user.entity.QStudentInfoEntity
-import com.b.beep.domain.user.entity.QUserEntity
-import com.b.beep.domain.user.entity.QStudentScheduleEntity
-import com.b.beep.domain.user.domain.entity.UserEntity
+import com.b.beep.domain.absence.domain.entity.QAbsenceEntity
+import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.domain.enums.Room
-import com.b.beep.domain.attendance.domain.PeriodResolver
-import com.b.beep.domain.attendance.entity.QAttendanceEntity
+import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
+import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
+import com.b.beep.domain.user.domain.entity.QUserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -30,6 +31,7 @@ class AttendanceStudentQueryRepository(
         val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
         val attendanceEntity = QAttendanceEntity.attendanceEntity
+        val absenceEntity = QAbsenceEntity.absenceEntity
 
         val today = LocalDate.now()
         val dayOfWeek = today.dayOfWeek
@@ -50,6 +52,11 @@ class AttendanceStudentQueryRepository(
                 attendanceEntity.date.eq(today),
                 attendanceEntity.period.eq(period)
             )
+            query.leftJoin(absenceEntity).on(
+                absenceEntity.user.id.eq(userEntity.id),
+                absenceEntity.startDate.loe(today),
+                absenceEntity.endDate.goe(today)
+            )
         }
 
         val whereBuilder = BooleanBuilder()
@@ -66,7 +73,21 @@ class AttendanceStudentQueryRepository(
         }
 
         if (status != null && period > 0) {
-            whereBuilder.and(attendanceEntity.type.eq(status))
+            when (status) {
+                AttendanceType.NOT_ATTEND -> {
+                    whereBuilder.and(attendanceEntity.id.isNull)
+                    whereBuilder.and(absenceEntity.id.isNull)
+                }
+                AttendanceType.OUTGOING -> {
+                    whereBuilder.and(
+                        attendanceEntity.type.eq(AttendanceType.OUTGOING)
+                            .or(absenceEntity.id.isNotNull)
+                    )
+                }
+                else -> {
+                    whereBuilder.and(attendanceEntity.type.eq(status))
+                }
+            }
         }
 
         return query.where(whereBuilder).fetch()

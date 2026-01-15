@@ -2,6 +2,7 @@ package com.b.beep.domain.attendance.service
 
 import com.b.beep.domain.attendance.controller.dto.request.AttendRequest
 import com.b.beep.domain.attendance.domain.PeriodResolver
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
@@ -10,7 +11,6 @@ import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.DayOfWeek
 import java.time.LocalDate
 
 @Service
@@ -40,8 +40,13 @@ class AttendanceService(
             throw CustomException(AttendanceError.ROOM_MISMATCH)
         }
 
-        val attendance = attendanceRepository.findByUserIdAndPeriodAndDate(user.id!!, period, LocalDate.now())
-            ?: throw CustomException(AttendanceError.ATTENDANCE_NOT_FOUND)
+        val attendance = attendanceRepository.findByUserIdAndPeriodAndDate(user.id!!, period, today)
+            ?: attendanceRepository.save(AttendanceEntity(
+                user = user,
+                period = period,
+                date = today,
+                type = AttendanceType.NOT_ATTEND
+            ))
 
         if (attendance.type != AttendanceType.NOT_ATTEND) {
             throw CustomException(AttendanceError.ALREADY_ATTENDED)
@@ -59,11 +64,8 @@ class AttendanceService(
         val period = periodResolver.getCurrentAttendancePeriod()
 
         val attendance = attendanceRepository.findByUserIdAndPeriodAndDate(user.id!!, period, LocalDate.now())
-            ?: throw CustomException(AttendanceError.ATTENDANCE_NOT_FOUND)
+            ?: return
 
-        attendance.type = AttendanceType.NOT_ATTEND
-        attendance.room = null
-
-        attendanceRepository.save(attendance)
+        attendanceRepository.delete(attendance)
     }
 }
