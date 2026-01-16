@@ -14,7 +14,7 @@ interface AbsenceDocs {
     fun createAbsence(@RequestBody request: CreateAbsenceRequest)
 
     @Operation(summary = "모든 장기결석 조회")
-    fun getAllAbsences(): List<AbsenceResponse>
+    fun getAbsences(): List<AbsenceResponse>
 
     @Operation(summary = "장기결석 수정")
     fun updateAbsence(@PathVariable absenceId: Long, @RequestBody request: UpdateAbsenceRequest)

@@ -1,7 +1,7 @@
 package com.b.beep.domain.attendance.controller
 
-import com.b.beep.domain.attendance.controller.docs.AttendanceDocs
-import com.b.beep.domain.attendance.controller.dto.request.AttendRequest
+import com.b.beep.domain.attendance.controller.docs.StudentAttendanceDocs
+import com.b.beep.domain.attendance.controller.dto.request.CreateAttendanceRequest
 import com.b.beep.domain.attendance.service.StudentAttendanceService
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/attendances")
 class StudentAttendanceController(
     private val studentAttendanceService: StudentAttendanceService
-) : AttendanceDocs {
+) : StudentAttendanceDocs {
     @PostMapping
-    override fun attend(@RequestBody request: AttendRequest) {
+    override fun attend(@RequestBody request: CreateAttendanceRequest) {
         studentAttendanceService.attend(request)
     }
 

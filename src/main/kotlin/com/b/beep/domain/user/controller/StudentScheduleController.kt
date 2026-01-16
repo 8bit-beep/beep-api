@@ -5,8 +5,6 @@ import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleReques
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
 import com.b.beep.domain.user.service.StudentScheduleService
-import com.b.beep.global.common.dto.response.BaseResponse
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -20,9 +18,8 @@ class StudentScheduleController(
     }
 
     @GetMapping("/me")
-    override fun getMySchedules(): ResponseEntity<BaseResponse<List<StudentScheduleResponse>>> {
-        return BaseResponse.of(studentScheduleService.getAll().map { StudentScheduleResponse.of(it) })
-    }
+    override fun getMySchedules(): List<StudentScheduleResponse> =
+        studentScheduleService.getAll().map { StudentScheduleResponse.of(it) }
 
     @PatchMapping("/{scheduleId}")
     override fun updateSchedule(

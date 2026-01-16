@@ -1,6 +1,6 @@
 package com.b.beep.domain.attendance.service
 
-import com.b.beep.domain.attendance.controller.dto.request.AttendRequest
+import com.b.beep.domain.attendance.controller.dto.request.CreateAttendanceRequest
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
@@ -28,7 +28,7 @@ class StudentAttendanceService(
     private val checkpointResolver: CheckpointResolver,
     private val roomService: RoomService,
 ) {
-    fun attend(request: AttendRequest) {
+    fun attend(request: CreateAttendanceRequest) {
         val user = contextHolder.user
         val checkpoint = checkpointResolver.getCurrentAttendableCheckpoint()
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))

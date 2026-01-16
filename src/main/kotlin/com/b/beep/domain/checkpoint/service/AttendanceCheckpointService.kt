@@ -94,7 +94,7 @@ class AttendanceCheckpointService(
         }
     }
 
-    private fun getCheckPointEntity(checkPointId: Long): AttendanceCheckpointEntity? {
+    fun getCheckPointEntity(checkPointId: Long): AttendanceCheckpointEntity? {
         return checkpointRepository.findByIdOrNull(checkPointId)
     }
 }

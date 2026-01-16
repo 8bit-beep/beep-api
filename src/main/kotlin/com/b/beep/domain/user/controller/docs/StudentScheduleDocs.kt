@@ -3,10 +3,8 @@ package com.b.beep.domain.user.controller.docs
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
-import com.b.beep.global.common.dto.response.BaseResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.ResponseEntity
 
 @Tag(name = "학생 스케줄", description = "학생 교시별 실 등록 API")
 interface StudentScheduleDocs {
@@ -14,7 +12,7 @@ interface StudentScheduleDocs {
     fun createSchedule(request: CreateStudentScheduleRequest)
 
     @Operation(summary = "내 스케줄 조회", description = "로그인한 사용자의 스케줄 목록을 조회합니다.")
-    fun getMySchedules(): ResponseEntity<BaseResponse<List<StudentScheduleResponse>>>
+    fun getMySchedules(): List<StudentScheduleResponse>
 
     @Operation(summary = "스케줄 수정", description = "스케줄 정보를 수정합니다.")
     fun updateSchedule(scheduleId: Long, request: UpdateStudentScheduleRequest)
