@@ -1,6 +1,5 @@
 package com.b.beep.domain.attendance.controller.docs
 
-import com.b.beep.domain.attendance.controller.dto.request.PreAttendRequest
 import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
 import com.b.beep.domain.attendance.domain.enums.AttendanceType

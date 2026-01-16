@@ -7,5 +7,5 @@ data class PreAttendRequest(
     val classNumber: Int,
     val num: Int,
     val status: AttendanceType,
-    val period: Int
+    val checkpointId: Long
 )

@@ -1,7 +1,6 @@
 package com.b.beep.domain.attendance.controller
 
 import com.b.beep.domain.attendance.controller.docs.TeacherAttendanceDocs
-import com.b.beep.domain.attendance.controller.dto.request.PreAttendRequest
 import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
@@ -23,7 +22,7 @@ class TeacherAttendanceController(
             num = request.num,
             status = request.status,
             date = request.date,
-            period = request.period
+            checkpointId = request.checkpointId
         )
     }
 

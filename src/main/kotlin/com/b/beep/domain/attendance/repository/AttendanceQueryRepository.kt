@@ -2,9 +2,9 @@ package com.b.beep.domain.attendance.repository
 
 import com.b.beep.domain.absence.domain.entity.QAbsenceEntity
 import com.b.beep.domain.absence.repository.AbsenceRepository
-import com.b.beep.domain.attendance.domain.PeriodResolver
 import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
 import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
@@ -19,16 +19,15 @@ import java.time.LocalDate
 @Repository
 class AttendanceQueryRepository(
     private val attendanceRepository: AttendanceRepository,
-    private val periodResolver: PeriodResolver,
+    private val checkpointResolver: CheckpointResolver,
     private val absenceRepository: AbsenceRepository,
     private val queryFactory: JPAQueryFactory,
 ) {
     fun findCurrentStatus(user: UserEntity): AttendanceType {
         val today = LocalDate.now()
-        val currentPeriod = periodResolver.getCurrentPeriod()
-        if (currentPeriod == 0) return AttendanceType.NOT_ATTEND
+        val checkpoint = checkpointResolver.getCurrentCheckpointOrNull() ?: return AttendanceType.NOT_ATTEND
 
-        val attendance = attendanceRepository.findByPeriodAndUserAndDate(currentPeriod, user, today)
+        val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, today)
         if (attendance != null) return attendance.type
 
         val isAbsent = absenceRepository.existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
@@ -52,22 +51,22 @@ class AttendanceQueryRepository(
 
         val today = LocalDate.now()
         val dayOfWeek = today.dayOfWeek
-        val period = periodResolver.getCurrentPeriod()
+        val checkpoint = checkpointResolver.getCurrentCheckpointOrNull()
 
         val query = queryFactory
             .selectFrom(userEntity)
             .distinct()
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        if (room != null && type != null) {
+        if (room != null && type != null && checkpoint != null) {
             query.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
 
-        if (status != null && period > 0) {
+        if (status != null && checkpoint != null) {
             query.leftJoin(attendanceEntity).on(
                 attendanceEntity.user.id.eq(userEntity.id),
                 attendanceEntity.date.eq(today),
-                attendanceEntity.period.eq(period)
+                attendanceEntity.checkpoint.id.eq(checkpoint.id)
             )
             query.leftJoin(absenceEntity).on(
                 absenceEntity.user.id.eq(userEntity.id),
@@ -82,14 +81,14 @@ class AttendanceQueryRepository(
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
-        if (room != null && type != null) {
+        if (room != null && type != null && checkpoint != null) {
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
             whereBuilder.and(scheduleEntity.type.eq(type))
             whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
-            whereBuilder.and(scheduleEntity.period.eq(period))
+            whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
         }
 
-        if (status != null && period > 0) {
+        if (status != null && checkpoint != null) {
             when (status) {
                 AttendanceType.NOT_ATTEND -> {
                     whereBuilder.and(attendanceEntity.id.isNull)

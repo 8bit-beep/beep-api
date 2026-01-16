@@ -9,5 +9,5 @@ data class UpdateStatusRequest(
     val num: Int,
     val status: AttendanceType,
     val date: LocalDate? = null,
-    val period: Int? = null
+    val checkpointId: Long? = null
 )
