@@ -1,6 +1,7 @@
 package com.b.beep.domain.user.repository
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
@@ -8,22 +9,24 @@ import java.time.DayOfWeek
 
 interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long> {
     fun findAllByUser(user: UserEntity): List<StudentScheduleEntity>
-    fun findByUserAndDayOfWeekAndPeriod(
+    fun findByUserAndDayOfWeekAndCheckpoint(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
-        period: Int
+        checkpoint: AttendanceCheckpointEntity
     ): StudentScheduleEntity?
 
-    fun findByUserAndDayOfWeekAndPeriodAndType(
+    fun findByUserAndDayOfWeekAndCheckpointAndType(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
-        period: Int,
+        checkpoint: AttendanceCheckpointEntity,
         type: AttendanceType
     ): StudentScheduleEntity?
 
-    fun existsByUserAndDayOfWeekAndPeriod(
+    fun existsByUserAndDayOfWeekAndCheckpoint(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
-        period: Int
+        checkpoint: AttendanceCheckpointEntity
     ): Boolean
+
+    fun existsByCheckpoint(checkpoint: AttendanceCheckpointEntity): Boolean
 }

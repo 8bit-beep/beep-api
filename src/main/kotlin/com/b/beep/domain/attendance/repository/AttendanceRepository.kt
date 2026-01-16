@@ -29,4 +29,6 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
         @Param("checkpointId") checkpointId: Long,
         @Param("date") date: LocalDate
     ): List<AttendanceEntity>
+
+    fun existsByCheckpoint(checkpoint: AttendanceCheckpointEntity): Boolean
 }
