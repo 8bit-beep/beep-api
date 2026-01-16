@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 
 @Tag(name = "출석", description = "출석 관련 API")
-interface AttendanceDocs {
+interface StudentAttendanceDocs {
     @Operation(summary = "출석하기", description = "학생이 출석을 합니다.")
     fun attend(request: AttendRequest)
 

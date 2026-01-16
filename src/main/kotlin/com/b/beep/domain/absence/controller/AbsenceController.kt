@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/long-absences")
+@RequestMapping("/absences")
 class AbsenceController(
     private val absenceService: AbsenceService,
     private val userService: UserService
@@ -18,7 +18,7 @@ class AbsenceController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     override fun createAbsence(@RequestBody request: CreateAbsenceRequest) {
-        absenceService.create(request)
+        absenceService.createAbsence(request)
     }
 
     @GetMapping
@@ -29,13 +29,13 @@ class AbsenceController(
 
     @PatchMapping("/{absenceId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun updateAbsence(@PathVariable("absenceId") id: Long, @RequestBody request: UpdateAbsenceRequest) {
-        absenceService.update(id, request)
+    override fun updateAbsence(@PathVariable absenceId: Long, @RequestBody request: UpdateAbsenceRequest) {
+        absenceService.update(absenceId, request)
     }
 
     @DeleteMapping("/{absenceId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    override fun deleteAbsence(@PathVariable("absenceId") id: Long) {
-        absenceService.delete(id)
+    override fun deleteAbsence(@PathVariable absenceId: Long) {
+        absenceService.delete(absenceId)
     }
 }
