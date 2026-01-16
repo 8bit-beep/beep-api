@@ -1,6 +1,7 @@
 package com.b.beep.domain.user.controller.dto.response
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import java.time.DayOfWeek
@@ -8,8 +9,7 @@ import java.time.DayOfWeek
 data class StudentScheduleResponse(
     val id: Long,
     val dayOfWeek: DayOfWeek,
-    val checkpointId: Long,
-    val checkpointName: String,
+    val checkpoint: CheckpointSimpleResponse,
     val type: AttendanceType,
     val room: RoomResponse
 ) {
@@ -18,8 +18,7 @@ data class StudentScheduleResponse(
             return StudentScheduleResponse(
                 id = schedule.id!!,
                 dayOfWeek = schedule.dayOfWeek,
-                checkpointId = schedule.checkpoint.id!!,
-                checkpointName = schedule.checkpoint.name,
+                checkpoint = CheckpointSimpleResponse.of(schedule.checkpoint),
                 type = schedule.type,
                 room = RoomResponse.of(schedule.room)
             )

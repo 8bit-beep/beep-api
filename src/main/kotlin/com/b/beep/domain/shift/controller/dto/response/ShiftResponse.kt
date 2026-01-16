@@ -1,5 +1,6 @@
 package com.b.beep.domain.shift.controller.dto.response
 
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
@@ -11,8 +12,7 @@ data class ShiftResponse(
     val id: Long,
     val user: UserResponse,
     val room: RoomResponse,
-    val checkpointId: Long,
-    val checkpointName: String,
+    val checkpoint: CheckpointSimpleResponse,
     val reason: String,
     val status: ShiftStatus,
     val date: LocalDate,
@@ -23,8 +23,7 @@ data class ShiftResponse(
                 id = shift.id!!,
                 user = UserResponse.of(shift.user, studentInfo),
                 room = RoomResponse.of(shift.room),
-                checkpointId = shift.checkpoint.id!!,
-                checkpointName = shift.checkpoint.name,
+                checkpoint = CheckpointSimpleResponse.of(shift.checkpoint),
                 reason = shift.reason,
                 status = shift.status,
                 date = shift.date,

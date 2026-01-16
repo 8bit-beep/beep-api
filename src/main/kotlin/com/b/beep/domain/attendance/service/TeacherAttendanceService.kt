@@ -5,6 +5,7 @@ import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentRes
 import com.b.beep.domain.attendance.controller.dto.response.ScheduleResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
 import com.b.beep.domain.attendance.domain.CheckpointResolver
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
@@ -101,7 +102,7 @@ class TeacherAttendanceService(
         val statuses = checkpoints.map { checkpoint ->
             val type = attendanceMap[checkpoint.id]?.type
                 ?: if (isAbsent) AttendanceType.OUTGOING else AttendanceType.NOT_ATTEND
-            StatusResponse(checkpoint.id!!, checkpoint.name, type)
+            StatusResponse(CheckpointSimpleResponse.of(checkpoint), type)
         }
 
         return AttendanceStudentResponse(
