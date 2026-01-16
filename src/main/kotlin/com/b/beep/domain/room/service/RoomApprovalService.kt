@@ -2,6 +2,7 @@ package com.b.beep.domain.room.service
 
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.room.controller.dto.response.RoomApprovalResponse
+import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.entity.RoomApprovalEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomApprovalError
@@ -90,8 +91,7 @@ class RoomApprovalService(
 
     private fun RoomEntity.toResponse(approval: RoomApprovalEntity?): RoomApprovalResponse {
         return RoomApprovalResponse(
-            roomId = this.id!!,
-            roomName = this.name,
+            room = RoomResponse.of(this),
             approved = approval != null,
             approvedTeacher = approval?.teacher?.let { UserResponse.of(it) },
             approvedAt = approval?.updatedAt

@@ -4,8 +4,7 @@ import com.b.beep.domain.user.controller.dto.response.UserResponse
 import java.time.LocalDateTime
 
 data class RoomApprovalResponse(
-    val roomId: Long,
-    val roomName: String,
+    val room: RoomResponse,
     val approved: Boolean,
     val approvedTeacher: UserResponse? = null,
     val approvedAt: LocalDateTime? = null,
