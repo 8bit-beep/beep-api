@@ -3,6 +3,7 @@ package com.b.beep.domain.absence.service
 import com.b.beep.domain.absence.controller.dto.request.CreateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
+import com.b.beep.domain.absence.controller.dto.response.AbsenceStudentResponse
 import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.repository.AbsenceRepository
@@ -169,8 +170,7 @@ class AbsenceService(
 
         return AbsenceResponse(
             absenceId = this.id!!,
-            studentName = this.user.username,
-            studentInfo = StudentInfoResponse.of(studentInfo),
+            student = AbsenceStudentResponse(this.user.username, StudentInfoResponse.of(studentInfo)),
             startDate = this.startDate,
             endDate = this.endDate,
             reason = this.reason

@@ -5,8 +5,7 @@ import java.time.LocalDate
 
 data class AbsenceResponse(
     val absenceId: Long,
-    val studentName: String,
-    val studentInfo: StudentInfoResponse? = null,
+    val student: AbsenceStudentResponse,
     val startDate: LocalDate,
     val endDate: LocalDate,
     val reason: String
