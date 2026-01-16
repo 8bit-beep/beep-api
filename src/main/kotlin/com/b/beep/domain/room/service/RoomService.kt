@@ -10,21 +10,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 class RoomService(
     private val roomRepository: RoomRepository
 ) {
-    fun findAll(): List<RoomResponse> {
-        return roomRepository.findAll().map { RoomResponse.of(it) }
-    }
-
-    fun findById(id: Long): RoomResponse {
-        val room = getRoomById(id)
-        return RoomResponse.of(room)
-    }
-
-    @Transactional
-    fun create(request: RoomRequest): RoomResponse {
+    fun createRoom(request: RoomRequest): RoomResponse {
         if (roomRepository.existsByName(request.name)) {
             throw CustomException(RoomError.ROOM_ALREADY_EXISTS)
         }
@@ -32,9 +22,19 @@ class RoomService(
         return RoomResponse.of(room)
     }
 
-    @Transactional
-    fun update(id: Long, request: RoomRequest): RoomResponse {
-        val room = getRoomById(id)
+    @Transactional(readOnly = true)
+    fun getRooms(): List<RoomResponse> {
+        return roomRepository.findAll().map { RoomResponse.of(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getRoom(roomId: Long): RoomResponse {
+        val room = getRoomById(roomId)
+        return RoomResponse.of(room)
+    }
+
+    fun updateRoom(roomId: Long, request: RoomRequest): RoomResponse {
+        val room = getRoomById(roomId)
         if (room.name != request.name && roomRepository.existsByName(request.name)) {
             throw CustomException(RoomError.ROOM_ALREADY_EXISTS)
         }
@@ -42,14 +42,13 @@ class RoomService(
         return RoomResponse.of(room)
     }
 
-    @Transactional
-    fun delete(id: Long) {
-        val room = getRoomById(id)
+    fun deleteRoom(roomId: Long) {
+        val room = getRoomById(roomId)
         roomRepository.delete(room)
     }
 
-    fun getRoomById(id: Long): RoomEntity {
-        return roomRepository.findById(id)
+    fun getRoomById(roomId: Long): RoomEntity {
+        return roomRepository.findById(roomId)
             .orElseThrow { CustomException(RoomError.ROOM_NOT_FOUND) }
     }
 }
