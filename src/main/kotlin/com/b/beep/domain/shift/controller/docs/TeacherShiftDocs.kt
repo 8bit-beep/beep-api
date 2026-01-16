@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 
 @Tag(name = "실이동 관리자")
-interface ShiftManagementDocs {
+interface TeacherShiftDocs {
     @Operation(summary = "실이동 목록 조회")
     fun getShifts(): List<ShiftResponse>
 

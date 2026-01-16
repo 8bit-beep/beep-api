@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 
 @Tag(name = "실이동")
-interface ShiftDocs {
+interface StudentShiftDocs {
     @Operation(summary = "실이동 신청")
     fun createShift(request: CreateShiftRequest)
 

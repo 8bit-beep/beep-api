@@ -1,19 +1,19 @@
 package com.b.beep.domain.shift.controller
 
-import com.b.beep.domain.shift.controller.docs.ShiftManagementDocs
+import com.b.beep.domain.shift.controller.docs.TeacherShiftDocs
 import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
-import com.b.beep.domain.shift.service.ShiftManagementService
+import com.b.beep.domain.shift.service.TeacherShiftService
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/shifts")
-class ShiftManagementController(
-    private val shiftManagementService: ShiftManagementService,
-) : ShiftManagementDocs {
+class TeacherShiftController(
+    private val teacherShiftService: TeacherShiftService,
+) : TeacherShiftDocs {
     @GetMapping
     override fun getShifts(): List<ShiftResponse> {
-        return shiftManagementService.getAll()
+        return teacherShiftService.getAll()
     }
 
     @PatchMapping("/{shiftId}/status")
@@ -21,6 +21,6 @@ class ShiftManagementController(
         @PathVariable shiftId: Long,
         @RequestParam status: ShiftStatus
     ) {
-        shiftManagementService.updateStatus(shiftId, status)
+        teacherShiftService.updateStatus(shiftId, status)
     }
 }

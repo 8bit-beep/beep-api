@@ -24,7 +24,7 @@ import java.time.LocalDate
 
 @Service
 @Transactional
-class ShiftManagementService(
+class TeacherShiftService(
     private val shiftRepository: ShiftRepository,
     private val attendanceRepository: AttendanceRepository,
     private val studentInfoRepository: StudentInfoRepository,

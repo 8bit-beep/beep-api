@@ -29,7 +29,7 @@ import java.time.ZoneId
 
 @Service
 @Transactional
-class ShiftService(
+class StudentShiftService(
     private val shiftRepository: ShiftRepository,
     private val contextHolder: ContextHolder,
     private val checkpointRepository: AttendanceCheckpointRepository,
