@@ -11,5 +11,14 @@ class RoomEntity(
     val id: Long? = null,
 
     @Column(unique = true, nullable = false)
-    var name: String
+    var name: String,
+
+    @Column
+    var grade: Int? = null,
+
+    @Column
+    var classNumber: Int? = null,
+
+    @Column
+    var floor: Int? = null
 ) : BaseEntity()

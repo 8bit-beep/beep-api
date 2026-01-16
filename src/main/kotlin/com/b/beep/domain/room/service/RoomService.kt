@@ -1,6 +1,6 @@
 package com.b.beep.domain.room.service
 
-import com.b.beep.domain.room.controller.dto.request.RoomRequest
+import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomError
@@ -14,11 +14,18 @@ import org.springframework.transaction.annotation.Transactional
 class RoomService(
     private val roomRepository: RoomRepository
 ) {
-    fun createRoom(request: RoomRequest): RoomResponse {
+    fun createRoom(request: CreateRoomRequest): RoomResponse {
         if (roomRepository.existsByName(request.name)) {
             throw CustomException(RoomError.ROOM_ALREADY_EXISTS)
         }
-        val room = roomRepository.save(RoomEntity(name = request.name))
+        val room = roomRepository.save(
+            RoomEntity(
+                name = request.name,
+                grade = request.grade,
+                classNumber = request.classNumber,
+                floor = request.floor
+            )
+        )
         return RoomResponse.of(room)
     }
 
@@ -33,12 +40,15 @@ class RoomService(
         return RoomResponse.of(room)
     }
 
-    fun updateRoom(roomId: Long, request: RoomRequest): RoomResponse {
+    fun updateRoom(roomId: Long, request: CreateRoomRequest): RoomResponse {
         val room = getRoomById(roomId)
         if (room.name != request.name && roomRepository.existsByName(request.name)) {
             throw CustomException(RoomError.ROOM_ALREADY_EXISTS)
         }
         room.name = request.name
+        room.grade = request.grade
+        room.classNumber = request.classNumber
+        room.floor = request.floor
         return RoomResponse.of(room)
     }
 
