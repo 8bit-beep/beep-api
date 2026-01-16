@@ -1,13 +1,17 @@
 package com.b.beep.domain.room.service
 
-import com.b.beep.domain.room.controller.dto.response.RoomApprovalResponse
 import com.b.beep.domain.attendance.domain.CheckpointResolver
+import com.b.beep.domain.room.controller.dto.response.RoomApprovalResponse
 import com.b.beep.domain.room.domain.entity.RoomApprovalEntity
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomApprovalError
+import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomApprovalRepository
 import com.b.beep.domain.room.repository.RoomRepository
+import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -18,12 +22,12 @@ class RoomApprovalService(
     private val roomApprovalRepository: RoomApprovalRepository,
     private val roomRepository: RoomRepository,
     private val contextHolder: ContextHolder,
-    private val checkpointResolver: CheckpointResolver,
-    private val roomService: RoomService
+    private val checkpointResolver: CheckpointResolver
 ) {
     fun createApproval(roomId: Long) {
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
-        val room = roomService.getRoomById(roomId)
+        val room = getRoomEntity(roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val today = LocalDate.now()
 
         if (roomApprovalRepository.existsByCheckpointAndRoomAndDate(checkpoint, room, today)) {
@@ -44,13 +48,12 @@ class RoomApprovalService(
     fun getApprovals(approved: Boolean?): List<RoomApprovalResponse> {
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val today = LocalDate.now()
-        val allRooms = roomRepository.findAll()
-        val approvals = roomApprovalRepository.findAllByCheckpointAndDate(checkpoint, today)
-        val approvalMap = approvals.associateBy { it.room.id }
+        val approvalMap = roomApprovalRepository
+            .findAllByCheckpointAndDate(checkpoint, today)
+            .associateBy { it.room.id }
 
-        val responses = allRooms.map { room ->
-            approvalMap[room.id]?.let { RoomApprovalResponse.Companion.of(it) }
-                ?: RoomApprovalResponse.Companion.notApproved(room, checkpoint)
+        val responses = roomRepository.findAll().map { room ->
+            room.toResponse(approvalMap[room.id])
         }
 
         return when (approved) {
@@ -63,21 +66,35 @@ class RoomApprovalService(
     @Transactional(readOnly = true)
     fun getApproval(roomId: Long): RoomApprovalResponse {
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
-        val room = roomService.getRoomById(roomId)
+        val room = getRoomEntity(roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, LocalDate.now())
-
-        return approval?.let { RoomApprovalResponse.Companion.of(it) }
-            ?: RoomApprovalResponse.Companion.notApproved(room, checkpoint)
+        return room.toResponse(approval)
     }
 
     fun deleteApproval(roomId: Long) {
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
-        val room = roomService.getRoomById(roomId)
+        val room = getRoomEntity(roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val today = LocalDate.now()
 
         val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, today)
             ?: throw CustomException(RoomApprovalError.APPROVAL_NOT_FOUND)
 
         roomApprovalRepository.delete(approval)
+    }
+
+    private fun getRoomEntity(roomId: Long): RoomEntity? {
+        return roomRepository.findByIdOrNull(roomId)
+    }
+
+    private fun RoomEntity.toResponse(approval: RoomApprovalEntity?): RoomApprovalResponse {
+        return RoomApprovalResponse(
+            roomId = this.id!!,
+            roomName = this.name,
+            approved = approval != null,
+            approvedTeacher = approval?.teacher?.let { UserResponse.of(it) },
+            approvedAt = approval?.updatedAt
+        )
     }
 }
