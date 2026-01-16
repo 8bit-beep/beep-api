@@ -1,6 +1,6 @@
 package com.b.beep.domain.user.domain
 
-import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.StudentScheduleError
 import com.b.beep.domain.user.repository.StudentScheduleRepository
@@ -10,8 +10,7 @@ import java.time.DayOfWeek
 
 @Component
 class StudentScheduleValidator(
-    private val studentScheduleRepository: StudentScheduleRepository,
-    private val periodRepository: PeriodRepository
+    private val studentScheduleRepository: StudentScheduleRepository
 ) {
     fun validateDayOfWeek(dayOfWeek: DayOfWeek) {
         val validDays = setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY)
@@ -20,14 +19,8 @@ class StudentScheduleValidator(
         }
     }
 
-    fun validatePeriod(period: Int) {
-        if (!periodRepository.existsByPeriod(period)) {
-            throw CustomException(StudentScheduleError.INVALID_PERIOD)
-        }
-    }
-
-    fun validateNotDuplicate(user: UserEntity, dayOfWeek: DayOfWeek, period: Int) {
-        if (studentScheduleRepository.existsByUserAndDayOfWeekAndPeriod(user, dayOfWeek, period)) {
+    fun validateNotDuplicate(user: UserEntity, dayOfWeek: DayOfWeek, checkpoint: AttendanceCheckpointEntity) {
+        if (studentScheduleRepository.existsByUserAndDayOfWeekAndCheckpoint(user, dayOfWeek, checkpoint)) {
             throw CustomException(StudentScheduleError.ALREADY_EXIST_SCHEDULE)
         }
     }
@@ -35,14 +28,14 @@ class StudentScheduleValidator(
     fun validateNotDuplicateExcluding(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
-        period: Int,
+        checkpoint: AttendanceCheckpointEntity,
         excludeScheduleId: Long
     ) {
         val existingSchedules = studentScheduleRepository.findAllByUser(user)
         val conflict = existingSchedules.any {
             it.id != excludeScheduleId &&
                     it.dayOfWeek == dayOfWeek &&
-                    it.period == period
+                    it.checkpoint.id == checkpoint.id
         }
         if (conflict) {
             throw CustomException(StudentScheduleError.ALREADY_EXIST_SCHEDULE)

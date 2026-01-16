@@ -8,7 +8,8 @@ import java.time.DayOfWeek
 data class StudentScheduleResponse(
     val id: Long,
     val dayOfWeek: DayOfWeek,
-    val period: Int,
+    val checkpointId: Long,
+    val checkpointName: String,
     val type: AttendanceType,
     val room: RoomResponse
 ) {
@@ -17,7 +18,8 @@ data class StudentScheduleResponse(
             return StudentScheduleResponse(
                 id = schedule.id!!,
                 dayOfWeek = schedule.dayOfWeek,
-                period = schedule.period,
+                checkpointId = schedule.checkpoint.id!!,
+                checkpointName = schedule.checkpoint.name,
                 type = schedule.type,
                 room = RoomResponse.of(schedule.room)
             )

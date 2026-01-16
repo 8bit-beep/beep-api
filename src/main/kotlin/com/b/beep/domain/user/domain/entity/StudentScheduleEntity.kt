@@ -1,6 +1,7 @@
 package com.b.beep.domain.user.domain.entity
 
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import jakarta.persistence.*
 import java.time.DayOfWeek
@@ -11,7 +12,7 @@ import java.time.DayOfWeek
     uniqueConstraints = [
         UniqueConstraint(
             name = "uk_student_schedule",
-            columnNames = ["user_id", "day_of_week", "period"]
+            columnNames = ["user_id", "day_of_week", "checkpoint_id"]
         )
     ]
 )
@@ -27,8 +28,9 @@ class StudentScheduleEntity(
     @Column(name = "day_of_week", nullable = false)
     var dayOfWeek: DayOfWeek,
 
-    @Column(name = "period", nullable = false)
-    var period: Int,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "checkpoint_id", nullable = false)
+    var checkpoint: AttendanceCheckpointEntity,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)

@@ -5,7 +5,7 @@ import java.time.DayOfWeek
 
 data class UpdateStudentScheduleRequest(
     val dayOfWeek: DayOfWeek? = null,
-    val period: Int? = null,
+    val checkpointId: Long? = null,
     val type: AttendanceType? = null,
     val roomId: Long? = null
 )

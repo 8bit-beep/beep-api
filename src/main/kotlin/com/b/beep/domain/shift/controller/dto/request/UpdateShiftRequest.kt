@@ -6,6 +6,6 @@ data class UpdateShiftRequest(
     val shiftId: Long,
     val roomId: Long?,
     val reason: String?,
-    val period: Int?,
+    val checkpointId: Long?,
     val date: LocalDate?,
 )

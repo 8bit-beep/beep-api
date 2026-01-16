@@ -1,5 +1,6 @@
 package com.b.beep.domain.shift.domain.entity
 
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -11,7 +12,7 @@ import java.time.LocalDate
 @Table(
     name = "shifts",
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["user_id", "date", "period"])
+        UniqueConstraint(columnNames = ["user_id", "date", "checkpoint_id"])
     ]
 )
 class ShiftEntity(
@@ -26,8 +27,9 @@ class ShiftEntity(
     @JoinColumn(name = "room_id", nullable = false)
     var room: RoomEntity,
 
-    @Column(name = "period", nullable = false)
-    var period: Int,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "checkpoint_id", nullable = false)
+    var checkpoint: AttendanceCheckpointEntity,
 
     var reason: String,
 

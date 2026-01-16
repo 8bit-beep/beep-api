@@ -1,7 +1,7 @@
 package com.b.beep.domain.notification.scheduler
 
 import com.b.beep.domain.notification.service.NotificationService
-import com.b.beep.domain.period.repository.PeriodRepository
+import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
@@ -13,7 +13,7 @@ import java.util.concurrent.ScheduledFuture
 @Component
 class DynamicNotificationScheduler(
     private val taskScheduler: TaskScheduler,
-    private val periodRepository: PeriodRepository,
+    private val checkpointRepository: AttendanceCheckpointRepository,
     private val notificationService: NotificationService
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -26,24 +26,27 @@ class DynamicNotificationScheduler(
 
     fun scheduleAllNotifications() {
         cancelAll()
-        val periods = periodRepository.findAll()
+        val checkpoints = checkpointRepository.findAll()
 
-        periods.forEach { period ->
-            scheduleDaily(period.attendStartTime, "${period.period}교시 출석 시작") {
-                logger.info("${period.period}교시 출석 시작 알림 전송")
+        checkpoints.forEach { checkpoint ->
+            val attendanceStart = checkpoint.attendanceStartAt ?: return@forEach
+
+            scheduleDaily(attendanceStart, "${checkpoint.name} 출석 시작") {
+                logger.info("${checkpoint.name} 출석 시작 알림 전송")
                 notificationService.sendToAll(
                     title = "출석 시간입니다!",
-                    body = "${period.period}교시 출석이 시작되었습니다.",
+                    body = "${checkpoint.name} 출석이 시작되었습니다.",
                     imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
                 )
             }
 
-            val reminderTime = period.attendEndTime.minusMinutes(5)
-            scheduleDaily(reminderTime, "${period.period}교시 마감 5분 전") {
-                logger.info("${period.period}교시 마감 임박 알림 전송")
+            val attendanceEnd = checkpoint.attendanceEndAt ?: return@forEach
+            val reminderTime = attendanceEnd.minusMinutes(5)
+            scheduleDaily(reminderTime, "${checkpoint.name} 마감 5분 전") {
+                logger.info("${checkpoint.name} 마감 임박 알림 전송")
                 notificationService.sendToNotAttended(
                     title = "출석 마감 임박!",
-                    body = "${period.period}교시 출석이 5분 후 마감됩니다.",
+                    body = "${checkpoint.name} 출석이 5분 후 마감됩니다.",
                     imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
                 )
             }

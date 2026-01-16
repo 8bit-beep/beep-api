@@ -5,7 +5,7 @@ import java.time.DayOfWeek
 
 data class CreateStudentScheduleRequest(
     val dayOfWeek: DayOfWeek,
-    val period: Int,
+    val checkpointId: Long,
     val type: AttendanceType,
     val roomId: Long
 )
