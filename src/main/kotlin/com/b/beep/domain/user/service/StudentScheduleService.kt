@@ -1,6 +1,11 @@
 package com.b.beep.domain.user.service
 
-import com.b.beep.domain.room.service.RoomService
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.checkpoint.error.CheckpointError
+import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.room.domain.entity.RoomEntity
+import com.b.beep.domain.room.error.RoomError
+import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.domain.StudentScheduleValidator
@@ -20,20 +25,23 @@ class StudentScheduleService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val studentScheduleValidator: StudentScheduleValidator,
     private val contextHolder: ContextHolder,
-    private val roomService: RoomService
+    private val roomRepository: RoomRepository,
+    private val checkpointRepository: AttendanceCheckpointRepository,
 ) {
     fun create(request: CreateStudentScheduleRequest) {
         val user = contextHolder.user
-        val room = roomService.getRoomById(request.roomId)
+        val room = getRoomEntity(request.roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        val checkpoint = getCheckpointEntity(request.checkpointId)
+            ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
         studentScheduleValidator.validateDayOfWeek(request.dayOfWeek)
-        studentScheduleValidator.validatePeriod(request.period)
-        studentScheduleValidator.validateNotDuplicate(user, request.dayOfWeek, request.period)
+        studentScheduleValidator.validateNotDuplicate(user, request.dayOfWeek, checkpoint)
 
         val schedule = StudentScheduleEntity(
             user = user,
             dayOfWeek = request.dayOfWeek,
-            period = request.period,
+            checkpoint = checkpoint,
             type = request.type,
             room = room
         )
@@ -47,19 +55,24 @@ class StudentScheduleService(
         validateOwnership(schedule, user)
 
         request.dayOfWeek?.let { studentScheduleValidator.validateDayOfWeek(it) }
-        request.period?.let { studentScheduleValidator.validatePeriod(it) }
 
         val finalDayOfWeek = request.dayOfWeek ?: schedule.dayOfWeek
-        val finalPeriod = request.period ?: schedule.period
+        val finalCheckpoint = request.checkpointId?.let {
+            getCheckpointEntity(it) ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+        } ?: schedule.checkpoint
 
         studentScheduleValidator.validateNotDuplicateExcluding(
-            user, finalDayOfWeek, finalPeriod, scheduleId
+            user, finalDayOfWeek, finalCheckpoint, scheduleId
         )
 
         request.dayOfWeek?.let { schedule.dayOfWeek = it }
-        request.period?.let { schedule.period = it }
+        request.checkpointId?.let {
+            schedule.checkpoint = getCheckpointEntity(it) ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+        }
         request.type?.let { schedule.type = it }
-        request.roomId?.let { schedule.room = roomService.getRoomById(it) }
+        request.roomId?.let {
+            schedule.room = getRoomEntity(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        }
 
         studentScheduleRepository.save(schedule)
     }
@@ -88,5 +101,13 @@ class StudentScheduleService(
         if (schedule.user.id != user.id) {
             throw CustomException(StudentScheduleError.NO_PERMISSION)
         }
+    }
+
+    private fun getRoomEntity(roomId: Long): RoomEntity? {
+        return roomRepository.findByIdOrNull(roomId)
+    }
+
+    private fun getCheckpointEntity(checkpointId: Long): AttendanceCheckpointEntity? {
+        return checkpointRepository.findByIdOrNull(checkpointId)
     }
 }

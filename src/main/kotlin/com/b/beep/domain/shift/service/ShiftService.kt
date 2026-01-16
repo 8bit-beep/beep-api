@@ -1,7 +1,11 @@
 package com.b.beep.domain.shift.service
 
-import com.b.beep.domain.period.repository.PeriodRepository
-import com.b.beep.domain.room.service.RoomService
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.checkpoint.error.CheckpointError
+import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.room.domain.entity.RoomEntity
+import com.b.beep.domain.room.error.RoomError
+import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.shift.controller.dto.request.CreateShiftRequest
 import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
@@ -22,24 +26,27 @@ import java.time.ZoneId
 class ShiftService(
     private val shiftRepository: ShiftRepository,
     private val contextHolder: ContextHolder,
-    private val periodRepository: PeriodRepository,
-    private val roomService: RoomService,
+    private val checkpointRepository: AttendanceCheckpointRepository,
+    private val roomRepository: RoomRepository,
 ) {
     @Transactional
-    fun create(request: CreateShiftRequest) {
+    fun createShift(request: CreateShiftRequest) {
         val user = contextHolder.user
-        val room = roomService.getRoomById(request.roomId)
+        val room = getRoomEntity(request.roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        val checkpoint = getCheckpointEntity(request.checkpointId)
+            ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
-        if (shiftRepository.existsByUserAndDateAndPeriod(user, request.date, request.period))
+        if (shiftRepository.existsByUserAndDateAndCheckpoint(user, request.date, checkpoint))
             throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
 
-        if (!isShiftTimeValid(request.date, request.period))
+        if (!isShiftTimeValid(request.date, checkpoint.attendanceStartAt))
             throw CustomException(ShiftError.PASSED_TIME)
 
         val shift = ShiftEntity(
             user = user,
             room = room,
-            period = request.period,
+            checkpoint = checkpoint,
             reason = request.reason,
             status = ShiftStatus.WAITING,
             date = request.date,
@@ -47,7 +54,7 @@ class ShiftService(
         shiftRepository.save(shift)
     }
 
-    fun update(id: Long, request: UpdateShiftRequest) {
+    fun updateShift(id: Long, request: UpdateShiftRequest) {
         val shift = shiftRepository.findByIdOrNull(id)
             ?: throw CustomException(ShiftError.SHIFT_NOT_FOUND)
 
@@ -56,15 +63,24 @@ class ShiftService(
             throw CustomException(ShiftError.SHIFT_NOT_FOUND)
         }
 
-        if (!isShiftTimeValid(request.date, request.period))
+        val newCheckpoint = request.checkpointId?.let {
+            getCheckpointEntity(it) ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+        } ?: shift.checkpoint
+        val newDate = request.date ?: shift.date
+
+        if (!isShiftTimeValid(newDate, newCheckpoint.attendanceStartAt))
             throw CustomException(ShiftError.PASSED_TIME)
 
         request.reason?.let { shift.reason = it }
         request.date?.let { shift.date = it }
-        request.roomId?.let { shift.room = roomService.getRoomById(it) }
-        request.period?.let { shift.period = it }
+        request.roomId?.let {
+            shift.room = getRoomEntity(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        }
+        request.checkpointId?.let {
+            shift.checkpoint = getCheckpointEntity(it) ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+        }
 
-        if (shiftRepository.existsByUserAndDateAndPeriodAndIdNot(shift.user, shift.date, shift.period, id))
+        if (shiftRepository.existsByUserAndDateAndCheckpointAndIdNot(shift.user, shift.date, shift.checkpoint, id))
             throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
 
         shift.status = ShiftStatus.WAITING
@@ -72,7 +88,7 @@ class ShiftService(
         shiftRepository.save(shift)
     }
 
-    fun delete(id: Long) {
+    fun deleteShift(id: Long) {
         val shift = shiftRepository.findByIdOrNull(id)
             ?: throw CustomException(ShiftError.SHIFT_NOT_FOUND)
 
@@ -90,25 +106,27 @@ class ShiftService(
         return shiftRepository.findAllByUserAndDate(user, LocalDate.now())
     }
 
-    private fun isShiftTimeValid(date: LocalDate?, period: Int?): Boolean {
+    private fun isShiftTimeValid(date: LocalDate?, attendanceStartAt: LocalTime?): Boolean {
         val now = LocalDate.now()
         val currentTime = LocalTime.now(ZoneId.of("Asia/Seoul"))
 
         if (date == null) return true
         if (date.isBefore(now)) return false
 
-        if (period != null && !periodRepository.existsByPeriod(period)) {
-            return false
-        }
-
-        if (date.isEqual(now) && period != null) {
-            val periodEntity = periodRepository.findByPeriod(period) ?: return false
-
-            if (currentTime >= periodEntity.startTime) {
+        if (date.isEqual(now) && attendanceStartAt != null) {
+            if (currentTime >= attendanceStartAt) {
                 return false
             }
         }
 
         return true
+    }
+
+    private fun getRoomEntity(roomId: Long): RoomEntity? {
+        return roomRepository.findByIdOrNull(roomId)
+    }
+
+    private fun getCheckpointEntity(checkpointId: Long): AttendanceCheckpointEntity? {
+        return checkpointRepository.findByIdOrNull(checkpointId)
     }
 }
