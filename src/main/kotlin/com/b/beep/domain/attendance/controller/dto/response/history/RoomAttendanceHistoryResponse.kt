@@ -1,4 +1,6 @@
-package com.b.beep.domain.history.controller.dto.response
+package com.b.beep.domain.attendance.controller.dto.response.history
+
+import com.b.beep.domain.attendance.controller.dto.response.history.StudentAttendanceRecord
 
 data class RoomAttendanceHistoryResponse(
     val room: String,
