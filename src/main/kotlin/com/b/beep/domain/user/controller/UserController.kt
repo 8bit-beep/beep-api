@@ -1,10 +1,7 @@
 package com.b.beep.domain.user.controller
 
-import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.user.controller.docs.UserDocs
-import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
 import com.b.beep.domain.user.controller.dto.response.UserResponse
-import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.service.UserService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,21 +10,10 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userService: UserService,
-    private val attendanceQueryRepository: AttendanceQueryRepository
+    private val userService: UserService
 ) : UserDocs {
-    @GetMapping("/me")
+    @GetMapping("/my")
     override fun getMe(): UserResponse {
-        val me = userService.getMe()
-        val currentStatus = attendanceQueryRepository.findCurrentStatus(me)
-
-        val response = UserResponse.of(me, null, currentStatus)
-
-        if (me.role == UserRole.STUDENT) {
-            val studentInfo = userService.getStudentInfo(me)
-            response.studentInfo = StudentInfoResponse.of(studentInfo)
-        }
-
-        return response
+        return userService.getMe()
     }
 }

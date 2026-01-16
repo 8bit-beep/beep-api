@@ -11,7 +11,13 @@ import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
+import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.repository.ShiftRepository
+import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
+import com.b.beep.domain.user.controller.dto.response.UserResponse
+import com.b.beep.domain.user.repository.StudentInfoRepository
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
+import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
 import org.springframework.data.repository.findByIdOrNull
@@ -28,6 +34,7 @@ class ShiftService(
     private val contextHolder: ContextHolder,
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val roomRepository: RoomRepository,
+    private val studentInfoRepository: StudentInfoRepository,
 ) {
     @Transactional
     fun createShift(request: CreateShiftRequest) {
@@ -52,6 +59,12 @@ class ShiftService(
             date = request.date,
         )
         shiftRepository.save(shift)
+    }
+
+    @Transactional(readOnly = true)
+    fun getMyShifts(): List<ShiftResponse> {
+        val user = contextHolder.user
+        return shiftRepository.findAllByUserAndDate(user, LocalDate.now()).map { it.toResponse() }
     }
 
     fun updateShift(id: Long, request: UpdateShiftRequest) {
@@ -100,12 +113,6 @@ class ShiftService(
         shiftRepository.delete(shift)
     }
 
-    @Transactional(readOnly = true)
-    fun getMyShifts(): List<ShiftEntity> {
-        val user = contextHolder.user
-        return shiftRepository.findAllByUserAndDate(user, LocalDate.now())
-    }
-
     private fun isShiftTimeValid(date: LocalDate?, attendanceStartAt: LocalTime?): Boolean {
         val now = LocalDate.now()
         val currentTime = LocalTime.now(ZoneId.of("Asia/Seoul"))
@@ -128,5 +135,25 @@ class ShiftService(
 
     private fun getCheckpointEntity(checkpointId: Long): AttendanceCheckpointEntity? {
         return checkpointRepository.findByIdOrNull(checkpointId)
+    }
+
+    private fun ShiftEntity.toResponse(): ShiftResponse {
+        val studentInfo = studentInfoRepository.findByUser(this.user)
+        return ShiftResponse(
+            id = id!!,
+            user = UserResponse(
+                id = user.id,
+                email = user.email,
+                username = user.username,
+                role = user.role,
+                profileImage = user.profileImage,
+                studentInfo = studentInfo?.let { StudentInfoResponse.of(it) }
+            ),
+            room = RoomResponse.of(room),
+            checkpoint = CheckpointSimpleResponse.of(checkpoint),
+            reason = reason,
+            status = status,
+            date = date
+        )
     }
 }

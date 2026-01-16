@@ -5,11 +5,17 @@ import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
+import com.b.beep.domain.room.controller.dto.response.RoomResponse
+import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
+import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
+import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
 import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.user.domain.entity.UserEntity
+import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -21,10 +27,11 @@ import java.time.LocalDate
 class ShiftManagementService(
     private val shiftRepository: ShiftRepository,
     private val attendanceRepository: AttendanceRepository,
+    private val studentInfoRepository: StudentInfoRepository,
 ) {
     @Transactional(readOnly = true)
-    fun getAll(): List<ShiftEntity> {
-        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now())
+    fun getAll(): List<ShiftResponse> {
+        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now()).map { it.toResponse() }
     }
 
     fun updateStatus(id: Long, status: ShiftStatus) {
@@ -65,5 +72,25 @@ class ShiftManagementService(
                 attendance?.let { attendanceRepository.delete(it) }
             }
         }
+    }
+
+    private fun ShiftEntity.toResponse(): ShiftResponse {
+        val studentInfo = studentInfoRepository.findByUser(this.user)
+        return ShiftResponse(
+            id = id!!,
+            user = UserResponse(
+                id = user.id,
+                email = user.email,
+                username = user.username,
+                role = user.role,
+                profileImage = user.profileImage,
+                studentInfo = studentInfo?.let { StudentInfoResponse.of(it) }
+            ),
+            room = RoomResponse.of(room),
+            checkpoint = CheckpointSimpleResponse.of(checkpoint),
+            reason = reason,
+            status = status,
+            date = date
+        )
     }
 }

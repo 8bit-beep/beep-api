@@ -5,7 +5,6 @@ import com.b.beep.domain.shift.controller.dto.request.CreateShiftRequest
 import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
 import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.service.ShiftService
-import com.b.beep.domain.user.service.UserService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/shifts")
 class ShiftController(
     private val shiftService: ShiftService,
-    private val userService: UserService
 ) : ShiftDocs {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -21,22 +19,21 @@ class ShiftController(
         shiftService.createShift(request)
     }
 
-    @GetMapping("/me")
+    @GetMapping("/my")
     @ResponseStatus(HttpStatus.OK)
     override fun getMyShifts(): List<ShiftResponse> {
-        val studentInfo = userService.getMyStudentInfo()
-        return shiftService.getMyShifts().map { ShiftResponse.of(it, studentInfo) }
+        return shiftService.getMyShifts()
     }
 
-    @PatchMapping
+    @PatchMapping("/{shiftId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun updateShift(@RequestBody request: UpdateShiftRequest) {
-        shiftService.updateShift(request.shiftId, request)
+    override fun updateShift(@PathVariable shiftId: Long, @RequestBody request: UpdateShiftRequest) {
+        shiftService.updateShift(shiftId, request)
     }
 
     @DeleteMapping("/{shiftId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    override fun deleteShift(@PathVariable("shiftId") id: Long) {
-        shiftService.deleteShift(id)
+    override fun deleteShift(@PathVariable shiftId: Long) {
+        shiftService.deleteShift(shiftId)
     }
 }

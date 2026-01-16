@@ -2,6 +2,7 @@ package com.b.beep.domain.room.service
 
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.room.controller.dto.response.RoomApprovalResponse
+import com.b.beep.domain.room.controller.dto.response.RoomApprovedTeacherResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.entity.RoomApprovalEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
@@ -9,7 +10,6 @@ import com.b.beep.domain.room.error.RoomApprovalError
 import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomApprovalRepository
 import com.b.beep.domain.room.repository.RoomRepository
-import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
 import org.springframework.data.repository.findByIdOrNull
@@ -93,7 +93,12 @@ class RoomApprovalService(
         return RoomApprovalResponse(
             room = RoomResponse.of(this),
             approved = approval != null,
-            approvedTeacher = approval?.teacher?.let { UserResponse.of(it) },
+            approvedTeacher = approval?.teacher?.let {
+                RoomApprovedTeacherResponse(
+                    id = it.id!!,
+                    username = it.username,
+                )
+            },
             approvedAt = approval?.updatedAt
         )
     }

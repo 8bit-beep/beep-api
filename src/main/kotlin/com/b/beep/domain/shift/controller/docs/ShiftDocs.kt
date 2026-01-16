@@ -15,8 +15,8 @@ interface ShiftDocs {
     fun getMyShifts(): List<ShiftResponse>
 
     @Operation(summary = "실이동 수정")
-    fun updateShift(request: UpdateShiftRequest)
+    fun updateShift(shiftId: Long, request: UpdateShiftRequest)
 
     @Operation(summary = "실이동 삭제")
-    fun deleteShift(id: Long)
+    fun deleteShift(shiftId: Long)
 }
