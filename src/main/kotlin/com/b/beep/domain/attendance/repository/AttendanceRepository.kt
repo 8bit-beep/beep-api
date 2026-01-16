@@ -1,5 +1,6 @@
 package com.b.beep.domain.attendance.repository
 
+import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
@@ -31,4 +32,6 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
     ): List<AttendanceEntity>
 
     fun existsByCheckpoint(checkpoint: AttendanceCheckpointEntity): Boolean
+
+    fun deleteAllByAbsenceAndDateGreaterThanEqual(absence: AbsenceEntity, date: LocalDate)
 }

@@ -6,10 +6,14 @@ import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
 import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.repository.AbsenceRepository
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentInfoRepository
+import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -20,7 +24,9 @@ import java.time.LocalDate
 @Transactional
 class AbsenceService(
     private val absenceRepository: AbsenceRepository,
-    private val studentInfoRepository: StudentInfoRepository
+    private val studentInfoRepository: StudentInfoRepository,
+    private val attendanceRepository: AttendanceRepository,
+    private val studentScheduleRepository: StudentScheduleRepository,
 ) {
     fun createAbsence(request: CreateAbsenceRequest) {
         val studentInfo = getStudentInfoEntity(request.grade, request.classNumber, request.num)
@@ -34,7 +40,7 @@ class AbsenceService(
             throw CustomException(AbsenceError.ABSENCE_ALREADY_EXISTS)
         }
 
-        absenceRepository.save(
+        val absence = absenceRepository.save(
             AbsenceEntity(
                 user = studentInfo.user,
                 startDate = request.startDate,
@@ -42,14 +48,16 @@ class AbsenceService(
                 reason = request.reason,
             )
         )
+
+        createAttendancesForAbsence(absence, studentInfo.user, request.startDate, request.endDate)
     }
 
     @Transactional(readOnly = true)
-    fun getAll(): List<AbsenceResponse> {
+    fun getAbsences(): List<AbsenceResponse> {
         return absenceRepository.findAll().map { it.toResponse() }
     }
 
-    fun update(absenceId: Long, request: UpdateAbsenceRequest) {
+    fun updateAbsence(absenceId: Long, request: UpdateAbsenceRequest) {
         val absence = getAbsenceEntity(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
         val userId = absence.user.id
@@ -61,23 +69,63 @@ class AbsenceService(
             throw CustomException(AbsenceError.ABSENCE_ALREADY_EXISTS)
         }
 
+        val today = LocalDate.now()
+        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, today)
+
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason
 
         absenceRepository.save(absence)
+
+        createAttendancesForAbsence(absence, absence.user, request.startDate, request.endDate)
     }
 
-    fun delete(absenceId: Long) {
+    fun deleteAbsence(absenceId: Long) {
         val absence = getAbsenceEntity(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
+
+        val today = LocalDate.now()
+        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, today)
 
         absenceRepository.delete(absence)
     }
 
     private fun validateDateRange(startDate: LocalDate, endDate: LocalDate) {
+        val today = LocalDate.now()
+        if (startDate.isBefore(today)) {
+            throw CustomException(AbsenceError.INVALID_DATE_RANGE)
+        }
         if (startDate.isAfter(endDate)) {
             throw CustomException(AbsenceError.INVALID_DATE_RANGE)
+        }
+    }
+
+    private fun createAttendancesForAbsence(
+        absence: AbsenceEntity,
+        user: UserEntity,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ) {
+        val today = LocalDate.now()
+        var date = startDate
+        while (!date.isAfter(endDate)) {
+            if (!date.isBefore(today)) {
+                val schedules = studentScheduleRepository.findAllByUserAndDayOfWeek(user, date.dayOfWeek)
+                for (schedule in schedules) {
+                    attendanceRepository.save(
+                        AttendanceEntity(
+                            user = user,
+                            checkpoint = schedule.checkpoint,
+                            date = date,
+                            type = schedule.type,
+                            room = schedule.room,
+                            absence = absence
+                        )
+                    )
+                }
+            }
+            date = date.plusDays(1)
         }
     }
 

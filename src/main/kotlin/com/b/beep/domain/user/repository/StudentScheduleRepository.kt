@@ -9,6 +9,7 @@ import java.time.DayOfWeek
 
 interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long> {
     fun findAllByUser(user: UserEntity): List<StudentScheduleEntity>
+    fun findAllByUserAndDayOfWeek(user: UserEntity, dayOfWeek: DayOfWeek): List<StudentScheduleEntity>
     fun findByUserAndDayOfWeekAndCheckpoint(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
