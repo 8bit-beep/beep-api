@@ -9,25 +9,25 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/memo")
+@RequestMapping("/memos")
 class MemoController(
     private val memoService: MemoService
 ) : MemoDocs {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     override fun createMemo(@RequestBody request: CreateMemoRequest) {
-        memoService.create(request)
+        memoService.createMemo(request)
     }
 
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
     override fun updateMemo(@RequestBody request: UpdateMemoRequest) {
-        memoService.update(request)
+        memoService.updateMemo(request)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     override fun getMemo(): MemoResponse {
-        return MemoResponse.of(memoService.get())
+        return MemoResponse.of(memoService.getMemo())
     }
 }
