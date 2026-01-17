@@ -4,40 +4,47 @@ import com.b.beep.domain.absence.controller.docs.AbsenceDocs
 import com.b.beep.domain.absence.controller.dto.request.CreateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
+import com.b.beep.domain.absence.controller.dto.response.CreateAbsenceResponse
+import com.b.beep.domain.absence.controller.dto.response.UpdateAbsenceResponse
 import com.b.beep.domain.absence.service.AbsenceService
-import com.b.beep.domain.user.service.UserService
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Positive
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
+@Validated
 @RestController
-@RequestMapping("/long-absences")
+@RequestMapping("/absences")
 class AbsenceController(
     private val absenceService: AbsenceService,
-    private val userService: UserService
 ) : AbsenceDocs {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    override fun createAbsence(@RequestBody request: CreateAbsenceRequest) {
-        absenceService.create(request)
+    override fun createAbsence(@Valid @RequestBody request: CreateAbsenceRequest): CreateAbsenceResponse {
+        return absenceService.createAbsence(request)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    override fun getAllAbsences(): List<AbsenceResponse> {
-        return absenceService.getAll().map {
-            AbsenceResponse.of(it, userService.getStudentInfo(it.user))
-        }
+    override fun getAbsences(): List<AbsenceResponse> {
+        return absenceService.getAbsences()
     }
 
     @PatchMapping("/{absenceId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun updateAbsence(@PathVariable("absenceId") id: Long, @RequestBody request: UpdateAbsenceRequest) {
-        absenceService.update(id, request)
+    override fun updateAbsence(
+        @PathVariable @Positive(message = "결석 ID는 양수여야 합니다") absenceId: Long,
+        @Valid @RequestBody request: UpdateAbsenceRequest
+    ): UpdateAbsenceResponse {
+        return absenceService.updateAbsence(absenceId, request)
     }
 
     @DeleteMapping("/{absenceId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    override fun deleteAbsence(@PathVariable("absenceId") id: Long) {
-        absenceService.delete(id)
+    override fun deleteAbsence(
+        @PathVariable @Positive(message = "부재 ID는 양수여야 합니다") absenceId: Long
+    ) {
+        absenceService.deleteAbsence(absenceId)
     }
 }

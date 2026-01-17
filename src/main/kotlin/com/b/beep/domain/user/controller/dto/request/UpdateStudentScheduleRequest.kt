@@ -1,12 +1,17 @@
 package com.b.beep.domain.user.controller.dto.request
 
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
-import com.b.beep.domain.attendance.domain.enums.Room
+import jakarta.validation.constraints.Positive
 import java.time.DayOfWeek
 
 data class UpdateStudentScheduleRequest(
     val dayOfWeek: DayOfWeek? = null,
-    val period: Int? = null,
-    val type: AttendanceType? = null,
-    val room: Room? = null
+
+    @field:Positive(message = "체크포인트 ID는 양수여야 합니다")
+    val checkpointId: Long? = null,
+
+    @field:Positive(message = "유형 ID는 양수여야 합니다")
+    val typeId: Long? = null,
+
+    @field:Positive(message = "실 ID는 양수여야 합니다")
+    val roomId: Long? = null
 )

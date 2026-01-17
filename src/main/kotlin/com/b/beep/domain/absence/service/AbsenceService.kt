@@ -1,14 +1,35 @@
 package com.b.beep.domain.absence.service
 
-import com.b.beep.domain.absence.entity.AbsenceEntity
-import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.controller.dto.request.CreateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
+import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
+import com.b.beep.domain.absence.controller.dto.response.AbsenceStudentResponse
+import com.b.beep.domain.absence.controller.dto.response.CreateAbsenceResponse
+import com.b.beep.domain.absence.controller.dto.response.UpdateAbsenceResponse
+import com.b.beep.domain.absence.domain.AbsenceValidator
+import com.b.beep.domain.absence.domain.entity.AbsenceCheckpointEntity
+import com.b.beep.domain.absence.domain.entity.AbsenceEntity
+import com.b.beep.domain.absence.domain.entity.AbsenceUserEntity
+import com.b.beep.domain.absence.error.AbsenceError
+import com.b.beep.domain.absence.repository.AbsenceCheckpointRepository
 import com.b.beep.domain.absence.repository.AbsenceRepository
-import com.b.beep.domain.user.repository.StudentInfoRepository
-import com.b.beep.global.exception.CustomException
+import com.b.beep.domain.absence.repository.AbsenceUserRepository
+import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
+import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.attendance.service.AttendanceTypeService
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.checkpoint.error.CheckpointError
+import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.UserError
-import com.b.beep.domain.user.entity.UserEntity
+import com.b.beep.domain.user.repository.StudentInfoRepository
+import com.b.beep.domain.user.repository.StudentScheduleRepository
+import com.b.beep.domain.user.repository.UserRepository
+import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,69 +39,213 @@ import java.time.LocalDate
 @Transactional
 class AbsenceService(
     private val absenceRepository: AbsenceRepository,
-    private val studentInfoRepository: StudentInfoRepository
+    private val absenceUserRepository: AbsenceUserRepository,
+    private val absenceCheckpointRepository: AbsenceCheckpointRepository,
+    private val userRepository: UserRepository,
+    private val studentInfoRepository: StudentInfoRepository,
+    private val attendanceRepository: AttendanceRepository,
+    private val studentScheduleRepository: StudentScheduleRepository,
+    private val checkpointRepository: AttendanceCheckpointRepository,
+    private val absenceValidator: AbsenceValidator,
+    private val attendanceTypeService: AttendanceTypeService,
 ) {
-    fun create(request: CreateAbsenceRequest) {
-        val studentInfo = studentInfoRepository.findByGradeAndClsAndNum(request.grade, request.cls, request.num)
-            ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
+    fun createAbsence(request: CreateAbsenceRequest): CreateAbsenceResponse {
+        absenceValidator.validateDateRange(request.startDate, request.endDate)
 
-        validateDateRange(request.startDate, request.endDate)
+        val users = getUsers(request.userIds)
+        val (validUsers, skippedUserIds) = partitionByOverlap(users, request.startDate, request.endDate)
 
-        val userId = studentInfo.user.id ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
-        val hasOverlappingAbsence = absenceRepository.existsByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-            userId = userId,
-            endDate = request.endDate,
-            startDate = request.startDate
-        )
-
-        if (hasOverlappingAbsence) {
-            throw CustomException(AbsenceError.ABSENCE_ALREADY_EXISTS)
+        if (validUsers.isEmpty()) {
+            return CreateAbsenceResponse(absenceId = null, skippedUserIds = skippedUserIds)
         }
 
-        absenceRepository.save(
-            AbsenceEntity(
-                user = studentInfo.user,
-                startDate = request.startDate,
-                endDate = request.endDate,
-                reason = request.reason,
-            )
+        val type = request.typeId?.let { attendanceTypeService.getById(it) }
+        val absence = saveAbsence(request, validUsers, type)
+        return CreateAbsenceResponse(absenceId = absence.id, skippedUserIds = skippedUserIds)
+    }
+
+    private fun getUsers(userIds: List<Long>): List<UserEntity> {
+        val users = userRepository.findAllById(userIds)
+        if (users.size != userIds.size) {
+            throw CustomException(UserError.USER_NOT_FOUND)
+        }
+        return users
+    }
+
+    private fun partitionByOverlap(
+        users: List<UserEntity>,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        excludeAbsenceId: Long? = null
+    ): Pair<List<UserEntity>, List<Long>> {
+        val (valid, skipped) = users.partition { user ->
+            if (excludeAbsenceId != null) {
+                !absenceValidator.existsOverlappingAbsenceExcluding(user.id!!, startDate, endDate, excludeAbsenceId)
+            } else {
+                !absenceValidator.existsOverlappingAbsence(user.id!!, startDate, endDate)
+            }
+        }
+        return valid to skipped.map { it.id!! }
+    }
+
+    private fun saveAbsence(
+        request: CreateAbsenceRequest,
+        users: List<UserEntity>,
+        type: AttendanceTypeEntity?
+    ): AbsenceEntity {
+        val absence = absenceRepository.save(
+            AbsenceEntity(startDate = request.startDate, endDate = request.endDate, reason = request.reason, type = type)
         )
+        saveAbsenceRelations(absence, users, request.startDate, request.endDate, request.checkpointIds, type)
+        return absence
+    }
+
+    private fun saveAbsenceRelations(
+        absence: AbsenceEntity,
+        users: List<UserEntity>,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        checkpointIds: List<Long>?,
+        type: AttendanceTypeEntity?
+    ) {
+        users.forEach { absenceUserRepository.save(AbsenceUserEntity(user = it, absence = absence)) }
+
+        val checkpoints = resolveCheckpoints(startDate, endDate, checkpointIds)
+        checkpoints.forEach { absenceCheckpointRepository.save(AbsenceCheckpointEntity(checkpoint = it, absence = absence)) }
+
+        createAttendancesForAbsence(absence, users, startDate, endDate, checkpoints, type)
     }
 
     @Transactional(readOnly = true)
-    fun getAll(): List<AbsenceEntity> {
-        return absenceRepository.findAll()
+    fun getAbsences(): List<AbsenceResponse> {
+        return absenceRepository.findAll().map { it.toResponse() }
     }
 
-    fun update(id: Long, request: UpdateAbsenceRequest) {
-        val absence = absenceRepository.findByIdOrNull(id)
+    fun updateAbsence(absenceId: Long, request: UpdateAbsenceRequest): UpdateAbsenceResponse {
+        val absence = absenceRepository.findByIdOrNull(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
 
-        validateDateRange(request.startDate, request.endDate)
+        absenceValidator.validateDateRange(request.startDate, request.endDate)
 
+        val users = getUsers(request.userIds)
+        val (validUsers, skippedUserIds) = partitionByOverlap(users, request.startDate, request.endDate, absenceId)
+
+        val type = request.typeId?.let { attendanceTypeService.getById(it) }
+
+        clearAbsenceRelations(absence, absenceId)
+        updateAbsenceEntity(absence, request, type)
+        saveAbsenceRelations(absence, validUsers, request.startDate, request.endDate, request.checkpointIds, type)
+
+        return UpdateAbsenceResponse(absenceId = absenceId, skippedUserIds = skippedUserIds)
+    }
+
+    private fun clearAbsenceRelations(absence: AbsenceEntity, absenceId: Long) {
+        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, LocalDate.now())
+        absenceUserRepository.deleteAllByAbsenceId(absenceId)
+        absenceCheckpointRepository.deleteAllByAbsenceId(absenceId)
+    }
+
+    private fun updateAbsenceEntity(absence: AbsenceEntity, request: UpdateAbsenceRequest, type: AttendanceTypeEntity?) {
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason
-
+        absence.type = type
         absenceRepository.save(absence)
     }
 
-    private fun validateDateRange(startDate: LocalDate, endDate: LocalDate) {
-        if (startDate.isAfter(endDate)) {
-            throw CustomException(AbsenceError.INVALID_DATE_RANGE)
-        }
-    }
-
-    fun delete(id: Long) {
-        val absence = absenceRepository.findByIdOrNull(id)
+    fun deleteAbsence(absenceId: Long) {
+        val absence = absenceRepository.findByIdOrNull(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
 
+        val today = LocalDate.now()
+        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, today)
+
+        absenceUserRepository.deleteAllByAbsenceId(absenceId)
+        absenceCheckpointRepository.deleteAllByAbsenceId(absenceId)
         absenceRepository.delete(absence)
     }
 
-    @Transactional(readOnly = true)
-    fun getUsersInLongAbsence(date: LocalDate): List<UserEntity> {
-        val absences = absenceRepository.findAllByStartDateLessThanEqualAndEndDateGreaterThanEqualWithUser(date, date)
-        return absences.map { it.user }
+    private fun resolveCheckpoints(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        checkpointIds: List<Long>?
+    ): List<AttendanceCheckpointEntity> {
+        val isSingleDay = startDate == endDate
+
+        return if (isSingleDay && !checkpointIds.isNullOrEmpty()) {
+            checkpointRepository.findAllById(checkpointIds).also {
+                if (it.size != checkpointIds.size) {
+                    throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+                }
+            }
+        } else {
+            checkpointRepository.findAll()
+        }
+    }
+
+    private fun createAttendancesForAbsence(
+        absence: AbsenceEntity,
+        users: List<UserEntity>,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        checkpoints: List<AttendanceCheckpointEntity>,
+        overrideType: AttendanceTypeEntity?
+    ) {
+        val today = LocalDate.now()
+        val sleepoverType = attendanceTypeService.getByName("SLEEPOVER")
+        var date = startDate
+        while (!date.isAfter(endDate)) {
+            if (!date.isBefore(today)) {
+                for (user in users) {
+                    val schedules = studentScheduleRepository.findAllByUserAndDayOfWeek(user, date.dayOfWeek)
+                    val scheduleByCheckpoint = schedules.associateBy { it.checkpoint.id }
+
+                    for (checkpoint in checkpoints) {
+                        val schedule = scheduleByCheckpoint[checkpoint.id]
+                        val attendanceType = overrideType ?: schedule?.type ?: sleepoverType
+                        attendanceRepository.save(
+                            AttendanceEntity(
+                                user = user,
+                                checkpoint = checkpoint,
+                                date = date,
+                                type = attendanceType,
+                                room = schedule?.room,
+                                absence = absence
+                            )
+                        )
+                    }
+                }
+            }
+            date = date.plusDays(1)
+        }
+    }
+
+    private fun AbsenceEntity.toResponse(): AbsenceResponse {
+        val id = this.id ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
+        val absenceUsers = absenceUserRepository.findAllByAbsenceId(id)
+        val absenceCheckpoints = absenceCheckpointRepository.findAllByAbsenceId(id)
+
+        val studentResponses = absenceUsers.map { absenceUser ->
+            val studentInfo = studentInfoRepository.findByUser(absenceUser.user)
+            AbsenceStudentResponse(
+                name = absenceUser.user.username,
+                info = studentInfo?.let { StudentInfoResponse.of(it) }
+            )
+        }
+
+        val checkpointResponses = absenceCheckpoints.map {
+            CheckpointSimpleResponse.of(it.checkpoint)
+        }
+
+        return AbsenceResponse(
+            absenceId = id,
+            isGrouped = absenceUsers.size > 1,
+            targetStudents = studentResponses,
+            startDate = this.startDate,
+            endDate = this.endDate,
+            checkpoints = checkpointResponses,
+            reason = this.reason,
+            type = this.type?.let { AttendanceTypeResponse.of(it) }
+        )
     }
 }

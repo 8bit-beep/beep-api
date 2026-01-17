@@ -2,14 +2,13 @@ package com.b.beep.domain.auth.service
 
 import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthUser
-import com.b.beep.domain.user.domain.UserRole
-import com.b.beep.domain.user.repository.UserRepository
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.jwt.JwtProvider
-import org.springframework.security.core.Authentication
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
@@ -20,12 +19,11 @@ class OAuth2SuccessHandler(
     private val studentInfoService: StudentInfoService,
     private val jwtProvider: JwtProvider
 ) : AuthenticationSuccessHandler {
-
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
         response: HttpServletResponse,
         authentication: Authentication
-    ){
+    ) {
         val oauth2User = authentication.principal as OAuth2User
         val attributes = oauth2User.attributes
 

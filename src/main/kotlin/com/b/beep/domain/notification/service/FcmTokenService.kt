@@ -1,9 +1,10 @@
 package com.b.beep.domain.notification.service
 
 import com.b.beep.domain.notification.controller.dto.request.SaveTokenRequest
-import com.b.beep.domain.notification.entity.FcmTokenEntity
+import com.b.beep.domain.notification.domain.entity.FcmTokenEntity
 import com.b.beep.domain.notification.repository.FcmTokenRepository
 import com.b.beep.global.security.ContextHolder
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -20,15 +21,23 @@ class FcmTokenService(
 
         if (existingToken != null) {
             existingToken.token = request.token
+            existingToken.device = request.device
             fcmTokenRepository.save(existingToken)
         } else {
-            fcmTokenRepository.save(
-                FcmTokenEntity(
-                    user = user,
-                    token = request.token,
-                    device = request.device
+            try {
+                fcmTokenRepository.save(
+                    FcmTokenEntity(
+                        user = user,
+                        token = request.token,
+                        device = request.device
+                    )
                 )
-            )
+            } catch (e: DataIntegrityViolationException) {
+                val token = fcmTokenRepository.findByUser(user)!!
+                token.token = request.token
+                token.device = request.device
+                fcmTokenRepository.save(token)
+            }
         }
     }
 }

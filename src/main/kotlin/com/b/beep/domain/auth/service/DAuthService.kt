@@ -1,12 +1,16 @@
 package com.b.beep.domain.auth.service
 
+import com.b.beep.domain.auth.controller.dto.request.LoginRequest
 import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthProperties
 import com.b.beep.domain.auth.infrastructure.DAuthTokenResponse
 import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
-import com.b.beep.domain.auth.infrastructure.GetDAuthTokenRequest
+import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.error.UserError
+import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException
+import com.b.beep.global.security.jwt.JwtProvider
+import com.b.beep.global.security.jwt.dto.response.TokenResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -16,9 +20,23 @@ import reactor.core.publisher.Mono
 
 @Service
 class DAuthService(
-    private val dAuthProperties: DAuthProperties
+    private val dAuthProperties: DAuthProperties,
+    private val studentInfoService: StudentInfoService,
+    private val jwtProvider: JwtProvider,
 ) {
-    fun getDAuthToken(code: String): String {
+    fun login(request: LoginRequest): TokenResponse {
+        val token = getDAuthToken(request.code)
+        val dodamUser = getDAuthUser(token)
+        val user = studentInfoService.getOrCreateUser(dodamUser)
+
+        if (user.role == UserRole.STUDENT) {
+            studentInfoService.getOrCreateStudentInfo(user, dodamUser)
+        }
+
+        return jwtProvider.generateToken(user.email)
+    }
+
+    private fun getDAuthToken(code: String): String {
         val webClient: WebClient = WebClient.create("https://dauthapi.b1nd.com")
 
         val clientId = dAuthProperties.clientId
@@ -46,7 +64,7 @@ class DAuthService(
         return response?.accessToken ?: throw CustomException(AuthError.TOKEN_FETCH_FAILED)
     }
 
-    fun getDAuthUser(token: String): DAuthUserResponse {
+    private fun getDAuthUser(token: String): DAuthUserResponse {
         val webClient: WebClient = WebClient.create("https://dauthapi.b1nd.com")
 
         val response = webClient.get()

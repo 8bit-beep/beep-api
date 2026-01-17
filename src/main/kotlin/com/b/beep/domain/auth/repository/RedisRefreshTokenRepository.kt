@@ -10,7 +10,6 @@ class RedisRefreshTokenRepository(
     private val redisTemplate: StringRedisTemplate,
     private val jwtProperties: JwtProperties
 ) : RefreshTokenRepository {
-
     private val prefix = "refresh:"
 
     override fun save(email: String, refreshToken: String) {
