@@ -3,6 +3,7 @@ package com.b.beep.domain.absence.controller.dto.request
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
 
@@ -20,5 +21,8 @@ data class CreateAbsenceRequest(
     @field:Size(max = 500, message = "사유는 500자 이하여야 합니다")
     val reason: String,
 
-    val checkpointIds: List<Long>? = null
+    val checkpointIds: List<Long>? = null,
+
+    @field:Positive(message = "출석 타입 ID는 양수여야 합니다")
+    val typeId: Long? = null
 )

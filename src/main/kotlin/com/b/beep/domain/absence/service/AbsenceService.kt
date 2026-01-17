@@ -14,7 +14,9 @@ import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.repository.AbsenceCheckpointRepository
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.absence.repository.AbsenceUserRepository
+import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
@@ -57,7 +59,8 @@ class AbsenceService(
             return CreateAbsenceResponse(absenceId = null, skippedUserIds = skippedUserIds)
         }
 
-        val absence = saveAbsence(request, validUsers)
+        val type = request.typeId?.let { typeService.getById(it) }
+        val absence = saveAbsence(request, validUsers, type)
         return CreateAbsenceResponse(absenceId = absence.id, skippedUserIds = skippedUserIds)
     }
 
@@ -85,11 +88,15 @@ class AbsenceService(
         return valid to skipped.map { it.id!! }
     }
 
-    private fun saveAbsence(request: CreateAbsenceRequest, users: List<UserEntity>): AbsenceEntity {
+    private fun saveAbsence(
+        request: CreateAbsenceRequest,
+        users: List<UserEntity>,
+        type: AttendanceTypeEntity?
+    ): AbsenceEntity {
         val absence = absenceRepository.save(
-            AbsenceEntity(startDate = request.startDate, endDate = request.endDate, reason = request.reason)
+            AbsenceEntity(startDate = request.startDate, endDate = request.endDate, reason = request.reason, type = type)
         )
-        saveAbsenceRelations(absence, users, request.startDate, request.endDate, request.checkpointIds)
+        saveAbsenceRelations(absence, users, request.startDate, request.endDate, request.checkpointIds, type)
         return absence
     }
 
@@ -98,14 +105,15 @@ class AbsenceService(
         users: List<UserEntity>,
         startDate: LocalDate,
         endDate: LocalDate,
-        checkpointIds: List<Long>?
+        checkpointIds: List<Long>?,
+        type: AttendanceTypeEntity?
     ) {
         users.forEach { absenceUserRepository.save(AbsenceUserEntity(user = it, absence = absence)) }
 
         val checkpoints = resolveCheckpoints(startDate, endDate, checkpointIds)
         checkpoints.forEach { absenceCheckpointRepository.save(AbsenceCheckpointEntity(checkpoint = it, absence = absence)) }
 
-        createAttendancesForAbsence(absence, users, startDate, endDate, checkpoints)
+        createAttendancesForAbsence(absence, users, startDate, endDate, checkpoints, type)
     }
 
     @Transactional(readOnly = true)
@@ -122,9 +130,11 @@ class AbsenceService(
         val users = getUsers(request.userIds)
         val (validUsers, skippedUserIds) = partitionByOverlap(users, request.startDate, request.endDate, absenceId)
 
+        val type = request.typeId?.let { typeService.getById(it) }
+
         clearAbsenceRelations(absence, absenceId)
-        updateAbsenceEntity(absence, request)
-        saveAbsenceRelations(absence, validUsers, request.startDate, request.endDate, request.checkpointIds)
+        updateAbsenceEntity(absence, request, type)
+        saveAbsenceRelations(absence, validUsers, request.startDate, request.endDate, request.checkpointIds, type)
 
         return UpdateAbsenceResponse(absenceId = absenceId, skippedUserIds = skippedUserIds)
     }
@@ -135,10 +145,11 @@ class AbsenceService(
         absenceCheckpointRepository.deleteAllByAbsenceId(absenceId)
     }
 
-    private fun updateAbsenceEntity(absence: AbsenceEntity, request: UpdateAbsenceRequest) {
+    private fun updateAbsenceEntity(absence: AbsenceEntity, request: UpdateAbsenceRequest, type: AttendanceTypeEntity?) {
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason
+        absence.type = type
         absenceRepository.save(absence)
     }
 
@@ -177,7 +188,8 @@ class AbsenceService(
         users: List<UserEntity>,
         startDate: LocalDate,
         endDate: LocalDate,
-        checkpoints: List<AttendanceCheckpointEntity>
+        checkpoints: List<AttendanceCheckpointEntity>,
+        overrideType: AttendanceTypeEntity?
     ) {
         val today = LocalDate.now()
         val sleepoverType = typeService.getByName("SLEEPOVER")
@@ -190,12 +202,13 @@ class AbsenceService(
 
                     for (checkpoint in checkpoints) {
                         val schedule = scheduleByCheckpoint[checkpoint.id]
+                        val attendanceType = overrideType ?: schedule?.type ?: sleepoverType
                         attendanceRepository.save(
                             AttendanceEntity(
                                 user = user,
                                 checkpoint = checkpoint,
                                 date = date,
-                                type = schedule?.type ?: sleepoverType,
+                                type = attendanceType,
                                 room = schedule?.room,
                                 absence = absence
                             )
@@ -231,7 +244,8 @@ class AbsenceService(
             startDate = this.startDate,
             endDate = this.endDate,
             checkpoints = checkpointResponses,
-            reason = this.reason
+            reason = this.reason,
+            type = this.type?.let { AttendanceTypeResponse.of(it) }
         )
     }
 }
