@@ -13,7 +13,7 @@ class StudentScheduleValidator(
     private val studentScheduleRepository: StudentScheduleRepository
 ) {
     fun validateDayOfWeek(dayOfWeek: DayOfWeek) {
-        val validDays = setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY)
+        val validDays = setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
         if (dayOfWeek !in validDays) {
             throw CustomException(StudentScheduleError.INVALID_DAY_OF_WEEK)
         }

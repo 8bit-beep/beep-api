@@ -18,6 +18,7 @@ class AuthController(
     private val authService: AuthService
 ) : AuthDocs {
     @PostMapping("/refresh")
-    override fun refresh(@Valid @RequestBody request: RefreshTokenRequest): TokenResponse =
-        authService.refresh(request.refreshToken)
+    override fun refresh(@Valid @RequestBody request: RefreshTokenRequest): TokenResponse {
+        return authService.refresh(request.refreshToken)
+    }
 }
