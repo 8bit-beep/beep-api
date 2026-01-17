@@ -38,10 +38,10 @@ class AttendanceQueryRepository(
 
     fun findAllByFilters(
         room: RoomEntity? = null,
-        type: AttendanceType? = null,
         status: AttendanceType? = null,
         grade: Int? = null,
-        classNumber: Int? = null
+        classNumber: Int? = null,
+        scheduleOnly: Boolean? = null
     ): List<UserEntity> {
         val userEntity = QUserEntity.userEntity
         val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
@@ -58,7 +58,7 @@ class AttendanceQueryRepository(
             .distinct()
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        if (room != null && type != null && checkpoint != null) {
+        if (room != null && scheduleOnly == true && checkpoint != null) {
             query.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
 
@@ -81,9 +81,8 @@ class AttendanceQueryRepository(
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
-        if (room != null && type != null && checkpoint != null) {
+        if (room != null && scheduleOnly == true && checkpoint != null) {
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
-            whereBuilder.and(scheduleEntity.type.eq(type))
             whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
             whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
         }

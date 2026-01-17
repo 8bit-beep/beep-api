@@ -30,11 +30,11 @@ class TeacherAttendanceController(
     @ResponseStatus(HttpStatus.OK)
     override fun getAll(
         @RequestParam(required = false) roomId: Long?,
-        @RequestParam(required = false) type: AttendanceType?,
         @RequestParam(required = false) status: AttendanceType?,
         @RequestParam(required = false) grade: Int?,
-        @RequestParam(required = false) classNumber: Int?
+        @RequestParam(required = false) classNumber: Int?,
+        @RequestParam(required = false) scheduleOnly: Boolean?
     ): List<AttendanceStudentResponse> {
-        return teacherAttendanceService.findAll(roomId, type, status, grade, classNumber)
+        return teacherAttendanceService.findAll(roomId, status, grade, classNumber, scheduleOnly)
     }
 }

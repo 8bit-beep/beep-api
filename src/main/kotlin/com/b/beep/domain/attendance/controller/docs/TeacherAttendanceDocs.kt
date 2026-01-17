@@ -15,9 +15,9 @@ interface TeacherAttendanceDocs {
     @Operation(summary = "학생 조회", description = "조건에 맞는 학생 목록을 조회합니다.")
     fun getAll(
         @Parameter(description = "실 ID") roomId: Long?,
-        @Parameter(description = "출석 타입") type: AttendanceType?,
         @Parameter(description = "출석 상태 필터") status: AttendanceType?,
         @Parameter(description = "학년") grade: Int?,
-        @Parameter(description = "반") classNumber: Int?
+        @Parameter(description = "반") classNumber: Int?,
+        @Parameter(description = "해당 실 스케줄 학생만 조회") scheduleOnly: Boolean?
     ): List<AttendanceStudentResponse>
 }
