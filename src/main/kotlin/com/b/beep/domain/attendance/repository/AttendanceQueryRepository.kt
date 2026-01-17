@@ -11,6 +11,9 @@ import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
@@ -35,8 +38,9 @@ class AttendanceQueryRepository(
         status: AttendanceTypeEntity? = null,
         grade: Int? = null,
         classNumber: Int? = null,
-        scheduleOnly: Boolean? = null
-    ): List<UserEntity> {
+        scheduleOnly: Boolean? = null,
+        pageable: Pageable
+    ): Page<UserEntity> {
         val userEntity = QUserEntity.userEntity
         val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
@@ -88,6 +92,31 @@ class AttendanceQueryRepository(
             }
         }
 
-        return query.where(whereBuilder).fetch()
+        val content = query
+            .where(whereBuilder)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+
+        val countQuery = queryFactory
+            .select(userEntity.countDistinct())
+            .from(userEntity)
+            .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
+
+        if (room != null && scheduleOnly == true && checkpoint != null) {
+            countQuery.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
+        }
+
+        if (status != null && checkpoint != null) {
+            countQuery.leftJoin(attendanceEntity).on(
+                attendanceEntity.user.id.eq(userEntity.id),
+                attendanceEntity.date.eq(today),
+                attendanceEntity.checkpoint.id.eq(checkpoint.id)
+            )
+        }
+
+        countQuery.where(whereBuilder)
+
+        return PageableExecutionUtils.getPage(content, pageable) { countQuery.fetchOne() ?: 0L }
     }
 }

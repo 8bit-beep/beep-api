@@ -5,6 +5,8 @@ import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentRes
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 @Tag(name = "출석 관리", description = "출석 관리 API")
 interface TeacherAttendanceDocs {
@@ -17,6 +19,7 @@ interface TeacherAttendanceDocs {
         @Parameter(description = "출석 상태 ID(type ID) 필터") statusId: Long?,
         @Parameter(description = "학년") grade: Int?,
         @Parameter(description = "반") classNumber: Int?,
-        @Parameter(description = "해당 실 스케줄 학생만 조회") scheduleOnly: Boolean?
-    ): List<AttendanceStudentResponse>
+        @Parameter(description = "해당 실 스케줄 학생만 조회") scheduleOnly: Boolean?,
+        pageable: Pageable
+    ): Page<AttendanceStudentResponse>
 }

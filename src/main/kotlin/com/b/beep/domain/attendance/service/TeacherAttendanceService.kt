@@ -15,6 +15,8 @@ import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.global.exception.CustomException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -70,8 +72,9 @@ class TeacherAttendanceService(
         statusId: Long?,
         grade: Int?,
         classNumber: Int?,
-        scheduleOnly: Boolean?
-    ): List<AttendanceStudentResponse> {
+        scheduleOnly: Boolean?,
+        pageable: Pageable
+    ): Page<AttendanceStudentResponse> {
         val room = roomId?.let { roomRepository.findById(it).orElse(null) }
         val status = statusId?.let { attendanceTypeService.getById(it) }
         val users = attendanceQueryRepository.findAllByFilters(
@@ -79,7 +82,8 @@ class TeacherAttendanceService(
             status = status,
             grade = grade,
             classNumber = classNumber,
-            scheduleOnly = scheduleOnly
+            scheduleOnly = scheduleOnly,
+            pageable = pageable
         )
 
         return users.map { it.toResponse() }
