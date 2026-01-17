@@ -12,7 +12,10 @@ import java.time.LocalDate
 @Table(
     name = "shifts",
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["user_id", "date", "checkpoint_id"])
+        UniqueConstraint(
+            name = "uk_shift_user_date_checkpoint",
+            columnNames = ["user_id", "date", "checkpoint_id"]
+        )
     ]
 )
 class ShiftEntity(

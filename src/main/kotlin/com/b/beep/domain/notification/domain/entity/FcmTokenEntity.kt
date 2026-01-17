@@ -7,7 +7,12 @@ import jakarta.persistence.*
 @Entity
 @Table(
     name = "fcm_tokens",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])]
+    uniqueConstraints = [
+        UniqueConstraint(
+            name = "uk_fcm_token_user",
+            columnNames = ["user_id"]
+        )
+    ]
 )
 class FcmTokenEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,5 +26,5 @@ class FcmTokenEntity(
     var token: String,
 
     @Column(name = "device", nullable = false)
-    val device: String
+    var device: String
 ) : BaseEntity()

@@ -11,10 +11,19 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import java.time.LocalDate
 
 @Entity
-@Table(name = "room_approvals")
+@Table(
+    name = "room_approvals",
+    uniqueConstraints = [
+        UniqueConstraint(
+            name = "uk_room_approval_checkpoint_room_date",
+            columnNames = ["checkpoint_id", "room_id", "date"]
+        )
+    ]
+)
 class RoomApprovalEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,

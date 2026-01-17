@@ -20,6 +20,7 @@ import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResp
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -58,7 +59,12 @@ class StudentShiftService(
             status = ShiftStatus.WAITING,
             date = request.date,
         )
-        shiftRepository.save(shift)
+
+        try {
+            shiftRepository.save(shift)
+        } catch (e: DataIntegrityViolationException) {
+            throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
+        }
     }
 
     @Transactional(readOnly = true)
@@ -98,7 +104,11 @@ class StudentShiftService(
 
         shift.status = ShiftStatus.WAITING
 
-        shiftRepository.save(shift)
+        try {
+            shiftRepository.save(shift)
+        } catch (e: DataIntegrityViolationException) {
+            throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
+        }
     }
 
     fun deleteShift(id: Long) {

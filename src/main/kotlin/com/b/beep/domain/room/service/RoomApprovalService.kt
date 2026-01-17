@@ -12,6 +12,7 @@ import com.b.beep.domain.room.repository.RoomApprovalRepository
 import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,14 +36,18 @@ class RoomApprovalService(
             throw CustomException(RoomApprovalError.ALREADY_APPROVED)
         }
 
-        roomApprovalRepository.save(
-            RoomApprovalEntity(
-                checkpoint = checkpoint,
-                room = room,
-                date = today,
-                teacher = contextHolder.user
+        try {
+            roomApprovalRepository.save(
+                RoomApprovalEntity(
+                    checkpoint = checkpoint,
+                    room = room,
+                    date = today,
+                    teacher = contextHolder.user
+                )
             )
-        )
+        } catch (e: DataIntegrityViolationException) {
+            throw CustomException(RoomApprovalError.ALREADY_APPROVED)
+        }
     }
 
     @Transactional(readOnly = true)
