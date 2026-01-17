@@ -2,6 +2,7 @@ package com.b.beep.domain.room.controller
 
 import com.b.beep.domain.room.controller.docs.RoomDocs
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
+import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.service.RoomService
 import jakarta.validation.Valid
@@ -40,7 +41,7 @@ class RoomController(
     @ResponseStatus(HttpStatus.OK)
     override fun updateRoom(
         @PathVariable @Positive(message = "실 ID는 양수여야 합니다") roomId: Long,
-        @Valid @RequestBody request: CreateRoomRequest
+        @Valid @RequestBody request: UpdateRoomRequest
     ): RoomResponse {
         return roomService.updateRoom(roomId, request)
     }

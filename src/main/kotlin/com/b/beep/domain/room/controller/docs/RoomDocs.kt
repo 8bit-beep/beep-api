@@ -1,6 +1,7 @@
 package com.b.beep.domain.room.controller.docs
 
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
+import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -19,7 +20,7 @@ interface RoomDocs {
     fun getRoom(@PathVariable roomId: Long): RoomResponse
 
     @Operation(summary = "실 수정")
-    fun updateRoom(@PathVariable roomId: Long, @RequestBody request: CreateRoomRequest): RoomResponse
+    fun updateRoom(@PathVariable roomId: Long, @RequestBody request: UpdateRoomRequest): RoomResponse
 
     @Operation(summary = "실 삭제")
     fun deleteRoom(@PathVariable roomId: Long)

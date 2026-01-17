@@ -1,6 +1,7 @@
 package com.b.beep.domain.room.service
 
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
+import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomError
@@ -40,7 +41,7 @@ class RoomService(
         return RoomResponse.of(room)
     }
 
-    fun updateRoom(roomId: Long, request: CreateRoomRequest): RoomResponse {
+    fun updateRoom(roomId: Long, request: UpdateRoomRequest): RoomResponse {
         val room = getRoomById(roomId)
         if (room.name != request.name && roomRepository.existsByName(request.name)) {
             throw CustomException(RoomError.ROOM_ALREADY_EXISTS)
