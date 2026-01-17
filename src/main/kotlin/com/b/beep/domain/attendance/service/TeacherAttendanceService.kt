@@ -14,6 +14,7 @@ import com.b.beep.domain.user.domain.entity.StudentInfoEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentInfoRepository
+import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -31,21 +32,19 @@ class TeacherAttendanceService(
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val attendanceQueryRepository: AttendanceQueryRepository,
     private val roomRepository: RoomRepository,
-    private val attendanceTypeService: AttendanceTypeService
+    private val attendanceTypeService: AttendanceTypeService,
+    private val userRepository: UserRepository
 ) {
     fun updateStudentStatus(
-        grade: Int,
-        classNumber: Int,
-        num: Int,
+        userId: Long,
         statusId: Long,
         date: LocalDate? = null,
         checkpointId: Long? = null
     ) {
-        val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(grade, classNumber, num)
-            ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
+        val user = userRepository.findByIdOrNull(userId)
+            ?: throw CustomException(UserError.USER_NOT_FOUND)
 
         val status = attendanceTypeService.getById(statusId)
-        val user = studentInfo.user
         val targetDate = date ?: LocalDate.now()
         val targetCheckpoint = checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
             ?: checkpointResolver.getCurrentCheckpoint()
@@ -103,6 +102,7 @@ class TeacherAttendanceService(
         }
 
         return AttendanceStudentResponse(
+            userId = this.id!!,
             username = this.username,
             studentId = generateStudentId(studentInfo),
             statuses = statuses

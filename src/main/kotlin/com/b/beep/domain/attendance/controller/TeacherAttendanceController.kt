@@ -23,9 +23,7 @@ class TeacherAttendanceController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     override fun updateStatus(@Valid @RequestBody request: UpdateStatusRequest) {
         teacherAttendanceService.updateStudentStatus(
-            grade = request.grade,
-            classNumber = request.classNumber,
-            num = request.num,
+            userId = request.userId,
             statusId = request.statusId,
             date = request.date,
             checkpointId = request.checkpointId
