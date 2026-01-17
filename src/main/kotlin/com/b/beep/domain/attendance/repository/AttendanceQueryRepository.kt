@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Repository
 class AttendanceQueryRepository(
@@ -38,7 +39,6 @@ class AttendanceQueryRepository(
         status: AttendanceTypeEntity? = null,
         grade: Int? = null,
         classNumber: Int? = null,
-        scheduleOnly: Boolean? = null,
         pageable: Pageable
     ): Page<UserEntity> {
         val userEntity = QUserEntity.userEntity
@@ -46,7 +46,7 @@ class AttendanceQueryRepository(
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
         val attendanceEntity = QAttendanceEntity.attendanceEntity
 
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = today.dayOfWeek
         val checkpoint = checkpointResolver.getCurrentCheckpointOrNull()
 
@@ -55,7 +55,7 @@ class AttendanceQueryRepository(
             .distinct()
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        if (room != null && scheduleOnly == true && checkpoint != null) {
+        if (room != null && checkpoint != null) {
             query.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
 
@@ -73,7 +73,7 @@ class AttendanceQueryRepository(
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
-        if (room != null && scheduleOnly == true && checkpoint != null) {
+        if (room != null && checkpoint != null) {
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
             whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
             whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
@@ -103,7 +103,7 @@ class AttendanceQueryRepository(
             .from(userEntity)
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        if (room != null && scheduleOnly == true && checkpoint != null) {
+        if (room != null && checkpoint != null) {
             countQuery.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
 

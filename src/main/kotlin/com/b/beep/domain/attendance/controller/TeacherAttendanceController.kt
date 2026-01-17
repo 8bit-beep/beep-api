@@ -37,9 +37,8 @@ class TeacherAttendanceController(
         @RequestParam(required = false) @Positive(message = "상태 ID는 양수여야 합니다") statusId: Long?,
         @RequestParam(required = false) grade: Int?,
         @RequestParam(required = false) classNumber: Int?,
-        @RequestParam(required = false) scheduleOnly: Boolean?,
         @PageableDefault(size = 20, sort = ["id"]) pageable: Pageable
     ): Page<AttendanceStudentResponse> {
-        return teacherAttendanceService.findAll(roomId, statusId, grade, classNumber, scheduleOnly, pageable)
+        return teacherAttendanceService.findAll(roomId, statusId, grade, classNumber, pageable)
     }
 }

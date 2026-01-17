@@ -71,7 +71,6 @@ class TeacherAttendanceService(
         statusId: Long?,
         grade: Int?,
         classNumber: Int?,
-        scheduleOnly: Boolean?,
         pageable: Pageable
     ): Page<AttendanceStudentResponse> {
         val room = roomId?.let { roomRepository.findById(it).orElse(null) }
@@ -81,7 +80,6 @@ class TeacherAttendanceService(
             status = status,
             grade = grade,
             classNumber = classNumber,
-            scheduleOnly = scheduleOnly,
             pageable = pageable
         )
 
