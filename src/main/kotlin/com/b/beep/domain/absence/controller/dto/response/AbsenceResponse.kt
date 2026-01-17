@@ -1,12 +1,14 @@
 package com.b.beep.domain.absence.controller.dto.response
 
-import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import java.time.LocalDate
 
 data class AbsenceResponse(
     val absenceId: Long,
-    val student: AbsenceStudentResponse,
+    val isGrouped: Boolean,
+    val targetStudents: List<AbsenceStudentResponse>,
     val startDate: LocalDate,
     val endDate: LocalDate,
+    val checkpoints: List<CheckpointSimpleResponse>,
     val reason: String
 )
