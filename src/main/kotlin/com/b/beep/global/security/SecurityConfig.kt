@@ -49,6 +49,7 @@ class SecurityConfig(
             it
                 .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/api-docs").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/sign-in", "/auth/sign-up", "/auth/refresh").permitAll()
+                .requestMatchers("/test/**").permitAll()
 //
 //                .requestMatchers(HttpMethod.POST, "/email/**").permitAll()
 //                .requestMatchers(HttpMethod.GET, "/email/**").permitAll()
@@ -106,7 +107,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
         registerCorsConfiguration("/**", CorsConfiguration().apply {
-            allowedOriginPatterns = listOf("http://localhost:5173", "https://beep.cher1shrxd.me", "https://dev-beep.cher1shrxd.me")
+            allowedOriginPatterns = listOf("http://localhost:5173", "http://localhost:8085", "https://beep.cher1shrxd.me", "https://dev-beep.cher1shrxd.me")
             allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD")
             allowedHeaders = listOf("*")
             allowCredentials = true

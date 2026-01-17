@@ -21,6 +21,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Service
 @Transactional
@@ -32,7 +33,7 @@ class TeacherShiftService(
 ) {
     @Transactional(readOnly = true)
     fun getAll(): List<ShiftResponse> {
-        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now()).map { it.toResponse() }
+        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now(ZoneId.of("Asia/Seoul"))).map { it.toResponse() }
     }
 
     fun updateStatus(id: Long, status: ShiftStatus) {

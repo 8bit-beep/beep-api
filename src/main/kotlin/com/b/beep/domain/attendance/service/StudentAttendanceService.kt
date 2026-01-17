@@ -3,10 +3,9 @@ package com.b.beep.domain.attendance.service
 import com.b.beep.domain.attendance.controller.dto.request.CreateAttendanceRequest
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
-import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.service.RoomService

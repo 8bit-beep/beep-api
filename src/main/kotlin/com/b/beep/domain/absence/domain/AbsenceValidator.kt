@@ -5,13 +5,14 @@ import com.b.beep.domain.absence.repository.AbsenceUserRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Component
 class AbsenceValidator(
     private val absenceUserRepository: AbsenceUserRepository
 ) {
     fun validateDateRange(startDate: LocalDate, endDate: LocalDate) {
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         if (startDate.isBefore(today)) {
             throw CustomException(AbsenceError.INVALID_DATE_RANGE)
         }

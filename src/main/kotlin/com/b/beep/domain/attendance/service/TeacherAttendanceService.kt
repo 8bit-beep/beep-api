@@ -22,6 +22,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Service
 @Transactional
@@ -45,7 +46,7 @@ class TeacherAttendanceService(
             ?: throw CustomException(UserError.USER_NOT_FOUND)
 
         val status = attendanceTypeService.getById(statusId)
-        val targetDate = date ?: LocalDate.now()
+        val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
         val targetCheckpoint = checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
             ?: checkpointResolver.getCurrentCheckpoint()
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(targetCheckpoint, user, targetDate)
@@ -66,7 +67,7 @@ class TeacherAttendanceService(
         }
     }
 
-    fun findAll(
+    fun getAttendances(
         roomId: Long?,
         statusId: Long?,
         grade: Int?,
@@ -87,7 +88,7 @@ class TeacherAttendanceService(
     }
 
     private fun UserEntity.toResponse(): AttendanceStudentResponse {
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val studentInfo = studentInfoRepository.findByUser(this)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
         val attendances = attendanceRepository.findAllByUserAndDate(this, today)

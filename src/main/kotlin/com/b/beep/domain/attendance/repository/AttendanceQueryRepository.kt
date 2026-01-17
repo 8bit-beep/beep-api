@@ -25,7 +25,7 @@ class AttendanceQueryRepository(
     private val queryFactory: JPAQueryFactory,
 ) {
     fun findCurrentStatus(user: UserEntity): AttendanceTypeEntity? {
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val checkpoint = checkpointResolver.getCurrentCheckpointOrNull() ?: return null
 
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, today)

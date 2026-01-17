@@ -14,7 +14,7 @@ interface TeacherAttendanceDocs {
     fun updateStatus(request: UpdateStatusRequest)
 
     @Operation(summary = "학생 조회", description = "조건에 맞는 학생 목록을 조회합니다. roomId 입력 시 해당 실 스케줄 학생만 조회됩니다.")
-    fun getAll(
+    fun getAttendances(
         @Parameter(description = "실 ID (입력 시 해당 실 스케줄 학생만 조회)") roomId: Long?,
         @Parameter(description = "출석 상태 ID(type ID) 필터") statusId: Long?,
         @Parameter(description = "학년") grade: Int?,

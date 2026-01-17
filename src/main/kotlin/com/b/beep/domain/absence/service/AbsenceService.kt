@@ -36,6 +36,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Service
 @Transactional
@@ -142,7 +143,7 @@ class AbsenceService(
     }
 
     private fun clearAbsenceRelations(absence: AbsenceEntity, absenceId: Long) {
-        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, LocalDate.now())
+        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, LocalDate.now(ZoneId.of("Asia/Seoul")))
         absenceUserRepository.deleteAllByAbsenceId(absenceId)
         absenceCheckpointRepository.deleteAllByAbsenceId(absenceId)
     }
@@ -159,7 +160,7 @@ class AbsenceService(
         val absence = absenceRepository.findByIdOrNull(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
 
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, today)
 
         absenceUserRepository.deleteAllByAbsenceId(absenceId)
@@ -193,7 +194,7 @@ class AbsenceService(
         checkpoints: List<AttendanceCheckpointEntity>,
         overrideType: AttendanceTypeEntity?
     ) {
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val sleepoverType = attendanceTypeService.getByName("SLEEPOVER")
         var date = startDate
         while (!date.isAfter(endDate)) {
