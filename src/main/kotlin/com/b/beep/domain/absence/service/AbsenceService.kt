@@ -30,6 +30,8 @@ import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -117,8 +119,8 @@ class AbsenceService(
     }
 
     @Transactional(readOnly = true)
-    fun getAbsences(): List<AbsenceResponse> {
-        return absenceRepository.findAll().map { it.toResponse() }
+    fun getAbsences(pageable: Pageable): Page<AbsenceResponse> {
+        return absenceRepository.findAll(pageable).map { it.toResponse() }
     }
 
     fun updateAbsence(absenceId: Long, request: UpdateAbsenceRequest): UpdateAbsenceResponse {

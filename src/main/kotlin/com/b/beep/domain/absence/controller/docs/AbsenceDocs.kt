@@ -7,6 +7,8 @@ import com.b.beep.domain.absence.controller.dto.response.CreateAbsenceResponse
 import com.b.beep.domain.absence.controller.dto.response.UpdateAbsenceResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 
@@ -26,7 +28,7 @@ interface AbsenceDocs {
     fun createAbsence(@RequestBody request: CreateAbsenceRequest): CreateAbsenceResponse
 
     @Operation(summary = "모든 장기결석 조회")
-    fun getAbsences(): List<AbsenceResponse>
+    fun getAbsences(pageable: Pageable): Page<AbsenceResponse>
 
     @Operation(
         summary = "장기결석 수정",
