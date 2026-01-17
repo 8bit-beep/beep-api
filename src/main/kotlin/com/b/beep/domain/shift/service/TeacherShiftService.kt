@@ -28,7 +28,7 @@ class TeacherShiftService(
     private val shiftRepository: ShiftRepository,
     private val attendanceRepository: AttendanceRepository,
     private val studentInfoRepository: StudentInfoRepository,
-    private val typeService: AttendanceTypeService,
+    private val attendanceTypeService: AttendanceTypeService,
 ) {
     @Transactional(readOnly = true)
     fun getAll(): List<ShiftResponse> {
@@ -54,7 +54,7 @@ class TeacherShiftService(
         status: ShiftStatus
     ) {
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
-        val shiftAttendType = typeService.getByName("SHIFT_ATTEND")
+        val shiftAttendType = attendanceTypeService.getByName("SHIFT_ATTEND")
 
         when (status) {
             ShiftStatus.APPROVED -> {

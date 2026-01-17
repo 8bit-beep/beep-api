@@ -13,48 +13,48 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class AttendanceTypeService(
-    private val typeRepository: AttendanceTypeRepository
+    private val attendanceTypeRepository: AttendanceTypeRepository
 ) {
-    fun create(request: CreateAttendanceTypeRequest): AttendanceTypeResponse {
-        if (typeRepository.existsByNameAndIsDeletedFalse(request.name)) {
+    fun createType(request: CreateAttendanceTypeRequest): AttendanceTypeResponse {
+        if (attendanceTypeRepository.existsByNameAndIsDeletedFalse(request.name)) {
             throw CustomException(AttendanceTypeError.ATTENDANCE_TYPE_ALREADY_EXISTS)
         }
-        val entity = typeRepository.save(AttendanceTypeEntity(name = request.name))
+        val entity = attendanceTypeRepository.save(AttendanceTypeEntity(name = request.name))
         return AttendanceTypeResponse.of(entity)
     }
 
     @Transactional(readOnly = true)
-    fun findAll(): List<AttendanceTypeResponse> {
-        return typeRepository.findAllByIsDeletedFalse().map { AttendanceTypeResponse.of(it) }
+    fun getTypes(): List<AttendanceTypeResponse> {
+        return attendanceTypeRepository.findAllByIsDeletedFalse().map { AttendanceTypeResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
-    fun findById(id: Long): AttendanceTypeResponse {
+    fun getType(id: Long): AttendanceTypeResponse {
         val entity = getById(id)
         return AttendanceTypeResponse.of(entity)
     }
 
-    fun update(id: Long, request: UpdateAttendanceTypeRequest): AttendanceTypeResponse {
+    fun updateType(id: Long, request: UpdateAttendanceTypeRequest): AttendanceTypeResponse {
         val entity = getById(id)
-        if (entity.name != request.name && typeRepository.existsByNameAndIsDeletedFalse(request.name)) {
+        if (entity.name != request.name && attendanceTypeRepository.existsByNameAndIsDeletedFalse(request.name)) {
             throw CustomException(AttendanceTypeError.ATTENDANCE_TYPE_ALREADY_EXISTS)
         }
         entity.name = request.name
         return AttendanceTypeResponse.of(entity)
     }
 
-    fun delete(id: Long) {
+    fun deleteType(id: Long) {
         val entity = getById(id)
         entity.isDeleted = true
     }
 
     fun getById(id: Long): AttendanceTypeEntity {
-        return typeRepository.findByIdAndIsDeletedFalse(id)
+        return attendanceTypeRepository.findByIdAndIsDeletedFalse(id)
             ?: throw CustomException(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND)
     }
 
     fun getByName(name: String): AttendanceTypeEntity {
-        return typeRepository.findByNameAndIsDeletedFalse(name)
+        return attendanceTypeRepository.findByNameAndIsDeletedFalse(name)
             ?: throw CustomException(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND)
     }
 }

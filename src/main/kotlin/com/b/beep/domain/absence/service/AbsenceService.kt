@@ -47,7 +47,7 @@ class AbsenceService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val absenceValidator: AbsenceValidator,
-    private val typeService: AttendanceTypeService,
+    private val attendanceTypeService: AttendanceTypeService,
 ) {
     fun createAbsence(request: CreateAbsenceRequest): CreateAbsenceResponse {
         absenceValidator.validateDateRange(request.startDate, request.endDate)
@@ -59,7 +59,7 @@ class AbsenceService(
             return CreateAbsenceResponse(absenceId = null, skippedUserIds = skippedUserIds)
         }
 
-        val type = request.typeId?.let { typeService.getById(it) }
+        val type = request.typeId?.let { attendanceTypeService.getById(it) }
         val absence = saveAbsence(request, validUsers, type)
         return CreateAbsenceResponse(absenceId = absence.id, skippedUserIds = skippedUserIds)
     }
@@ -130,7 +130,7 @@ class AbsenceService(
         val users = getUsers(request.userIds)
         val (validUsers, skippedUserIds) = partitionByOverlap(users, request.startDate, request.endDate, absenceId)
 
-        val type = request.typeId?.let { typeService.getById(it) }
+        val type = request.typeId?.let { attendanceTypeService.getById(it) }
 
         clearAbsenceRelations(absence, absenceId)
         updateAbsenceEntity(absence, request, type)
@@ -192,7 +192,7 @@ class AbsenceService(
         overrideType: AttendanceTypeEntity?
     ) {
         val today = LocalDate.now()
-        val sleepoverType = typeService.getByName("SLEEPOVER")
+        val sleepoverType = attendanceTypeService.getByName("SLEEPOVER")
         var date = startDate
         while (!date.isAfter(endDate)) {
             if (!date.isBefore(today)) {

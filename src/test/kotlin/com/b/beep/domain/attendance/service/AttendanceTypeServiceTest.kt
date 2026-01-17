@@ -21,10 +21,10 @@ import org.mockito.kotlin.*
 class AttendanceTypeServiceTest {
 
     @Mock
-    private lateinit var typeRepository: AttendanceTypeRepository
+    private lateinit var attendanceTypeRepository: AttendanceTypeRepository
 
     @InjectMocks
-    private lateinit var typeService: AttendanceTypeService
+    private lateinit var attendanceTypeService: AttendanceTypeService
 
     private fun createTypeEntity(
         id: Long = 1L,
@@ -42,14 +42,14 @@ class AttendanceTypeServiceTest {
             val request = CreateAttendanceTypeRequest(name = "PRESENT")
             val savedEntity = createTypeEntity()
 
-            `when`(typeRepository.existsByNameAndIsDeletedFalse(request.name)).thenReturn(false)
-            `when`(typeRepository.save(any<AttendanceTypeEntity>())).thenReturn(savedEntity)
+            `when`(attendanceTypeRepository.existsByNameAndIsDeletedFalse(request.name)).thenReturn(false)
+            `when`(attendanceTypeRepository.save(any<AttendanceTypeEntity>())).thenReturn(savedEntity)
 
-            val result = typeService.create(request)
+            val result = attendanceTypeService.createType(request)
 
             assertEquals("PRESENT", result.name)
-            verify(typeRepository).existsByNameAndIsDeletedFalse(request.name)
-            verify(typeRepository).save(any<AttendanceTypeEntity>())
+            verify(attendanceTypeRepository).existsByNameAndIsDeletedFalse(request.name)
+            verify(attendanceTypeRepository).save(any<AttendanceTypeEntity>())
         }
 
         @Test
@@ -57,14 +57,14 @@ class AttendanceTypeServiceTest {
         fun duplicateName_throwsException() {
             val request = CreateAttendanceTypeRequest(name = "PRESENT")
 
-            `when`(typeRepository.existsByNameAndIsDeletedFalse(request.name)).thenReturn(true)
+            `when`(attendanceTypeRepository.existsByNameAndIsDeletedFalse(request.name)).thenReturn(true)
 
             val exception = assertThrows(CustomException::class.java) {
-                typeService.create(request)
+                attendanceTypeService.createType(request)
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_ALREADY_EXISTS, exception.error)
-            verify(typeRepository, never()).save(any<AttendanceTypeEntity>())
+            verify(attendanceTypeRepository, never()).save(any<AttendanceTypeEntity>())
         }
     }
 
@@ -80,9 +80,9 @@ class AttendanceTypeServiceTest {
                 createTypeEntity(id = 2L, name = "ABSENT")
             )
 
-            `when`(typeRepository.findAllByIsDeletedFalse()).thenReturn(types)
+            `when`(attendanceTypeRepository.findAllByIsDeletedFalse()).thenReturn(types)
 
-            val result = typeService.findAll()
+            val result = attendanceTypeService.getTypes()
 
             assertEquals(2, result.size)
             assertEquals("PRESENT", result[0].name)
@@ -92,9 +92,9 @@ class AttendanceTypeServiceTest {
         @Test
         @DisplayName("빈 목록")
         fun emptyList() {
-            `when`(typeRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<AttendanceTypeEntity>())
+            `when`(attendanceTypeRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<AttendanceTypeEntity>())
 
-            val result = typeService.findAll()
+            val result = attendanceTypeService.getTypes()
 
             assertTrue(result.isEmpty())
         }
@@ -109,9 +109,9 @@ class AttendanceTypeServiceTest {
         fun success() {
             val entity = createTypeEntity()
 
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
 
-            val result = typeService.findById(1L)
+            val result = attendanceTypeService.getType(1L)
 
             assertEquals("PRESENT", result.name)
         }
@@ -119,10 +119,10 @@ class AttendanceTypeServiceTest {
         @Test
         @DisplayName("없으면 예외")
         fun notFound_throwsException() {
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                typeService.findById(1L)
+                attendanceTypeService.getType(1L)
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND, exception.error)
@@ -139,12 +139,12 @@ class AttendanceTypeServiceTest {
             val entity = createTypeEntity()
             val request = UpdateAttendanceTypeRequest(name = "PRESENT")
 
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
 
-            val result = typeService.update(1L, request)
+            val result = attendanceTypeService.updateType(1L, request)
 
             assertEquals("PRESENT", result.name)
-            verify(typeRepository, never()).existsByNameAndIsDeletedFalse(any())
+            verify(attendanceTypeRepository, never()).existsByNameAndIsDeletedFalse(any())
         }
 
         @Test
@@ -153,10 +153,10 @@ class AttendanceTypeServiceTest {
             val entity = createTypeEntity()
             val request = UpdateAttendanceTypeRequest(name = "LATE")
 
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
-            `when`(typeRepository.existsByNameAndIsDeletedFalse("LATE")).thenReturn(false)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
+            `when`(attendanceTypeRepository.existsByNameAndIsDeletedFalse("LATE")).thenReturn(false)
 
-            val result = typeService.update(1L, request)
+            val result = attendanceTypeService.updateType(1L, request)
 
             assertEquals("LATE", result.name)
         }
@@ -167,11 +167,11 @@ class AttendanceTypeServiceTest {
             val entity = createTypeEntity()
             val request = UpdateAttendanceTypeRequest(name = "ABSENT")
 
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
-            `when`(typeRepository.existsByNameAndIsDeletedFalse("ABSENT")).thenReturn(true)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
+            `when`(attendanceTypeRepository.existsByNameAndIsDeletedFalse("ABSENT")).thenReturn(true)
 
             val exception = assertThrows(CustomException::class.java) {
-                typeService.update(1L, request)
+                attendanceTypeService.updateType(1L, request)
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_ALREADY_EXISTS, exception.error)
@@ -182,10 +182,10 @@ class AttendanceTypeServiceTest {
         fun notFound_throwsException() {
             val request = UpdateAttendanceTypeRequest(name = "LATE")
 
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                typeService.update(1L, request)
+                attendanceTypeService.updateType(1L, request)
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND, exception.error)
@@ -201,9 +201,9 @@ class AttendanceTypeServiceTest {
         fun success() {
             val entity = createTypeEntity()
 
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
 
-            typeService.delete(1L)
+            attendanceTypeService.deleteType(1L)
 
             assertTrue(entity.isDeleted)
         }
@@ -211,10 +211,10 @@ class AttendanceTypeServiceTest {
         @Test
         @DisplayName("없으면 예외")
         fun notFound_throwsException() {
-            `when`(typeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
+            `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                typeService.delete(1L)
+                attendanceTypeService.deleteType(1L)
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND, exception.error)
@@ -230,9 +230,9 @@ class AttendanceTypeServiceTest {
         fun success() {
             val entity = createTypeEntity()
 
-            `when`(typeRepository.findByNameAndIsDeletedFalse("PRESENT")).thenReturn(entity)
+            `when`(attendanceTypeRepository.findByNameAndIsDeletedFalse("PRESENT")).thenReturn(entity)
 
-            val result = typeService.getByName("PRESENT")
+            val result = attendanceTypeService.getByName("PRESENT")
 
             assertEquals("PRESENT", result.name)
         }
@@ -240,10 +240,10 @@ class AttendanceTypeServiceTest {
         @Test
         @DisplayName("없으면 예외")
         fun notFound_throwsException() {
-            `when`(typeRepository.findByNameAndIsDeletedFalse("UNKNOWN")).thenReturn(null)
+            `when`(attendanceTypeRepository.findByNameAndIsDeletedFalse("UNKNOWN")).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                typeService.getByName("UNKNOWN")
+                attendanceTypeService.getByName("UNKNOWN")
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND, exception.error)

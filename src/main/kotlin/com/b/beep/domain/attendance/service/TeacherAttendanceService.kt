@@ -1,14 +1,12 @@
 package com.b.beep.domain.attendance.service
 
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
+import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
-import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
-import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.room.repository.RoomRepository
@@ -31,7 +29,7 @@ class TeacherAttendanceService(
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val attendanceQueryRepository: AttendanceQueryRepository,
     private val roomRepository: RoomRepository,
-    private val typeService: AttendanceTypeService
+    private val attendanceTypeService: AttendanceTypeService
 ) {
     fun updateStudentStatus(
         grade: Int,
@@ -44,7 +42,7 @@ class TeacherAttendanceService(
         val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(grade, classNumber, num)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
 
-        val status = typeService.getById(statusId)
+        val status = attendanceTypeService.getById(statusId)
         val user = studentInfo.user
         val targetDate = date ?: LocalDate.now()
         val targetCheckpoint = checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
@@ -75,7 +73,7 @@ class TeacherAttendanceService(
         scheduleOnly: Boolean?
     ): List<AttendanceStudentResponse> {
         val room = roomId?.let { roomRepository.findById(it).orElse(null) }
-        val status = statusId?.let { typeService.getById(it) }
+        val status = statusId?.let { attendanceTypeService.getById(it) }
         val users = attendanceQueryRepository.findAllByFilters(
             room = room,
             status = status,

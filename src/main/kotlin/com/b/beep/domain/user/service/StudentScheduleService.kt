@@ -28,7 +28,7 @@ class StudentScheduleService(
     private val contextHolder: ContextHolder,
     private val roomRepository: RoomRepository,
     private val checkpointRepository: AttendanceCheckpointRepository,
-    private val typeService: AttendanceTypeService,
+    private val attendanceTypeService: AttendanceTypeService,
 ) {
     fun create(request: CreateStudentScheduleRequest) {
         val user = contextHolder.user
@@ -36,7 +36,7 @@ class StudentScheduleService(
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val checkpoint = getCheckpointEntity(request.checkpointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
-        val type = typeService.getById(request.typeId)
+        val type = attendanceTypeService.getById(request.typeId)
 
         studentScheduleValidator.validateDayOfWeek(request.dayOfWeek)
         studentScheduleValidator.validateNotDuplicate(user, request.dayOfWeek, checkpoint)
@@ -72,7 +72,7 @@ class StudentScheduleService(
         request.checkpointId?.let {
             schedule.checkpoint = getCheckpointEntity(it) ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
         }
-        request.typeId?.let { schedule.type = typeService.getById(it) }
+        request.typeId?.let { schedule.type = attendanceTypeService.getById(it) }
         request.roomId?.let {
             schedule.room = getRoomEntity(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }

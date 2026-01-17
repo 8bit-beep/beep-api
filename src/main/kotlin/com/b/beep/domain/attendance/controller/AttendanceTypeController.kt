@@ -14,38 +14,38 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/types")
 class AttendanceTypeController(
-    private val typeService: AttendanceTypeService
+    private val attendanceTypeService: AttendanceTypeService
 ) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody request: CreateAttendanceTypeRequest): AttendanceTypeResponse {
-        return typeService.create(request)
+    fun createType(@Valid @RequestBody request: CreateAttendanceTypeRequest): AttendanceTypeResponse {
+        return attendanceTypeService.createType(request)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun findAll(): List<AttendanceTypeResponse> {
-        return typeService.findAll()
+    fun getTypes(): List<AttendanceTypeResponse> {
+        return attendanceTypeService.getTypes()
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    fun findById(@PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long): AttendanceTypeResponse {
-        return typeService.findById(id)
+    fun getType(@PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long): AttendanceTypeResponse {
+        return attendanceTypeService.getType(id)
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    fun update(
+    fun updateType(
         @PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long,
         @Valid @RequestBody request: UpdateAttendanceTypeRequest
     ): AttendanceTypeResponse {
-        return typeService.update(id, request)
+        return attendanceTypeService.updateType(id, request)
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long) {
-        typeService.delete(id)
+    fun deleteType(@PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long) {
+        attendanceTypeService.deleteType(id)
     }
 }

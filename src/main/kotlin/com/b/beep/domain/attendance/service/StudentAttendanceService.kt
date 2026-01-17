@@ -28,7 +28,7 @@ class StudentAttendanceService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val checkpointResolver: CheckpointResolver,
     private val roomService: RoomService,
-    private val typeService: AttendanceTypeService,
+    private val attendanceTypeService: AttendanceTypeService,
 ) {
     fun attend(request: CreateAttendanceRequest) {
         val user = contextHolder.user
@@ -36,8 +36,8 @@ class StudentAttendanceService(
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = today.dayOfWeek
         val room = roomService.getRoomById(request.roomId)
-        val type = typeService.getById(request.typeId)
-        val notAttendType = typeService.getByName("NOT_ATTEND")
+        val type = attendanceTypeService.getById(request.typeId)
+        val notAttendType = attendanceTypeService.getByName("NOT_ATTEND")
 
         val schedule = getScheduleEntity(user, dayOfWeek, checkpoint, type)
             ?: throw CustomException(AttendanceError.SCHEDULE_NOT_FOUND)
