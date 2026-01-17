@@ -1,5 +1,6 @@
 package com.b.beep.domain.user.service
 
+import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
@@ -27,6 +28,7 @@ class StudentScheduleService(
     private val contextHolder: ContextHolder,
     private val roomRepository: RoomRepository,
     private val checkpointRepository: AttendanceCheckpointRepository,
+    private val typeService: AttendanceTypeService,
 ) {
     fun create(request: CreateStudentScheduleRequest) {
         val user = contextHolder.user
@@ -34,6 +36,7 @@ class StudentScheduleService(
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val checkpoint = getCheckpointEntity(request.checkpointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+        val type = typeService.getById(request.typeId)
 
         studentScheduleValidator.validateDayOfWeek(request.dayOfWeek)
         studentScheduleValidator.validateNotDuplicate(user, request.dayOfWeek, checkpoint)
@@ -42,7 +45,7 @@ class StudentScheduleService(
             user = user,
             dayOfWeek = request.dayOfWeek,
             checkpoint = checkpoint,
-            type = request.type,
+            type = type,
             room = room
         )
         studentScheduleRepository.save(schedule)
@@ -69,7 +72,7 @@ class StudentScheduleService(
         request.checkpointId?.let {
             schedule.checkpoint = getCheckpointEntity(it) ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
         }
-        request.type?.let { schedule.type = it }
+        request.typeId?.let { schedule.type = typeService.getById(it) }
         request.roomId?.let {
             schedule.room = getRoomEntity(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }

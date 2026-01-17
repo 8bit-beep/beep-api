@@ -15,8 +15,8 @@ import com.b.beep.domain.absence.repository.AbsenceCheckpointRepository
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.absence.repository.AbsenceUserRepository
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
@@ -45,6 +45,7 @@ class AbsenceService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val absenceValidator: AbsenceValidator,
+    private val typeService: AttendanceTypeService,
 ) {
     fun createAbsence(request: CreateAbsenceRequest): CreateAbsenceResponse {
         absenceValidator.validateDateRange(request.startDate, request.endDate)
@@ -179,6 +180,7 @@ class AbsenceService(
         checkpoints: List<AttendanceCheckpointEntity>
     ) {
         val today = LocalDate.now()
+        val sleepoverType = typeService.getByName("SLEEPOVER")
         var date = startDate
         while (!date.isAfter(endDate)) {
             if (!date.isBefore(today)) {
@@ -193,7 +195,7 @@ class AbsenceService(
                                 user = user,
                                 checkpoint = checkpoint,
                                 date = date,
-                                type = schedule?.type ?: AttendanceType.SLEEPOVER,
+                                type = schedule?.type ?: sleepoverType,
                                 room = schedule?.room,
                                 absence = absence
                             )

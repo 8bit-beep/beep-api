@@ -2,7 +2,7 @@ package com.b.beep.domain.attendance.repository
 
 import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
@@ -22,7 +22,7 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
         @Param("date") date: LocalDate
     ): AttendanceEntity?
 
-    fun findAllByCheckpointAndDateAndType(checkpoint: AttendanceCheckpointEntity, date: LocalDate, type: AttendanceType): List<AttendanceEntity>
+    fun findAllByCheckpointAndDateAndType(checkpoint: AttendanceCheckpointEntity, date: LocalDate, type: AttendanceTypeEntity): List<AttendanceEntity>
 
     @Query("SELECT a FROM AttendanceEntity a WHERE a.user IN :users AND a.checkpoint.id = :checkpointId AND a.date = :date")
     fun findAllByUsersAndCheckpointIdAndDate(

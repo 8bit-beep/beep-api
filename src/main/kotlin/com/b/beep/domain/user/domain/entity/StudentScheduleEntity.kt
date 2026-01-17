@@ -1,6 +1,6 @@
 package com.b.beep.domain.user.domain.entity
 
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import jakarta.persistence.*
@@ -32,9 +32,9 @@ class StudentScheduleEntity(
     @JoinColumn(name = "checkpoint_id", nullable = false)
     var checkpoint: AttendanceCheckpointEntity,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    var type: AttendanceType,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id", nullable = false)
+    var type: AttendanceTypeEntity,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", nullable = false)

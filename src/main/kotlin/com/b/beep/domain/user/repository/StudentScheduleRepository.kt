@@ -1,6 +1,6 @@
 package com.b.beep.domain.user.repository
 
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -20,7 +20,7 @@ interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long>
         user: UserEntity,
         dayOfWeek: DayOfWeek,
         checkpoint: AttendanceCheckpointEntity,
-        type: AttendanceType
+        type: AttendanceTypeEntity
     ): StudentScheduleEntity?
 
     fun existsByUserAndDayOfWeekAndCheckpoint(

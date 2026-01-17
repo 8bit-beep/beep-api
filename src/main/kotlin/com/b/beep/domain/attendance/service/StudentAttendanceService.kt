@@ -3,9 +3,10 @@ package com.b.beep.domain.attendance.service
 import com.b.beep.domain.attendance.controller.dto.request.CreateAttendanceRequest
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.service.RoomService
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
@@ -27,6 +28,7 @@ class StudentAttendanceService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val checkpointResolver: CheckpointResolver,
     private val roomService: RoomService,
+    private val typeService: AttendanceTypeService,
 ) {
     fun attend(request: CreateAttendanceRequest) {
         val user = contextHolder.user
@@ -34,8 +36,10 @@ class StudentAttendanceService(
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = today.dayOfWeek
         val room = roomService.getRoomById(request.roomId)
+        val type = typeService.getById(request.typeId)
+        val notAttendType = typeService.getByName("NOT_ATTEND")
 
-        val schedule = getScheduleEntity(user, dayOfWeek, checkpoint, request.attendanceType)
+        val schedule = getScheduleEntity(user, dayOfWeek, checkpoint, type)
             ?: throw CustomException(AttendanceError.SCHEDULE_NOT_FOUND)
 
         if (schedule.room.id != room.id) {
@@ -48,15 +52,15 @@ class StudentAttendanceService(
                     user = user,
                     checkpoint = checkpoint,
                     date = today,
-                    type = AttendanceType.NOT_ATTEND
+                    type = notAttendType
                 )
             )
 
-        if (attendance.type != AttendanceType.NOT_ATTEND) {
+        if (attendance.type.name != "NOT_ATTEND") {
             throw CustomException(AttendanceError.ALREADY_ATTENDED)
         }
 
-        attendance.type = request.attendanceType
+        attendance.type = type
         attendance.room = room
         attendanceRepository.save(attendance)
     }
@@ -80,7 +84,7 @@ class StudentAttendanceService(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
         checkpoint: AttendanceCheckpointEntity,
-        type: AttendanceType
+        type: AttendanceTypeEntity
     ): StudentScheduleEntity? = studentScheduleRepository.findByUserAndDayOfWeekAndCheckpointAndType(
         user, dayOfWeek, checkpoint, type
     )

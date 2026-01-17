@@ -3,7 +3,6 @@ package com.b.beep.domain.attendance.controller
 import com.b.beep.domain.attendance.controller.docs.TeacherAttendanceDocs
 import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.service.TeacherAttendanceService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
@@ -24,7 +23,7 @@ class TeacherAttendanceController(
             grade = request.grade,
             classNumber = request.classNumber,
             num = request.num,
-            status = request.status,
+            statusId = request.statusId,
             date = request.date,
             checkpointId = request.checkpointId
         )
@@ -34,11 +33,11 @@ class TeacherAttendanceController(
     @ResponseStatus(HttpStatus.OK)
     override fun getAll(
         @RequestParam(required = false) @Positive(message = "실 ID는 양수여야 합니다") roomId: Long?,
-        @RequestParam(required = false) status: AttendanceType?,
+        @RequestParam(required = false) @Positive(message = "상태 ID는 양수여야 합니다") statusId: Long?,
         @RequestParam(required = false) grade: Int?,
         @RequestParam(required = false) classNumber: Int?,
         @RequestParam(required = false) scheduleOnly: Boolean?
     ): List<AttendanceStudentResponse> {
-        return teacherAttendanceService.findAll(roomId, status, grade, classNumber, scheduleOnly)
+        return teacherAttendanceService.findAll(roomId, statusId, grade, classNumber, scheduleOnly)
     }
 }

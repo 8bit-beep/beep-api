@@ -1,7 +1,7 @@
 package com.b.beep.domain.attendance.domain.entity
 
 import com.b.beep.domain.absence.domain.entity.AbsenceEntity
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -23,9 +23,9 @@ class AttendanceEntity(
     @JoinColumn(name = "checkpoint_id", nullable = false)
     val checkpoint: AttendanceCheckpointEntity,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    var type: AttendanceType,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id", nullable = false)
+    var type: AttendanceTypeEntity,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

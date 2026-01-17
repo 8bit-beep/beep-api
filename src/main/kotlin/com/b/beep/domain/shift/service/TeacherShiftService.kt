@@ -1,8 +1,8 @@
 package com.b.beep.domain.shift.service
 
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
 import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
@@ -28,6 +28,7 @@ class TeacherShiftService(
     private val shiftRepository: ShiftRepository,
     private val attendanceRepository: AttendanceRepository,
     private val studentInfoRepository: StudentInfoRepository,
+    private val typeService: AttendanceTypeService,
 ) {
     @Transactional(readOnly = true)
     fun getAll(): List<ShiftResponse> {
@@ -53,6 +54,7 @@ class TeacherShiftService(
         status: ShiftStatus
     ) {
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
+        val shiftAttendType = typeService.getByName("SHIFT_ATTEND")
 
         when (status) {
             ShiftStatus.APPROVED -> {
@@ -60,10 +62,10 @@ class TeacherShiftService(
                     user = user,
                     checkpoint = checkpoint,
                     date = date,
-                    type = AttendanceType.SHIFT_ATTEND,
+                    type = shiftAttendType,
                     room = room
                 )
-                record.type = AttendanceType.SHIFT_ATTEND
+                record.type = shiftAttendType
                 record.room = room
                 attendanceRepository.save(record)
             }

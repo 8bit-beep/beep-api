@@ -1,7 +1,7 @@
 package com.b.beep.domain.attendance.repository
 
 import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
@@ -20,19 +20,19 @@ class AttendanceQueryRepository(
     private val checkpointResolver: CheckpointResolver,
     private val queryFactory: JPAQueryFactory,
 ) {
-    fun findCurrentStatus(user: UserEntity): AttendanceType {
+    fun findCurrentStatus(user: UserEntity): AttendanceTypeEntity? {
         val today = LocalDate.now()
-        val checkpoint = checkpointResolver.getCurrentCheckpointOrNull() ?: return AttendanceType.NOT_ATTEND
+        val checkpoint = checkpointResolver.getCurrentCheckpointOrNull() ?: return null
 
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, today)
-            ?: return AttendanceType.NOT_ATTEND
+            ?: return null
 
         return attendance.type
     }
 
     fun findAllByFilters(
         room: RoomEntity? = null,
-        status: AttendanceType? = null,
+        status: AttendanceTypeEntity? = null,
         grade: Int? = null,
         classNumber: Int? = null,
         scheduleOnly: Boolean? = null
@@ -76,21 +76,15 @@ class AttendanceQueryRepository(
         }
 
         if (status != null && checkpoint != null) {
-            when (status) {
-                AttendanceType.NOT_ATTEND -> {
-                    whereBuilder.and(attendanceEntity.id.isNull)
-                }
-
-                AttendanceType.OUTGOING -> {
-                    whereBuilder.and(
-                        attendanceEntity.type.eq(AttendanceType.OUTGOING)
-                            .or(attendanceEntity.absence.isNotNull)
-                    )
-                }
-
-                else -> {
-                    whereBuilder.and(attendanceEntity.type.eq(status))
-                }
+            if (status.name == "NOT_ATTEND") {
+                whereBuilder.and(attendanceEntity.id.isNull)
+            } else if (status.name == "OUTGOING") {
+                whereBuilder.and(
+                    attendanceEntity.type.id.eq(status.id)
+                        .or(attendanceEntity.absence.isNotNull)
+                )
+            } else {
+                whereBuilder.and(attendanceEntity.type.id.eq(status.id))
             }
         }
 

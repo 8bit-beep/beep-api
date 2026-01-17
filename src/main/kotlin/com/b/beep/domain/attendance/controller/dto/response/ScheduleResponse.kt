@@ -1,6 +1,6 @@
 package com.b.beep.domain.attendance.controller.dto.response
 
-import com.b.beep.domain.attendance.domain.enums.AttendanceType
+import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
@@ -10,7 +10,7 @@ data class ScheduleResponse(
     val id: Long,
     val dayOfWeek: DayOfWeek,
     val checkpoint: CheckpointSimpleResponse,
-    val type: AttendanceType,
+    val type: AttendanceTypeResponse,
     val room: RoomResponse
 ) {
     companion object {
@@ -19,7 +19,7 @@ data class ScheduleResponse(
                 id = schedule.id!!,
                 dayOfWeek = schedule.dayOfWeek,
                 checkpoint = CheckpointSimpleResponse.of(schedule.checkpoint),
-                type = schedule.type,
+                type = AttendanceTypeResponse.of(schedule.type),
                 room = RoomResponse.of(schedule.room)
             )
         }
