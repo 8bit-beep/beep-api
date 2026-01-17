@@ -16,7 +16,7 @@ class RoomService(
     private val roomRepository: RoomRepository
 ) {
     fun createRoom(request: CreateRoomRequest): RoomResponse {
-        if (roomRepository.existsByName(request.name)) {
+        if (roomRepository.existsByNameAndIsDeletedFalse(request.name)) {
             throw CustomException(RoomError.ROOM_ALREADY_EXISTS)
         }
         val room = roomRepository.save(
@@ -32,7 +32,7 @@ class RoomService(
 
     @Transactional(readOnly = true)
     fun getRooms(): List<RoomResponse> {
-        return roomRepository.findAll().map { RoomResponse.of(it) }
+        return roomRepository.findAllByIsDeletedFalse().map { RoomResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
@@ -43,7 +43,7 @@ class RoomService(
 
     fun updateRoom(roomId: Long, request: UpdateRoomRequest): RoomResponse {
         val room = getRoomById(roomId)
-        if (room.name != request.name && roomRepository.existsByName(request.name)) {
+        if (room.name != request.name && roomRepository.existsByNameAndIsDeletedFalse(request.name)) {
             throw CustomException(RoomError.ROOM_ALREADY_EXISTS)
         }
         room.name = request.name
@@ -55,11 +55,11 @@ class RoomService(
 
     fun deleteRoom(roomId: Long) {
         val room = getRoomById(roomId)
-        roomRepository.delete(room)
+        room.isDeleted = true
     }
 
     fun getRoomById(roomId: Long): RoomEntity {
-        return roomRepository.findById(roomId)
-            .orElseThrow { CustomException(RoomError.ROOM_NOT_FOUND) }
+        return roomRepository.findByIdAndIsDeletedFalse(roomId)
+            ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
     }
 }

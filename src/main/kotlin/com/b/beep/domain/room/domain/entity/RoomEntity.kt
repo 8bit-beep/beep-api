@@ -20,5 +20,8 @@ class RoomEntity(
     var classNumber: Int? = null,
 
     @Column
-    var floor: Int? = null
+    var floor: Int? = null,
+
+    @Column(nullable = false)
+    var isDeleted: Boolean = false
 ) : BaseEntity()

@@ -6,4 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface RoomRepository : JpaRepository<RoomEntity, Long> {
     fun existsByName(name: String): Boolean
     fun findByName(name: String): RoomEntity?
+    fun findAllByIsDeletedFalse(): List<RoomEntity>
+    fun findByIdAndIsDeletedFalse(id: Long): RoomEntity?
+    fun existsByNameAndIsDeletedFalse(name: String): Boolean
 }

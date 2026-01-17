@@ -16,7 +16,6 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.*
-import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class RoomServiceTest {
@@ -51,13 +50,13 @@ class RoomServiceTest {
             val request = CreateRoomRequest(name = "Room A", grade = 1, classNumber = 1, floor = 1)
             val savedRoom = createRoomEntity()
 
-            `when`(roomRepository.existsByName(request.name)).thenReturn(false)
+            `when`(roomRepository.existsByNameAndIsDeletedFalse(request.name)).thenReturn(false)
             `when`(roomRepository.save(any<RoomEntity>())).thenReturn(savedRoom)
 
             val result = roomService.createRoom(request)
 
             assertEquals("Room A", result.name)
-            verify(roomRepository).existsByName(request.name)
+            verify(roomRepository).existsByNameAndIsDeletedFalse(request.name)
             verify(roomRepository).save(any<RoomEntity>())
         }
 
@@ -66,7 +65,7 @@ class RoomServiceTest {
         fun duplicateName_throwsException() {
             val request = CreateRoomRequest(name = "Room A", grade = 1, classNumber = 1, floor = 1)
 
-            `when`(roomRepository.existsByName(request.name)).thenReturn(true)
+            `when`(roomRepository.existsByNameAndIsDeletedFalse(request.name)).thenReturn(true)
 
             val exception = assertThrows(CustomException::class.java) {
                 roomService.createRoom(request)
@@ -89,7 +88,7 @@ class RoomServiceTest {
                 createRoomEntity(id = 2L, name = "Room B")
             )
 
-            `when`(roomRepository.findAll()).thenReturn(rooms)
+            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(rooms)
 
             val result = roomService.getRooms()
 
@@ -101,7 +100,7 @@ class RoomServiceTest {
         @Test
         @DisplayName("빈 목록")
         fun emptyList() {
-            `when`(roomRepository.findAll()).thenReturn(emptyList<RoomEntity>())
+            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<RoomEntity>())
 
             val result = roomService.getRooms()
 
@@ -118,7 +117,7 @@ class RoomServiceTest {
         fun success() {
             val room = createRoomEntity()
 
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(room)
 
             val result = roomService.getRoom(1L)
 
@@ -128,7 +127,7 @@ class RoomServiceTest {
         @Test
         @DisplayName("없으면 예외")
         fun notFound_throwsException() {
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.empty())
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
                 roomService.getRoom(1L)
@@ -148,13 +147,13 @@ class RoomServiceTest {
             val room = createRoomEntity()
             val request = UpdateRoomRequest(name = "Room A", grade = 2, classNumber = 2, floor = 2)
 
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(room)
 
             val result = roomService.updateRoom(1L, request)
 
             assertEquals("Room A", result.name)
             assertEquals(2, result.grade)
-            verify(roomRepository, never()).existsByName(any())
+            verify(roomRepository, never()).existsByNameAndIsDeletedFalse(any())
         }
 
         @Test
@@ -163,8 +162,8 @@ class RoomServiceTest {
             val room = createRoomEntity()
             val request = UpdateRoomRequest(name = "Room B", grade = 1, classNumber = 1, floor = 1)
 
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
-            `when`(roomRepository.existsByName("Room B")).thenReturn(false)
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(room)
+            `when`(roomRepository.existsByNameAndIsDeletedFalse("Room B")).thenReturn(false)
 
             val result = roomService.updateRoom(1L, request)
 
@@ -177,8 +176,8 @@ class RoomServiceTest {
             val room = createRoomEntity()
             val request = UpdateRoomRequest(name = "Room B", grade = 1, classNumber = 1, floor = 1)
 
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
-            `when`(roomRepository.existsByName("Room B")).thenReturn(true)
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(room)
+            `when`(roomRepository.existsByNameAndIsDeletedFalse("Room B")).thenReturn(true)
 
             val exception = assertThrows(CustomException::class.java) {
                 roomService.updateRoom(1L, request)
@@ -192,7 +191,7 @@ class RoomServiceTest {
         fun notFound_throwsException() {
             val request = UpdateRoomRequest(name = "Room B", grade = 1, classNumber = 1, floor = 1)
 
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.empty())
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
                 roomService.updateRoom(1L, request)
@@ -211,24 +210,23 @@ class RoomServiceTest {
         fun success() {
             val room = createRoomEntity()
 
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(room)
 
             roomService.deleteRoom(1L)
 
-            verify(roomRepository).delete(room)
+            assertTrue(room.isDeleted)
         }
 
         @Test
         @DisplayName("없으면 예외")
         fun notFound_throwsException() {
-            `when`(roomRepository.findById(1L)).thenReturn(Optional.empty())
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
                 roomService.deleteRoom(1L)
             }
 
             assertEquals(RoomError.ROOM_NOT_FOUND, exception.error)
-            verify(roomRepository, never()).delete(any<RoomEntity>())
         }
     }
 }
