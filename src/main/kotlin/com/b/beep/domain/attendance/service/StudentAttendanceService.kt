@@ -8,6 +8,7 @@ import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.service.RoomService
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -39,12 +40,7 @@ class StudentAttendanceService(
         val type = attendanceTypeService.getById(request.typeId)
         val notAttendType = attendanceTypeService.getByName("NOT_ATTEND")
 
-        val schedule = getScheduleEntity(user, dayOfWeek, checkpoint, type)
-            ?: throw CustomException(AttendanceError.SCHEDULE_NOT_FOUND)
-
-        if (schedule.room.id != room.id) {
-            throw CustomException(AttendanceError.ROOM_MISMATCH)
-        }
+        val schedule = getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
 
         val attendance = attendanceRepository.findByUserIdAndCheckpointIdAndDate(user.id!!, checkpoint.id!!, today)
             ?: attendanceRepository.save(
@@ -80,12 +76,33 @@ class StudentAttendanceService(
     ): AttendanceEntity? =
         attendanceRepository.findByUserIdAndCheckpointIdAndDate(user.id!!, checkpoint.id!!, LocalDate.now(ZoneId.of("Asia/Seoul")))
 
-    private fun getScheduleEntity(
+    private fun getOrCreateSchedule(
         user: UserEntity,
         dayOfWeek: DayOfWeek,
         checkpoint: AttendanceCheckpointEntity,
-        type: AttendanceTypeEntity
-    ): StudentScheduleEntity? = studentScheduleRepository.findByUserAndDayOfWeekAndCheckpointAndType(
-        user, dayOfWeek, checkpoint, type
-    )
+        type: AttendanceTypeEntity,
+        room: RoomEntity
+    ): StudentScheduleEntity {
+        val existingSchedule = studentScheduleRepository.findByUserAndDayOfWeekAndCheckpoint(user, dayOfWeek, checkpoint)
+
+        if (existingSchedule != null) {
+            if (existingSchedule.type.id != type.id) {
+                throw CustomException(AttendanceError.TYPE_MISMATCH)
+            }
+            if (existingSchedule.room.id != room.id) {
+                throw CustomException(AttendanceError.ROOM_MISMATCH)
+            }
+            return existingSchedule
+        }
+
+        return studentScheduleRepository.save(
+            StudentScheduleEntity(
+                user = user,
+                dayOfWeek = dayOfWeek,
+                checkpoint = checkpoint,
+                type = type,
+                room = room
+            )
+        )
+    }
 }
