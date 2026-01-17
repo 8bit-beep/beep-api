@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable
 
 @Tag(name = "출석 관리", description = "출석 관리 API")
 interface TeacherAttendanceDocs {
-    @Operation(summary = "출석 상태 변경", description = "현재 교시의 학생 출석 상태를 변경합니다. date와 checkpointId 미입력시 오늘, 현재 체크포인트 기반으로 수정합니다. statudId란에는 type을 입력해주세요.")
+    @Operation(summary = "출석 상태 변경", description = "학생 출석 상태를 변경합니다. date와 checkpointId 미입력시 오늘, 현재 체크포인트 기반으로 수정합니다. statudId란에는 type을 입력해주세요.")
     fun updateStatus(request: UpdateStatusRequest)
 
     @Operation(summary = "학생 조회", description = "조건에 맞는 학생 목록을 조회합니다.")
