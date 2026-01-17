@@ -7,9 +7,9 @@ import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
 import com.b.beep.domain.absence.controller.dto.response.CreateAbsenceResponse
 import com.b.beep.domain.absence.controller.dto.response.UpdateAbsenceResponse
 import com.b.beep.domain.absence.service.AbsenceService
+import com.b.beep.global.common.dto.PageResponse
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
@@ -32,8 +32,8 @@ class AbsenceController(
     @ResponseStatus(HttpStatus.OK)
     override fun getAbsences(
         @PageableDefault(size = 20, sort = ["id"]) pageable: Pageable
-    ): Page<AbsenceResponse> {
-        return absenceService.getAbsences(pageable)
+    ): PageResponse<AbsenceResponse> {
+        return PageResponse.from(absenceService.getAbsences(pageable))
     }
 
     @PatchMapping("/{absenceId}")

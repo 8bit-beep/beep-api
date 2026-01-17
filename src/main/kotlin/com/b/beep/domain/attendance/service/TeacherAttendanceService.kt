@@ -9,6 +9,7 @@ import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -72,15 +73,19 @@ class TeacherAttendanceService(
         statusId: Long?,
         grade: Int?,
         classNumber: Int?,
+        isCurrentCheckpoint: Boolean = true,
         pageable: Pageable
     ): Page<AttendanceStudentResponse> {
-        val room = roomId?.let { roomRepository.findById(it).orElse(null) }
+        val room = roomId?.let {
+            roomRepository.findByIdOrNull(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        }
         val status = statusId?.let { attendanceTypeService.getById(it) }
         val users = attendanceQueryRepository.findAllByFilters(
             room = room,
             status = status,
             grade = grade,
             classNumber = classNumber,
+            isCurrentCheckpoint = isCurrentCheckpoint,
             pageable = pageable
         )
 

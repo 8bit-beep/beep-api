@@ -3,7 +3,7 @@ package com.b.beep.domain.user.controller
 import com.b.beep.domain.user.controller.docs.StudentDocs
 import com.b.beep.domain.user.controller.dto.response.StudentResponse
 import com.b.beep.domain.user.service.StudentService
-import org.springframework.data.domain.Page
+import com.b.beep.global.common.dto.PageResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
@@ -25,7 +25,7 @@ class StudentController(
         @RequestParam(required = false) classNumber: Int?,
         @RequestParam(required = false) keyword: String?,
         @PageableDefault(size = 20) pageable: Pageable
-    ): Page<StudentResponse> {
-        return studentService.findAll(grade, classNumber, keyword, pageable)
+    ): PageResponse<StudentResponse> {
+        return PageResponse.from(studentService.findAll(grade, classNumber, keyword, pageable))
     }
 }

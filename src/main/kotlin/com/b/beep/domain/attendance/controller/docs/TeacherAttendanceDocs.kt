@@ -2,10 +2,10 @@ package com.b.beep.domain.attendance.controller.docs
 
 import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
+import com.b.beep.global.common.dto.PageResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
 @Tag(name = "출석 관리", description = "출석 관리 API")
@@ -19,6 +19,7 @@ interface TeacherAttendanceDocs {
         @Parameter(description = "출석 상태 ID(type ID) 필터") statusId: Long?,
         @Parameter(description = "학년") grade: Int?,
         @Parameter(description = "반") classNumber: Int?,
+        @Parameter(description = "현재 체크포인트 기준 필터 (기본값: true)") isCurrentCheckpoint: Boolean,
         pageable: Pageable
-    ): Page<AttendanceStudentResponse>
+    ): PageResponse<AttendanceStudentResponse>
 }

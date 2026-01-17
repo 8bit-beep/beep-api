@@ -14,6 +14,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.time.ZoneId
@@ -24,6 +25,7 @@ class AttendanceQueryRepository(
     private val checkpointResolver: CheckpointResolver,
     private val queryFactory: JPAQueryFactory,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
     fun findCurrentStatus(user: UserEntity): AttendanceTypeEntity? {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val checkpoint = checkpointResolver.getCurrentCheckpointOrNull() ?: return null
@@ -39,6 +41,7 @@ class AttendanceQueryRepository(
         status: AttendanceTypeEntity? = null,
         grade: Int? = null,
         classNumber: Int? = null,
+        isCurrentCheckpoint: Boolean = true,
         pageable: Pageable
     ): Page<UserEntity> {
         val userEntity = QUserEntity.userEntity
@@ -48,14 +51,16 @@ class AttendanceQueryRepository(
 
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = today.dayOfWeek
-        val checkpoint = checkpointResolver.getCurrentCheckpointOrNull()
+        val checkpoint = if (isCurrentCheckpoint) checkpointResolver.getCurrentCheckpointOrNull() else null
+
+        log.info("[findAllByFilters] room=${room?.id}, isCurrentCheckpoint=$isCurrentCheckpoint, checkpoint=${checkpoint?.id}, dayOfWeek=$dayOfWeek")
 
         val query = queryFactory
             .selectFrom(userEntity)
             .distinct()
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        if (room != null && checkpoint != null) {
+        if (room != null) {
             query.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
 
@@ -73,10 +78,12 @@ class AttendanceQueryRepository(
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
-        if (room != null && checkpoint != null) {
+        if (room != null) {
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
             whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
-            whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
+            if (checkpoint != null) {
+                whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
+            }
         }
 
         if (status != null && checkpoint != null) {
@@ -103,7 +110,7 @@ class AttendanceQueryRepository(
             .from(userEntity)
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        if (room != null && checkpoint != null) {
+        if (room != null) {
             countQuery.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
 
