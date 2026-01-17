@@ -1,6 +1,7 @@
 package com.b.beep.domain.user.controller
 
 import com.b.beep.domain.user.controller.docs.StudentScheduleDocs
+import com.b.beep.domain.user.controller.dto.request.CreateMyScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
@@ -21,9 +22,20 @@ class StudentScheduleController(
         studentScheduleService.create(request)
     }
 
-    @GetMapping("/me")
+    @GetMapping
+    override fun getSchedulesByUserId(
+        @RequestParam @Positive(message = "유저 ID는 양수여야 합니다") userId: Long
+    ): List<StudentScheduleResponse> =
+        studentScheduleService.getByUserId(userId).map { StudentScheduleResponse.of(it) }
+
+    @PostMapping("/my")
+    override fun createMySchedule(@Valid @RequestBody request: CreateMyScheduleRequest) {
+        studentScheduleService.createMy(request)
+    }
+
+    @GetMapping("/my")
     override fun getMySchedules(): List<StudentScheduleResponse> =
-        studentScheduleService.getAll().map { StudentScheduleResponse.of(it) }
+        studentScheduleService.getMySchedules().map { StudentScheduleResponse.of(it) }
 
     @PatchMapping("/{scheduleId}")
     override fun updateSchedule(
