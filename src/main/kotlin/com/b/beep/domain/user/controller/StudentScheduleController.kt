@@ -29,7 +29,7 @@ class StudentScheduleController(
     override fun getSchedulesByUserId(
         @RequestParam @Positive(message = "유저 ID는 양수여야 합니다") userId: Long
     ): List<StudentScheduleResponse> =
-        studentScheduleService.getSchedulesByUserId(userId).map { StudentScheduleResponse.of(it) }
+        studentScheduleService.getSchedulesByUserId(userId)
 
     @PostMapping("/my")
     @ResponseStatus(HttpStatus.CREATED)
@@ -40,7 +40,7 @@ class StudentScheduleController(
     @GetMapping("/my")
     @ResponseStatus(HttpStatus.OK)
     override fun getMySchedules(): List<StudentScheduleResponse> =
-        studentScheduleService.getMySchedules().map { StudentScheduleResponse.of(it) }
+        studentScheduleService.getMySchedules()
 
     @PatchMapping("/{scheduleId}")
     @ResponseStatus(HttpStatus.OK)

@@ -10,6 +10,7 @@ import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.controller.dto.request.CreateMyScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
+import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.domain.user.domain.StudentScheduleValidator
@@ -108,16 +109,16 @@ class StudentScheduleService(
     }
 
     @Transactional(readOnly = true)
-    fun getMySchedules(): List<StudentScheduleEntity> {
+    fun getMySchedules(): List<StudentScheduleResponse> {
         val user = contextHolder.user
-        return studentScheduleRepository.findAllByUser(user)
+        return studentScheduleRepository.findAllByUser(user).map { StudentScheduleResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
-    fun getSchedulesByUserId(userId: Long): List<StudentScheduleEntity> {
+    fun getSchedulesByUserId(userId: Long): List<StudentScheduleResponse> {
         val user = userRepository.findByIdOrNull(userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
-        return studentScheduleRepository.findAllByUser(user)
+        return studentScheduleRepository.findAllByUser(user).map { StudentScheduleResponse.of(it) }
     }
 
     private fun getScheduleEntityOrThrow(scheduleId: Long): StudentScheduleEntity {
