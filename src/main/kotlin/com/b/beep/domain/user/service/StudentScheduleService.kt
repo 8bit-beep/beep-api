@@ -11,12 +11,12 @@ import com.b.beep.domain.user.controller.dto.request.CreateMyScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
-import com.b.beep.domain.user.error.UserError
-import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.domain.user.domain.StudentScheduleValidator
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.error.StudentScheduleError
+import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentScheduleRepository
+import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
 import org.springframework.data.repository.findByIdOrNull

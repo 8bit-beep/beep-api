@@ -1,8 +1,8 @@
 package com.b.beep.domain.attendance.repository
 
-import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
-import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.domain.CheckpointResolver
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
 import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
@@ -11,10 +11,10 @@ import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.time.ZoneId
@@ -90,7 +90,7 @@ class AttendanceQueryRepository(
         }
 
         if (status != null && checkpoint != null) {
-            if (status.name == "NOT_ATTEND") {
+            if (status.name == AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {
                 whereBuilder.and(attendanceEntity.id.isNull)
             } else if (status.name == "OUTGOING") {
                 whereBuilder.and(

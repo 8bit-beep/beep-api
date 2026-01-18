@@ -1,23 +1,23 @@
 package com.b.beep.domain.shift.service
 
+import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.shift.controller.dto.request.CreateShiftRequest
 import com.b.beep.domain.shift.controller.dto.request.UpdateShiftRequest
+import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
-import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
 import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.user.repository.StudentInfoRepository
-import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
-import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
 import org.springframework.dao.DataIntegrityViolationException
@@ -70,7 +70,8 @@ class StudentShiftService(
     @Transactional(readOnly = true)
     fun getMyShifts(): List<ShiftResponse> {
         val user = contextHolder.user
-        return shiftRepository.findAllByUserAndDate(user, LocalDate.now(ZoneId.of("Asia/Seoul"))).map { it.toResponse() }
+        return shiftRepository.findAllByUserAndDate(user, LocalDate.now(ZoneId.of("Asia/Seoul")))
+            .map { it.toResponse() }
     }
 
     fun updateShift(id: Long, request: UpdateShiftRequest) {

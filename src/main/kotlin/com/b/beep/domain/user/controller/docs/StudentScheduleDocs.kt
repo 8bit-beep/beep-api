@@ -25,7 +25,10 @@ interface StudentScheduleDocs {
     fun getMySchedules(): List<StudentScheduleResponse>
 
     @Operation(summary = "스케줄 수정", description = "스케줄 정보를 수정합니다.")
-    fun updateSchedule(@Positive(message = "스케줄 ID는 양수여야 합니다") scheduleId: Long, @Valid request: UpdateStudentScheduleRequest)
+    fun updateSchedule(
+        @Positive(message = "스케줄 ID는 양수여야 합니다") scheduleId: Long,
+        @Valid request: UpdateStudentScheduleRequest
+    )
 
     @Operation(summary = "스케줄 삭제", description = "스케줄을 삭제합니다.")
     fun deleteSchedule(@Positive(message = "스케줄 ID는 양수여야 합니다") scheduleId: Long)

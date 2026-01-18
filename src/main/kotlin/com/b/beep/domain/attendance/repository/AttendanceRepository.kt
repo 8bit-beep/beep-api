@@ -11,7 +11,12 @@ import org.springframework.data.repository.query.Param
 import java.time.LocalDate
 
 interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
-    fun findByCheckpointAndUserAndDate(checkpoint: AttendanceCheckpointEntity, user: UserEntity, date: LocalDate): AttendanceEntity?
+    fun findByCheckpointAndUserAndDate(
+        checkpoint: AttendanceCheckpointEntity,
+        user: UserEntity,
+        date: LocalDate
+    ): AttendanceEntity?
+
     fun findAllByUser(user: UserEntity): List<AttendanceEntity>
     fun findAllByUserAndDate(user: UserEntity, date: LocalDate): List<AttendanceEntity>
 
@@ -22,7 +27,11 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
         @Param("date") date: LocalDate
     ): AttendanceEntity?
 
-    fun findAllByCheckpointAndDateAndType(checkpoint: AttendanceCheckpointEntity, date: LocalDate, type: AttendanceTypeEntity): List<AttendanceEntity>
+    fun findAllByCheckpointAndDateAndType(
+        checkpoint: AttendanceCheckpointEntity,
+        date: LocalDate,
+        type: AttendanceTypeEntity
+    ): List<AttendanceEntity>
 
     @Query("SELECT a FROM AttendanceEntity a WHERE a.user IN :users AND a.checkpoint.id = :checkpointId AND a.date = :date")
     fun findAllByUsersAndCheckpointIdAndDate(

@@ -14,10 +14,13 @@ interface LimitedUserDocs {
     fun createLimitedUser(@Valid request: CreateLimitedUserRequest)
 
     @Operation(summary = "제한 사용자 목록 조회", description = "블랙리스트에 추가된 계정 목록을 조회합니다.")
-    fun getLimitedUsers() : List<LimitedUserResponse>
+    fun getLimitedUsers(): List<LimitedUserResponse>
 
     @Operation(summary = "제한 사용자 수정", description = "블랙리스트 계정을 수정합니다.")
-    fun updateLimitedUser(@Positive(message = "ID는 양수여야 합니다") limitedUserId: Long, @Valid request: UpdateLimitedUserRequest)
+    fun updateLimitedUser(
+        @Positive(message = "ID는 양수여야 합니다") limitedUserId: Long,
+        @Valid request: UpdateLimitedUserRequest
+    )
 
     @Operation(summary = "제한 사용자 삭제", description = "블랙리스트에 있는 계정을 삭제합니다.")
     fun deleteLimitedUser(@Positive(message = "ID는 양수여야 합니다") limitedUserId: Long)

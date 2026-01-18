@@ -29,24 +29,24 @@ class AttendanceTypeController(
         return attendanceTypeService.getAttendanceTypes()
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{typeId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun getType(@PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long): AttendanceTypeResponse {
-        return attendanceTypeService.getAttendanceType(id)
+    override fun getType(@PathVariable @Positive(message = "ID는 양수여야 합니다") typeId: Long): AttendanceTypeResponse {
+        return attendanceTypeService.getAttendanceType(typeId)
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{typeId}")
     @ResponseStatus(HttpStatus.OK)
     override fun updateType(
-        @PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long,
+        @PathVariable @Positive(message = "ID는 양수여야 합니다") typeId: Long,
         @Valid @RequestBody request: UpdateAttendanceTypeRequest
     ): AttendanceTypeResponse {
-        return attendanceTypeService.updateType(id, request)
+        return attendanceTypeService.updateType(typeId, request)
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{typeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    override fun deleteType(@PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long) {
-        attendanceTypeService.deleteType(id)
+    override fun deleteType(@PathVariable @Positive(message = "ID는 양수여야 합니다") typeId: Long) {
+        attendanceTypeService.deleteType(typeId)
     }
 }

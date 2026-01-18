@@ -15,9 +15,9 @@ import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import org.apache.poi.ss.usermodel.HorizontalAlignment
-import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.CellRangeAddressList
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.beans.factory.annotation.Value
@@ -77,8 +77,27 @@ class AttendanceExcelScheduler(
         val checkpointNames = checkpoints.map { it.name }
         val headerStyle = createCenteredStyle(workbook)
 
-        createGradeSheets(workbook, allStudents, attendances, checkpoints, checkpointNames, attendanceTypes, headerStyle)
-        createFloorSheets(workbook, attendances, schedules, allStudents, rooms, roomApprovals, checkpoints, checkpointNames, attendanceTypes, headerStyle)
+        createGradeSheets(
+            workbook,
+            allStudents,
+            attendances,
+            checkpoints,
+            checkpointNames,
+            attendanceTypes,
+            headerStyle
+        )
+        createFloorSheets(
+            workbook,
+            attendances,
+            schedules,
+            allStudents,
+            rooms,
+            roomApprovals,
+            checkpoints,
+            checkpointNames,
+            attendanceTypes,
+            headerStyle
+        )
 
         return ByteArrayOutputStream().use { out ->
             workbook.write(out)
@@ -198,7 +217,15 @@ class AttendanceExcelScheduler(
             if (floorRooms.isEmpty()) return@forEach
 
             createRoomHeaders(sheet, floorRooms, checkpoints, checkpointNames, colsPerRoom, approvalMap, headerStyle)
-            fillRoomStudents(sheet, floorRooms, schedulesByRoom, attendanceByUser, studentInfoByUser, checkpoints, colsPerRoom)
+            fillRoomStudents(
+                sheet,
+                floorRooms,
+                schedulesByRoom,
+                attendanceByUser,
+                studentInfoByUser,
+                checkpoints,
+                colsPerRoom
+            )
             addRoomDropdownValidation(sheet, floorRooms, schedulesByRoom, checkpointNames, colsPerRoom, attendanceTypes)
             autoSizeColumns(sheet, floorRooms.size * (colsPerRoom + 1))
         }
@@ -267,7 +294,8 @@ class AttendanceExcelScheduler(
                 val userAttendances = attendanceByUser[userId] ?: emptyList()
                 val attendanceByCheckpoint = userAttendances.associateBy { it.checkpoint.id }
 
-                val studentNumber = "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}"
+                val studentNumber =
+                    "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}"
 
                 RoomStudentData(
                     studentNumber = studentNumber,

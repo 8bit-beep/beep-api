@@ -31,8 +31,17 @@ class GlobalExceptionHandler {
         ErrorResponse.of(CustomException(GlobalError.METHOD_ARGUMENT_TYPE_MISMATCH))
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException) =
-        ErrorResponse.of(CustomException(GlobalError.METHOD_ARGUMENT_NOT_VALID))
+    fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
+        val message = e.bindingResult.fieldErrors.firstOrNull()?.defaultMessage
+            ?: "검증 오류가 발생했습니다."
+        return ResponseEntity.badRequest().body(
+            ErrorResponse(
+                code = "METHOD_ARGUMENT_NOT_VALID",
+                status = 400,
+                message = message
+            )
+        )
+    }
 
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<ErrorResponse> {

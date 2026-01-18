@@ -1,19 +1,20 @@
 package com.b.beep.domain.shift.service
 
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.service.AttendanceTypeService
-import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
-import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.shift.controller.dto.response.ShiftResponse
 import com.b.beep.domain.shift.domain.entity.ShiftEntity
-import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
-import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.error.ShiftError
 import com.b.beep.domain.shift.repository.ShiftRepository
+import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
+import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.global.exception.CustomException
@@ -33,7 +34,8 @@ class TeacherShiftService(
 ) {
     @Transactional(readOnly = true)
     fun getShifts(): List<ShiftResponse> {
-        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now(ZoneId.of("Asia/Seoul"))).map { it.toResponse() }
+        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now(ZoneId.of("Asia/Seoul")))
+            .map { it.toResponse() }
     }
 
     fun updateStatus(id: Long, status: ShiftStatus) {
@@ -55,7 +57,8 @@ class TeacherShiftService(
         status: ShiftStatus
     ) {
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
-        val shiftAttendType = attendanceTypeService.getAttendanceTypeEntityByName("SHIFT_ATTEND")
+        val shiftAttendType =
+            attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.SHIFT_ATTEND_TYPE_NAME)
 
         when (status) {
             ShiftStatus.APPROVED -> {

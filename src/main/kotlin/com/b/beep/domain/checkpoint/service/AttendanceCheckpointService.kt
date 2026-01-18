@@ -33,7 +33,8 @@ class AttendanceCheckpointService(
                 endAt = request.endAt,
                 attendanceStartAt = request.attendanceStartAt,
                 attendanceEndAt = request.attendanceEndAt
-        ))
+            )
+        )
     }
 
     @Transactional(readOnly = true)

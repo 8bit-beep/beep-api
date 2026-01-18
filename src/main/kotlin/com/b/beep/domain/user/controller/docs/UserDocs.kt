@@ -3,7 +3,6 @@ package com.b.beep.domain.user.controller.docs
 import com.b.beep.domain.user.controller.dto.response.UserResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.PathVariable
 
 @Tag(name = "사용자", description = "사용자 관련 API")
 interface UserDocs {
@@ -11,5 +10,5 @@ interface UserDocs {
     fun getMe(): UserResponse
 
     @Operation(summary = "사용자 삭제", description = "사용자를 삭제합니다. (soft delete)")
-    fun deleteUser(@PathVariable userId: Long)
+    fun deleteUser(userId: Long)
 }

@@ -40,7 +40,10 @@ interface AbsenceDocs {
               - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
         """
     )
-    fun updateAbsence(@Positive(message = "결석 ID는 양수여야 합니다") absenceId: Long, @Valid request: UpdateAbsenceRequest): UpdateAbsenceResponse
+    fun updateAbsence(
+        @Positive(message = "결석 ID는 양수여야 합니다") absenceId: Long,
+        @Valid request: UpdateAbsenceRequest
+    ): UpdateAbsenceResponse
 
     @Operation(summary = "장기결석 삭제")
     fun deleteAbsence(@Positive(message = "부재 ID는 양수여야 합니다") absenceId: Long)

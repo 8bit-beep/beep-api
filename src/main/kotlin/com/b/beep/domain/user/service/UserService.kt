@@ -1,7 +1,7 @@
 package com.b.beep.domain.user.service
 
-import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
+import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
 import com.b.beep.domain.user.controller.dto.response.UserResponse
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
