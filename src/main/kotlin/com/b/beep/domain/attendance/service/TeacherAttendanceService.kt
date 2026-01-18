@@ -1,5 +1,6 @@
 package com.b.beep.domain.attendance.service
 
+import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
@@ -37,18 +38,13 @@ class TeacherAttendanceService(
     private val attendanceTypeService: AttendanceTypeService,
     private val userRepository: UserRepository
 ) {
-    fun updateStudentStatus(
-        userId: Long,
-        statusId: Long,
-        date: LocalDate? = null,
-        checkpointId: Long? = null
-    ) {
-        val user = userRepository.findByIdOrNull(userId)
+    fun updateStudentStatus(request: UpdateStatusRequest) {
+        val user = userRepository.findByIdOrNull(request.userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
 
-        val status = attendanceTypeService.getAttendanceTypeEntityById(statusId)
-        val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val targetCheckpoint = checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
+        val status = attendanceTypeService.getAttendanceTypeEntityById(request.statusId)
+        val targetDate = request.date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val targetCheckpoint = request.checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
             ?: checkpointResolver.getCurrentCheckpoint()
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(targetCheckpoint, user, targetDate)
 

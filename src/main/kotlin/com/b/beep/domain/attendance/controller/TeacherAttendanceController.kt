@@ -22,12 +22,7 @@ class TeacherAttendanceController(
     @PatchMapping("/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     override fun updateStatus(@Valid @RequestBody request: UpdateStatusRequest) {
-        teacherAttendanceService.updateStudentStatus(
-            userId = request.userId,
-            statusId = request.statusId,
-            date = request.date,
-            checkpointId = request.checkpointId
-        )
+        teacherAttendanceService.updateStudentStatus(request)
     }
 
     @GetMapping
@@ -40,6 +35,15 @@ class TeacherAttendanceController(
         @RequestParam(required = false, defaultValue = "true") isCurrentCheckpoint: Boolean,
         @PageableDefault(size = 20, sort = ["id"]) pageable: Pageable
     ): PageResponse<AttendanceStudentResponse> {
-        return PageResponse.from(teacherAttendanceService.getAttendances(roomId, statusId, grade, classNumber, isCurrentCheckpoint, pageable))
+        return PageResponse.from(
+            teacherAttendanceService.getAttendances(
+                roomId,
+                statusId,
+                grade,
+                classNumber,
+                isCurrentCheckpoint,
+                pageable
+            )
+        )
     }
 }
