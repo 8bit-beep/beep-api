@@ -147,7 +147,7 @@ class RoomApprovalServiceTest {
             `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomApprovalRepository.findAllByCheckpointAndDate(eq(checkpoint), any()))
                 .thenReturn(listOf(approval))
-            `when`(roomRepository.findAll()).thenReturn(listOf(room, room2))
+            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(listOf(room, room2))
 
             val result = roomApprovalService.getApprovals(null)
 
@@ -165,7 +165,7 @@ class RoomApprovalServiceTest {
             `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomApprovalRepository.findAllByCheckpointAndDate(eq(checkpoint), any()))
                 .thenReturn(listOf(approval))
-            `when`(roomRepository.findAll()).thenReturn(listOf(room, room2))
+            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(listOf(room, room2))
 
             val result = roomApprovalService.getApprovals(true)
 
@@ -184,7 +184,7 @@ class RoomApprovalServiceTest {
             `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomApprovalRepository.findAllByCheckpointAndDate(eq(checkpoint), any()))
                 .thenReturn(listOf(approval))
-            `when`(roomRepository.findAll()).thenReturn(listOf(room, room2))
+            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(listOf(room, room2))
 
             val result = roomApprovalService.getApprovals(false)
 

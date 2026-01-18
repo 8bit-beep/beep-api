@@ -69,10 +69,10 @@ class AttendanceCheckpointServiceTest {
                 attendanceEndAt = LocalTime.of(9, 20)
             )
 
-            `when`(checkpointRepository.findAll()).thenReturn(emptyList<AttendanceCheckpointEntity>())
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<AttendanceCheckpointEntity>())
             `when`(checkpointRepository.save(any<AttendanceCheckpointEntity>())).thenAnswer { it.arguments[0] }
 
-            checkpointService.createCheckPoint(request)
+            checkpointService.createCheckpoint(request)
 
             verify(checkpointRepository).save(any<AttendanceCheckpointEntity>())
         }
@@ -89,10 +89,10 @@ class AttendanceCheckpointServiceTest {
                 attendanceEndAt = LocalTime.of(11, 20)
             )
 
-            `when`(checkpointRepository.findAll()).thenReturn(listOf(existing))
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(listOf(existing))
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.createCheckPoint(request)
+                checkpointService.createCheckpoint(request)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_TIME_OVERLAP, exception.error)
@@ -111,10 +111,10 @@ class AttendanceCheckpointServiceTest {
                 attendanceEndAt = LocalTime.of(9, 20)
             )
 
-            `when`(checkpointRepository.findAll()).thenReturn(listOf(existing))
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(listOf(existing))
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.createCheckPoint(request)
+                checkpointService.createCheckpoint(request)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_TIME_OVERLAP, exception.error)
@@ -132,10 +132,10 @@ class AttendanceCheckpointServiceTest {
                 attendanceEndAt = LocalTime.of(13, 20)
             )
 
-            `when`(checkpointRepository.findAll()).thenReturn(listOf(existing))
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(listOf(existing))
             `when`(checkpointRepository.save(any<AttendanceCheckpointEntity>())).thenAnswer { it.arguments[0] }
 
-            checkpointService.createCheckPoint(request)
+            checkpointService.createCheckpoint(request)
 
             verify(checkpointRepository).save(any<AttendanceCheckpointEntity>())
         }
@@ -153,9 +153,9 @@ class AttendanceCheckpointServiceTest {
                 createCheckpointEntity(id = 2L, name = "2교시")
             )
 
-            `when`(checkpointRepository.findAll()).thenReturn(checkpoints)
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(checkpoints)
 
-            val result = checkpointService.getCheckPoints()
+            val result = checkpointService.getCheckpoints()
 
             assertEquals(2, result.size)
         }
@@ -163,9 +163,9 @@ class AttendanceCheckpointServiceTest {
         @Test
         @DisplayName("빈 목록")
         fun emptyList() {
-            `when`(checkpointRepository.findAll()).thenReturn(emptyList<AttendanceCheckpointEntity>())
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<AttendanceCheckpointEntity>())
 
-            val result = checkpointService.getCheckPoints()
+            val result = checkpointService.getCheckpoints()
 
             assertTrue(result.isEmpty())
         }
@@ -180,9 +180,9 @@ class AttendanceCheckpointServiceTest {
         fun success() {
             val checkpoint = createCheckpointEntity()
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
 
-            val result = checkpointService.getCheckPoint(1L)
+            val result = checkpointService.getCheckpoint(1L)
 
             assertEquals("1교시", result.name)
         }
@@ -190,10 +190,10 @@ class AttendanceCheckpointServiceTest {
         @Test
         @DisplayName("없으면 예외")
         fun notFound_throwsException() {
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.empty())
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.getCheckPoint(1L)
+                checkpointService.getCheckpoint(1L)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_NOT_FOUND, exception.error)
@@ -216,11 +216,11 @@ class AttendanceCheckpointServiceTest {
                 attendanceEndAt = LocalTime.of(10, 20)
             )
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
-            `when`(checkpointRepository.findAll()).thenReturn(listOf(checkpoint))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(listOf(checkpoint))
             `when`(checkpointRepository.save(any<AttendanceCheckpointEntity>())).thenAnswer { it.arguments[0] }
 
-            checkpointService.updateCheckPoint(1L, request)
+            checkpointService.updateCheckpoint(1L, request)
 
             assertEquals("수정된 교시", checkpoint.name)
             assertEquals(LocalTime.of(10, 0), checkpoint.startAt)
@@ -239,11 +239,11 @@ class AttendanceCheckpointServiceTest {
                 attendanceEndAt = null
             )
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
-            `when`(checkpointRepository.findAll()).thenReturn(listOf(checkpoint))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(listOf(checkpoint))
             `when`(checkpointRepository.save(any<AttendanceCheckpointEntity>())).thenAnswer { it.arguments[0] }
 
-            checkpointService.updateCheckPoint(1L, request)
+            checkpointService.updateCheckpoint(1L, request)
 
             assertEquals("수정된 교시", checkpoint.name)
             assertEquals(LocalTime.of(9, 0), checkpoint.startAt)
@@ -254,10 +254,10 @@ class AttendanceCheckpointServiceTest {
         fun notFound_throwsException() {
             val request = UpdateCheckpointRequest(name = "수정", startAt = null, endAt = null, attendanceStartAt = null, attendanceEndAt = null)
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.empty())
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.updateCheckPoint(1L, request)
+                checkpointService.updateCheckpoint(1L, request)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_NOT_FOUND, exception.error)
@@ -276,11 +276,11 @@ class AttendanceCheckpointServiceTest {
                 attendanceEndAt = null
             )
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
-            `when`(checkpointRepository.findAll()).thenReturn(listOf(checkpoint, other))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
+            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(listOf(checkpoint, other))
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.updateCheckPoint(1L, request)
+                checkpointService.updateCheckpoint(1L, request)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_TIME_OVERLAP, exception.error)
@@ -296,23 +296,23 @@ class AttendanceCheckpointServiceTest {
         fun success() {
             val checkpoint = createCheckpointEntity()
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
             `when`(attendanceRepository.existsByCheckpoint(checkpoint)).thenReturn(false)
             `when`(shiftRepository.existsByCheckpoint(checkpoint)).thenReturn(false)
             `when`(studentScheduleRepository.existsByCheckpoint(checkpoint)).thenReturn(false)
 
-            checkpointService.deleteCheckPoint(1L)
+            checkpointService.deleteCheckpoint(1L)
 
-            verify(checkpointRepository).delete(checkpoint)
+            assertTrue(checkpoint.isDeleted)
         }
 
         @Test
         @DisplayName("없으면 예외")
         fun notFound_throwsException() {
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.empty())
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.deleteCheckPoint(1L)
+                checkpointService.deleteCheckpoint(1L)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_NOT_FOUND, exception.error)
@@ -323,15 +323,15 @@ class AttendanceCheckpointServiceTest {
         fun inUseByAttendance_throwsException() {
             val checkpoint = createCheckpointEntity()
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
             `when`(attendanceRepository.existsByCheckpoint(checkpoint)).thenReturn(true)
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.deleteCheckPoint(1L)
+                checkpointService.deleteCheckpoint(1L)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_IN_USE, exception.error)
-            verify(checkpointRepository, never()).delete(any<AttendanceCheckpointEntity>())
+            assertFalse(checkpoint.isDeleted)
         }
 
         @Test
@@ -339,16 +339,16 @@ class AttendanceCheckpointServiceTest {
         fun inUseByShift_throwsException() {
             val checkpoint = createCheckpointEntity()
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
             `when`(attendanceRepository.existsByCheckpoint(checkpoint)).thenReturn(false)
             `when`(shiftRepository.existsByCheckpoint(checkpoint)).thenReturn(true)
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.deleteCheckPoint(1L)
+                checkpointService.deleteCheckpoint(1L)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_IN_USE, exception.error)
-            verify(checkpointRepository, never()).delete(any<AttendanceCheckpointEntity>())
+            assertFalse(checkpoint.isDeleted)
         }
 
         @Test
@@ -356,17 +356,17 @@ class AttendanceCheckpointServiceTest {
         fun inUseBySchedule_throwsException() {
             val checkpoint = createCheckpointEntity()
 
-            `when`(checkpointRepository.findById(1L)).thenReturn(Optional.of(checkpoint))
+            `when`(checkpointRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(checkpoint)
             `when`(attendanceRepository.existsByCheckpoint(checkpoint)).thenReturn(false)
             `when`(shiftRepository.existsByCheckpoint(checkpoint)).thenReturn(false)
             `when`(studentScheduleRepository.existsByCheckpoint(checkpoint)).thenReturn(true)
 
             val exception = assertThrows(CustomException::class.java) {
-                checkpointService.deleteCheckPoint(1L)
+                checkpointService.deleteCheckpoint(1L)
             }
 
             assertEquals(CheckpointError.CHECKPOINT_IN_USE, exception.error)
-            verify(checkpointRepository, never()).delete(any<AttendanceCheckpointEntity>())
+            assertFalse(checkpoint.isDeleted)
         }
     }
 }
