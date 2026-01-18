@@ -22,7 +22,7 @@ interface AbsenceDocs {
             - 선택된 사용자 중 결석 생성이 실패한 경우 해당 유저를 제외하고 생성합니다.
             - typeId: 출석 타입 ID (선택)
               - 지정 시: 모든 출석 기록에 해당 타입 적용
-              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 SLEEPOVER)
+              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
         """
     )
     fun createAbsence(@RequestBody request: CreateAbsenceRequest): CreateAbsenceResponse
@@ -37,7 +37,7 @@ interface AbsenceDocs {
 
             - typeId: 출석 타입 ID (선택)
               - 지정 시: 모든 출석 기록에 해당 타입 적용
-              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 SLEEPOVER)
+              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
         """
     )
     fun updateAbsence(@PathVariable absenceId: Long, @RequestBody request: UpdateAbsenceRequest): UpdateAbsenceResponse

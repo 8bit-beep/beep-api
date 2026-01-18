@@ -68,8 +68,9 @@ class AbsenceService(
     }
 
     private fun getUsers(userIds: List<Long>): List<UserEntity> {
-        val users = userRepository.findAllById(userIds)
-        if (users.size != userIds.size) {
+        val uniqueUserIds = userIds.distinct()
+        val users = userRepository.findAllById(uniqueUserIds)
+        if (users.size != uniqueUserIds.size) {
             throw CustomException(UserError.USER_NOT_FOUND)
         }
         return users
@@ -121,17 +122,21 @@ class AbsenceService(
 
     @Transactional(readOnly = true)
     fun getAbsences(pageable: Pageable): Page<AbsenceResponse> {
-        return absenceRepository.findAll(pageable).map { it.toResponse() }
+        return absenceRepository.findAllByIsDeletedFalse(pageable).map { it.toResponse() }
     }
 
     fun updateAbsence(absenceId: Long, request: UpdateAbsenceRequest): UpdateAbsenceResponse {
-        val absence = absenceRepository.findByIdOrNull(absenceId)
+        val absence = absenceRepository.findByIdAndIsDeletedFalse(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
 
         absenceValidator.validateDateRange(request.startDate, request.endDate)
 
         val users = getUsers(request.userIds)
         val (validUsers, skippedUserIds) = partitionByOverlap(users, request.startDate, request.endDate, absenceId)
+
+        if (validUsers.isEmpty()) {
+            return UpdateAbsenceResponse(absenceId = absenceId, skippedUserIds = skippedUserIds)
+        }
 
         val type = request.typeId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
 
@@ -143,7 +148,7 @@ class AbsenceService(
     }
 
     private fun clearAbsenceRelations(absence: AbsenceEntity, absenceId: Long) {
-        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, LocalDate.now(ZoneId.of("Asia/Seoul")))
+        attendanceRepository.deleteAllByAbsence(absence)
         absenceUserRepository.deleteAllByAbsenceId(absenceId)
         absenceCheckpointRepository.deleteAllByAbsenceId(absenceId)
     }
@@ -157,15 +162,14 @@ class AbsenceService(
     }
 
     fun deleteAbsence(absenceId: Long) {
-        val absence = absenceRepository.findByIdOrNull(absenceId)
+        val absence = absenceRepository.findByIdAndIsDeletedFalse(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
 
-        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        attendanceRepository.deleteAllByAbsenceAndDateGreaterThanEqual(absence, today)
+        attendanceRepository.deleteAllByAbsence(absence)
 
         absenceUserRepository.deleteAllByAbsenceId(absenceId)
         absenceCheckpointRepository.deleteAllByAbsenceId(absenceId)
-        absenceRepository.delete(absence)
+        absence.isDeleted = true
     }
 
     private fun resolveCheckpoints(
@@ -176,13 +180,13 @@ class AbsenceService(
         val isSingleDay = startDate == endDate
 
         return if (isSingleDay && !checkpointIds.isNullOrEmpty()) {
-            checkpointRepository.findAllById(checkpointIds).also {
-                if (it.size != checkpointIds.size) {
-                    throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
-                }
+            val checkpoints = checkpointRepository.findAllById(checkpointIds).filter { !it.isDeleted }
+            if (checkpoints.size != checkpointIds.size) {
+                throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
             }
+            checkpoints
         } else {
-            checkpointRepository.findAll()
+            checkpointRepository.findAllByIsDeletedFalse()
         }
     }
 
@@ -195,7 +199,7 @@ class AbsenceService(
         overrideType: AttendanceTypeEntity?
     ) {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val sleepoverType = attendanceTypeService.getAttendanceTypeEntityByName("SLEEPOVER")
+        val sleepoverType = attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.DEFAULT_TYPE_NAME)
         var date = startDate
         while (!date.isAfter(endDate)) {
             if (!date.isBefore(today)) {
@@ -206,6 +210,12 @@ class AbsenceService(
                     for (checkpoint in checkpoints) {
                         val schedule = scheduleByCheckpoint[checkpoint.id]
                         val attendanceType = overrideType ?: schedule?.type ?: sleepoverType
+
+                        val existing = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
+                        if (existing != null) {
+                            attendanceRepository.delete(existing)
+                        }
+
                         attendanceRepository.save(
                             AttendanceEntity(
                                 user = user,

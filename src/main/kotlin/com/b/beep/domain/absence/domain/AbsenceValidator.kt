@@ -26,7 +26,7 @@ class AbsenceValidator(
         startDate: LocalDate,
         endDate: LocalDate
     ): Boolean {
-        return absenceUserRepository.existsByUserIdAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqual(
+        return absenceUserRepository.existsByUserIdAndAbsenceIsDeletedFalseAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqual(
             userId = userId,
             endDate = endDate,
             startDate = startDate
@@ -39,7 +39,7 @@ class AbsenceValidator(
         endDate: LocalDate,
         excludeId: Long
     ): Boolean {
-        return absenceUserRepository.existsByUserIdAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqualAndAbsenceIdNot(
+        return absenceUserRepository.existsByUserIdAndAbsenceIsDeletedFalseAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqualAndAbsenceIdNot(
             userId = userId,
             endDate = endDate,
             startDate = startDate,
