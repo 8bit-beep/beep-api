@@ -14,7 +14,10 @@ interface AttendanceCheckpointDocs {
     fun createCheckpoint(@Valid request: CreateCheckpointRequest)
 
     @Operation(summary = "체크포인트 수정")
-    fun updateCheckpoint(@Positive(message = "체크포인트 ID는 양수여야 합니다") checkpointId: Long, @Valid request: UpdateCheckpointRequest)
+    fun updateCheckpoint(
+        @Positive(message = "체크포인트 ID는 양수여야 합니다") checkpointId: Long,
+        @Valid request: UpdateCheckpointRequest
+    )
 
     @Operation(summary = "체크포인트 목록 조회")
     fun getCheckpoints(): List<CheckpointResponse>

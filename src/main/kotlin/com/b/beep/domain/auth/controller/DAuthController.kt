@@ -5,10 +5,10 @@ import com.b.beep.domain.auth.controller.dto.request.LoginRequest
 import com.b.beep.domain.auth.controller.dto.response.TestResponse
 import com.b.beep.domain.auth.service.DAuthService
 import com.b.beep.global.security.jwt.dto.response.TokenResponse
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.ui.Model
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController

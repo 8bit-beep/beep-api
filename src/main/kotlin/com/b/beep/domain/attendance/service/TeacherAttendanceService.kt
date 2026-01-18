@@ -50,7 +50,11 @@ class TeacherAttendanceService(
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(targetCheckpoint, user, targetDate)
 
         if (status.name == AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {
-            attendance?.let { attendanceRepository.delete(it) }
+            attendance?.let {
+                if (it.absence == null) {
+                    attendanceRepository.delete(it)
+                }
+            }
             return
         }
 
@@ -99,7 +103,7 @@ class TeacherAttendanceService(
         val studentInfo = studentInfoRepository.findByUser(this)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
         val attendances = attendanceRepository.findAllByUserAndDate(this, today)
-        val checkpoints = checkpointRepository.findAll()
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
 
         val attendanceMap = attendances.associateBy { it.checkpoint.id }
         val statuses = checkpoints.map { checkpoint ->

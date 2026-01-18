@@ -62,6 +62,7 @@ springdoc:
   swagger-ui:
     operationsSorter: method
     path: /swagger-ui.html
+
 dauth:
   client_id: ${DAUTH_CLIENT_ID}
   client_secret: ${DAUTH_CLIENT_SECRET}

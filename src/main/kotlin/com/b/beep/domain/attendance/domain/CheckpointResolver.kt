@@ -18,7 +18,7 @@ class CheckpointResolver(
 
     fun getCurrentCheckpointOrNull(): AttendanceCheckpointEntity? {
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
-        val checkpoints = checkpointRepository.findAll()
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
 
         for (checkpoint in checkpoints) {
             if (!now.isBefore(checkpoint.startAt) && now.isBefore(checkpoint.endAt)) {
@@ -34,7 +34,7 @@ class CheckpointResolver(
 
     fun getCurrentAttendableCheckpointOrNull(): AttendanceCheckpointEntity? {
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
-        val checkpoints = checkpointRepository.findAll()
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
 
         for (checkpoint in checkpoints) {
             val attendanceStartAt = checkpoint.attendanceStartAt

@@ -1,6 +1,5 @@
 package com.b.beep.domain.attendance.controller.dto.response
 
-import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity

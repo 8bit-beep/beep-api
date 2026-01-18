@@ -47,48 +47,38 @@ class SecurityConfig(
 
         .authorizeHttpRequests {
             it
-                .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/api-docs").permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/sign-in", "/auth/sign-up", "/auth/refresh").permitAll()
-                .requestMatchers("/test/**").permitAll()
+//                .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/api-docs").permitAll()
+//                .requestMatchers("/auth/**", "/dauth/**", "/test/**").permitAll()
 //
-//                .requestMatchers(HttpMethod.POST, "/email/**").permitAll()
-//                .requestMatchers(HttpMethod.GET, "/email/**").permitAll()
+//                .requestMatchers(HttpMethod.GET, "/users/my").authenticated()
+//                .requestMatchers("/fcm/**").authenticated()
 //
-//                .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
-//                .requestMatchers(HttpMethod.DELETE, "/users").authenticated()
-//                .requestMatchers(HttpMethod.POST, "/users/password/send").permitAll()
-//                .requestMatchers(HttpMethod.PATCH, "/users/password/**").permitAll()
+//                // STUDENT
+//                .requestMatchers(HttpMethod.POST, "/attendances").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.PATCH, "/attendances/cancel").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.POST, "/shifts").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.GET, "/shifts/my").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.PATCH, "/shifts/{id}").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.DELETE, "/shifts/{id}").hasRole("STUDENT")
+//                .requestMatchers("/schedules/my", "/schedules/my/**").hasRole("STUDENT")
 //
-//                // student
-//                .requestMatchers(HttpMethod.POST, "/shifts").hasAnyRole("STUDENT", "TEACHER")
-//                .requestMatchers(HttpMethod.POST, "/attends").hasAnyRole("STUDENT", "TEACHER")
+//                // TEACHER
+//                .requestMatchers(HttpMethod.GET, "/attendances/**").hasRole("TEACHER")
+//                .requestMatchers(HttpMethod.PATCH, "/attendances/**").hasRole("TEACHER")
+//                .requestMatchers("/absences/**").hasRole("TEACHER")
+//                .requestMatchers("/approvals/**").hasRole("TEACHER")
+//                .requestMatchers("/memos/**").hasRole("TEACHER")
+//                .requestMatchers("/schedules/**").hasRole("TEACHER")
+//                .requestMatchers("/students/**").hasAnyRole("TEACHER", "ADMIN")
+//                .requestMatchers(HttpMethod.GET, "/shifts").hasAnyRole("TEACHER")
+//                .requestMatchers(HttpMethod.PATCH, "/shifts/{id}/status").hasAnyRole("TEACHER")
+//                .requestMatchers("/attendances/histories/**").hasAnyRole("TEACHER")
 //
-//                // teacher
-//                .requestMatchers(HttpMethod.GET, "/shifts").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.PATCH, "/shifts/**").hasRole("TEACHER")
-//
-//                .requestMatchers(HttpMethod.GET, "/attends/**").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.GET, "/rooms").hasRole("TEACHER")
-//
-//                .requestMatchers(HttpMethod.GET, "/not-attends").hasRole("TEACHER")
-//
-//                .requestMatchers(HttpMethod.GET, "/long-absences").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.POST, "/long-absences").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.PATCH, "/long-absences/**").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.DELETE, "/long-absences/**").hasRole("TEACHER")
-//
-////                .requestMatchers(HttpMethod.GET, "/excel/**").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.POST, "/excel/**").hasRole("TEACHER")
-//
-//                .requestMatchers(HttpMethod.POST, "/approve").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.GET, "/approve/**").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.GET, "/approve").hasRole("TEACHER")
-//
-//                .requestMatchers(HttpMethod.GET, "/students/**").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.PATCH, "/students/**").hasRole("TEACHER")
-//
-//                .requestMatchers(HttpMethod.GET, "/memo").hasRole("TEACHER")
-//                .requestMatchers(HttpMethod.PATCH, "/memo").hasRole("TEACHER")
+//                .requestMatchers("/rooms/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
+//                .requestMatchers("/limited-users/**").hasRole("ADMIN")
+//                .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
+//                .requestMatchers("/checkpoints/**").hasRole("ADMIN")
+//                .requestMatchers("/types/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
 
                 .anyRequest().permitAll()
         }

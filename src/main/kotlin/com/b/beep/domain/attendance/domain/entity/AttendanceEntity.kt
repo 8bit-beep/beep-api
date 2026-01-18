@@ -1,7 +1,6 @@
 package com.b.beep.domain.attendance.domain.entity
 
 import com.b.beep.domain.absence.domain.entity.AbsenceEntity
-import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.UserEntity

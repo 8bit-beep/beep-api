@@ -97,7 +97,12 @@ class AbsenceService(
         type: AttendanceTypeEntity?
     ): AbsenceEntity {
         val absence = absenceRepository.save(
-            AbsenceEntity(startDate = request.startDate, endDate = request.endDate, reason = request.reason, type = type)
+            AbsenceEntity(
+                startDate = request.startDate,
+                endDate = request.endDate,
+                reason = request.reason,
+                type = type
+            )
         )
         saveAbsenceRelations(absence, users, request.startDate, request.endDate, request.checkpointIds, type)
         return absence
@@ -114,7 +119,14 @@ class AbsenceService(
         users.forEach { absenceUserRepository.save(AbsenceUserEntity(user = it, absence = absence)) }
 
         val checkpoints = resolveCheckpoints(startDate, endDate, checkpointIds)
-        checkpoints.forEach { absenceCheckpointRepository.save(AbsenceCheckpointEntity(checkpoint = it, absence = absence)) }
+        checkpoints.forEach {
+            absenceCheckpointRepository.save(
+                AbsenceCheckpointEntity(
+                    checkpoint = it,
+                    absence = absence
+                )
+            )
+        }
 
         createAttendancesForAbsence(absence, users, startDate, endDate, checkpoints, type)
     }
@@ -152,7 +164,11 @@ class AbsenceService(
         absenceCheckpointRepository.deleteAllByAbsenceId(absenceId)
     }
 
-    private fun updateAbsenceEntity(absence: AbsenceEntity, request: UpdateAbsenceRequest, type: AttendanceTypeEntity?) {
+    private fun updateAbsenceEntity(
+        absence: AbsenceEntity,
+        request: UpdateAbsenceRequest,
+        type: AttendanceTypeEntity?
+    ) {
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason
@@ -198,7 +214,8 @@ class AbsenceService(
         overrideType: AttendanceTypeEntity?
     ) {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val sleepoverType = attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.DEFAULT_ABSENCE_TYPE_NAME)
+        val sleepoverType =
+            attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.DEFAULT_ABSENCE_TYPE_NAME)
         var date = startDate
         while (!date.isAfter(endDate)) {
             if (!date.isBefore(today)) {

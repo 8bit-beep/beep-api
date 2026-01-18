@@ -14,6 +14,7 @@ import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.DayOfWeek
@@ -37,9 +38,10 @@ class StudentAttendanceService(
         val dayOfWeek = today.dayOfWeek
         val room = roomService.getRoomEntityById(request.roomId)
         val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
-        val notAttendType = attendanceTypeService.getAttendanceTypeEntityByName("NOT_ATTEND")
+        val notAttendType =
+            attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME)
 
-        val schedule = getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
+        getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
 
         val attendance = attendanceRepository.findByUserIdAndCheckpointIdAndDate(user.id!!, checkpoint.id!!, today)
             ?: attendanceRepository.save(
@@ -51,13 +53,17 @@ class StudentAttendanceService(
                 )
             )
 
-        if (attendance.type.name != "NOT_ATTEND") {
+        if (attendance.type.name != AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {
             throw CustomException(AttendanceError.ALREADY_ATTENDED)
         }
 
         attendance.type = type
         attendance.room = room
-        attendanceRepository.save(attendance)
+        try {
+            attendanceRepository.save(attendance)
+        } catch (e: OptimisticLockingFailureException) {
+            throw CustomException(AttendanceError.CONCURRENT_MODIFICATION)
+        }
     }
 
     fun cancelAttendance() {
@@ -73,7 +79,11 @@ class StudentAttendanceService(
         user: UserEntity,
         checkpoint: AttendanceCheckpointEntity
     ): AttendanceEntity? =
-        attendanceRepository.findByUserIdAndCheckpointIdAndDate(user.id!!, checkpoint.id!!, LocalDate.now(ZoneId.of("Asia/Seoul")))
+        attendanceRepository.findByUserIdAndCheckpointIdAndDate(
+            user.id!!,
+            checkpoint.id!!,
+            LocalDate.now(ZoneId.of("Asia/Seoul"))
+        )
 
     private fun getOrCreateSchedule(
         user: UserEntity,
@@ -82,7 +92,8 @@ class StudentAttendanceService(
         type: AttendanceTypeEntity,
         room: RoomEntity
     ): StudentScheduleEntity {
-        val existingSchedule = studentScheduleRepository.findByUserAndDayOfWeekAndCheckpoint(user, dayOfWeek, checkpoint)
+        val existingSchedule =
+            studentScheduleRepository.findByUserAndDayOfWeekAndCheckpoint(user, dayOfWeek, checkpoint)
 
         if (existingSchedule != null) {
             if (existingSchedule.type.id != type.id) {

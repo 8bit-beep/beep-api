@@ -75,7 +75,11 @@ class RoomApprovalService(
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val room = getRoomEntity(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
-        val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, LocalDate.now(ZoneId.of("Asia/Seoul")))
+        val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(
+            checkpoint,
+            room,
+            LocalDate.now(ZoneId.of("Asia/Seoul"))
+        )
         return room.toResponse(approval)
     }
 

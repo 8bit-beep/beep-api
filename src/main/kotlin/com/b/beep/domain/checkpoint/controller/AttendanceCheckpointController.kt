@@ -25,13 +25,13 @@ class AttendanceCheckpointController(
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    override fun findCheckpoints(): List<CheckpointResponse> {
+    override fun getCheckpoints(): List<CheckpointResponse> {
         return checkpointService.getCheckpoints()
     }
 
     @GetMapping("/{checkpointId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun findCheckpoint(
+    override fun getCheckpoint(
         @PathVariable @Positive(message = "체크포인트 ID는 양수여야 합니다") checkpointId: Long
     ): CheckpointResponse {
         return checkpointService.getCheckpoint(checkpointId)

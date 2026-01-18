@@ -1,7 +1,7 @@
 package com.b.beep.domain.notification.scheduler
 
-import com.b.beep.domain.notification.service.NotificationService
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.notification.service.NotificationService
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
@@ -26,7 +26,7 @@ class DynamicNotificationScheduler(
 
     fun scheduleAllNotifications() {
         cancelAll()
-        val checkpoints = checkpointRepository.findAll()
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
 
         checkpoints.forEach { checkpoint ->
             val attendanceStart = checkpoint.attendanceStartAt ?: return@forEach
