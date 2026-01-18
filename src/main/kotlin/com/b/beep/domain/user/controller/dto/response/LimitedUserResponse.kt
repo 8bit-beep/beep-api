@@ -7,10 +7,10 @@ data class LimitedUserResponse(
     val email: String
 ) {
     companion object {
-        fun of(limitedUser: LimitedUserEntity): LimitedUserResponse {
+        fun of(entity: LimitedUserEntity): LimitedUserResponse {
             return LimitedUserResponse(
-                id = limitedUser.id!!,
-                email = limitedUser.email
+                id = entity.id!!,
+                email = entity.email
             )
         }
     }

@@ -29,8 +29,8 @@ class LimitedUserController(
     }
 
     @GetMapping
-    override fun getAll(): List<LimitedUserResponse> {
-        return limitedUserService.getAll().map { LimitedUserResponse.of(it) }
+    override fun getLimitedUsers(): List<LimitedUserResponse> {
+        return limitedUserService.getLimitedUsers()
     }
 
     @PatchMapping("/{limitedUserId}")

@@ -12,7 +12,7 @@ interface LimitedUserDocs {
     fun createLimitedUser(request: CreateLimitedUserRequest)
 
     @Operation(summary = "제한 사용자 목록 조회", description = "블랙리스트에 추가된 계정 목록을 조회합니다.")
-    fun getAll() : List<LimitedUserResponse>
+    fun getLimitedUsers() : List<LimitedUserResponse>
 
     @Operation(summary = "제한 사용자 수정", description = "블랙리스트 계정을 수정합니다.")
     fun updateLimitedUser(limitedUserId: Long, request: UpdateLimitedUserRequest)
