@@ -24,18 +24,18 @@ class AttendanceTypeService(
     }
 
     @Transactional(readOnly = true)
-    fun getTypes(): List<AttendanceTypeResponse> {
+    fun getAttendanceTypes(): List<AttendanceTypeResponse> {
         return attendanceTypeRepository.findAllByIsDeletedFalse().map { AttendanceTypeResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
-    fun getType(id: Long): AttendanceTypeResponse {
-        val entity = getById(id)
+    fun getAttendanceType(id: Long): AttendanceTypeResponse {
+        val entity = getAttendanceTypeEntityById(id)
         return AttendanceTypeResponse.of(entity)
     }
 
     fun updateType(id: Long, request: UpdateAttendanceTypeRequest): AttendanceTypeResponse {
-        val entity = getById(id)
+        val entity = getAttendanceTypeEntityById(id)
         if (entity.name != request.name && attendanceTypeRepository.existsByNameAndIsDeletedFalse(request.name)) {
             throw CustomException(AttendanceTypeError.ATTENDANCE_TYPE_ALREADY_EXISTS)
         }
@@ -44,16 +44,16 @@ class AttendanceTypeService(
     }
 
     fun deleteType(id: Long) {
-        val entity = getById(id)
+        val entity = getAttendanceTypeEntityById(id)
         entity.isDeleted = true
     }
 
-    fun getById(id: Long): AttendanceTypeEntity {
+    fun getAttendanceTypeEntityById(id: Long): AttendanceTypeEntity {
         return attendanceTypeRepository.findByIdAndIsDeletedFalse(id)
             ?: throw CustomException(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND)
     }
 
-    fun getByName(name: String): AttendanceTypeEntity {
+    fun getAttendanceTypeEntityByName(name: String): AttendanceTypeEntity {
         return attendanceTypeRepository.findByNameAndIsDeletedFalse(name)
             ?: throw CustomException(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND)
     }

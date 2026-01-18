@@ -33,14 +33,14 @@ class StudentScheduleService(
     private val attendanceTypeService: AttendanceTypeService,
     private val userRepository: UserRepository,
 ) {
-    fun create(request: CreateStudentScheduleRequest) {
+    fun createSchedule(request: CreateStudentScheduleRequest) {
         val user = userRepository.findByIdOrNull(request.userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
         val room = getRoomEntity(request.roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val checkpoint = getCheckpointEntity(request.checkpointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
-        val type = attendanceTypeService.getById(request.typeId)
+        val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
 
         studentScheduleValidator.validateDayOfWeek(request.dayOfWeek)
         studentScheduleValidator.validateNotDuplicate(user, request.dayOfWeek, checkpoint)
@@ -55,13 +55,13 @@ class StudentScheduleService(
         studentScheduleRepository.save(schedule)
     }
 
-    fun createMy(request: CreateMyScheduleRequest) {
+    fun createMySchedule(request: CreateMyScheduleRequest) {
         val user = contextHolder.user
         val room = getRoomEntity(request.roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val checkpoint = getCheckpointEntity(request.checkpointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
-        val type = attendanceTypeService.getById(request.typeId)
+        val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
 
         studentScheduleValidator.validateDayOfWeek(request.dayOfWeek)
         studentScheduleValidator.validateNotDuplicate(user, request.dayOfWeek, checkpoint)
@@ -76,8 +76,8 @@ class StudentScheduleService(
         studentScheduleRepository.save(schedule)
     }
 
-    fun update(scheduleId: Long, request: UpdateStudentScheduleRequest) {
-        val schedule = getScheduleOrThrow(scheduleId)
+    fun updateSchedule(scheduleId: Long, request: UpdateStudentScheduleRequest) {
+        val schedule = getScheduleEntityOrThrow(scheduleId)
 
         request.dayOfWeek?.let { studentScheduleValidator.validateDayOfWeek(it) }
 
@@ -94,7 +94,7 @@ class StudentScheduleService(
         request.checkpointId?.let {
             schedule.checkpoint = getCheckpointEntity(it) ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
         }
-        request.typeId?.let { schedule.type = attendanceTypeService.getById(it) }
+        request.typeId?.let { schedule.type = attendanceTypeService.getAttendanceTypeEntityById(it) }
         request.roomId?.let {
             schedule.room = getRoomEntity(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }
@@ -102,8 +102,8 @@ class StudentScheduleService(
         studentScheduleRepository.save(schedule)
     }
 
-    fun delete(scheduleId: Long) {
-        val schedule = getScheduleOrThrow(scheduleId)
+    fun deleteSchedule(scheduleId: Long) {
+        val schedule = getScheduleEntityOrThrow(scheduleId)
         studentScheduleRepository.delete(schedule)
     }
 
@@ -114,13 +114,13 @@ class StudentScheduleService(
     }
 
     @Transactional(readOnly = true)
-    fun getByUserId(userId: Long): List<StudentScheduleEntity> {
+    fun getSchedulesByUserId(userId: Long): List<StudentScheduleEntity> {
         val user = userRepository.findByIdOrNull(userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
         return studentScheduleRepository.findAllByUser(user)
     }
 
-    private fun getScheduleOrThrow(scheduleId: Long): StudentScheduleEntity {
+    private fun getScheduleEntityOrThrow(scheduleId: Long): StudentScheduleEntity {
         return studentScheduleRepository.findByIdOrNull(scheduleId)
             ?: throw CustomException(StudentScheduleError.SCHEDULE_NOT_FOUND)
     }

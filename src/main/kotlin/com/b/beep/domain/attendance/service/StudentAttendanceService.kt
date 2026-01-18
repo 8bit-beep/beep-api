@@ -35,9 +35,9 @@ class StudentAttendanceService(
         val checkpoint = checkpointResolver.getCurrentAttendableCheckpoint()
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = today.dayOfWeek
-        val room = roomService.getRoomById(request.roomId)
-        val type = attendanceTypeService.getById(request.typeId)
-        val notAttendType = attendanceTypeService.getByName("NOT_ATTEND")
+        val room = roomService.getRoomEntityById(request.roomId)
+        val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
+        val notAttendType = attendanceTypeService.getAttendanceTypeEntityByName("NOT_ATTEND")
 
         val schedule = getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
 

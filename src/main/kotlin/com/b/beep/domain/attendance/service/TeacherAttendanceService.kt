@@ -46,7 +46,7 @@ class TeacherAttendanceService(
         val user = userRepository.findByIdOrNull(userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
 
-        val status = attendanceTypeService.getById(statusId)
+        val status = attendanceTypeService.getAttendanceTypeEntityById(statusId)
         val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
         val targetCheckpoint = checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
             ?: checkpointResolver.getCurrentCheckpoint()
@@ -79,7 +79,7 @@ class TeacherAttendanceService(
         val room = roomId?.let {
             roomRepository.findByIdOrNull(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }
-        val status = statusId?.let { attendanceTypeService.getById(it) }
+        val status = statusId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
         val users = attendanceQueryRepository.findAllByFilters(
             room = room,
             status = status,

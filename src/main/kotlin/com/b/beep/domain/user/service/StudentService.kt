@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 class StudentService(
     private val studentQueryRepository: StudentQueryRepository
 ) {
-    fun findAll(
+    fun findStudents(
         grade: Int?,
         classNumber: Int?,
         keyword: String?,

@@ -22,13 +22,13 @@ class MemoService(
     }
 
     fun updateMemo(request: UpdateMemoRequest) {
-        val memo = getMemo()
+        val memo = getMemoEntity()
         memo.content = request.newContent
         memoRepository.save(memo)
     }
 
     @Transactional(readOnly = true)
-    fun getMemo(): MemoEntity {
+    fun getMemoEntity(): MemoEntity {
         return memoRepository.findAll().firstOrNull()
             ?: throw CustomException(MemoError.MEMO_NOT_FOUND)
     }

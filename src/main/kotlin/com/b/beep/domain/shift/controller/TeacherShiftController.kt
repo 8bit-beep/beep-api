@@ -18,7 +18,7 @@ class TeacherShiftController(
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     override fun getShifts(): List<ShiftResponse> {
-        return teacherShiftService.getAll()
+        return teacherShiftService.getShifts()
     }
 
     @PatchMapping("/{shiftId}/status")

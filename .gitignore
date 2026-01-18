@@ -46,3 +46,5 @@ out/
 
 ./**/service-account-key.json
 src/main/resources/firebase/service-account-key.json
+
+beep-web/

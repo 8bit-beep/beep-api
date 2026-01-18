@@ -26,13 +26,13 @@ class AttendanceTypeController(
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     override fun getTypes(): List<AttendanceTypeResponse> {
-        return attendanceTypeService.getTypes()
+        return attendanceTypeService.getAttendanceTypes()
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     override fun getType(@PathVariable @Positive(message = "ID는 양수여야 합니다") id: Long): AttendanceTypeResponse {
-        return attendanceTypeService.getType(id)
+        return attendanceTypeService.getAttendanceType(id)
     }
 
     @PutMapping("/{id}")

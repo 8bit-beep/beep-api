@@ -80,9 +80,11 @@ class AttendanceQueryRepository(
 
         if (room != null) {
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
-            whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
-            if (checkpoint != null) {
-                whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
+            if (isCurrentCheckpoint) {
+                whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
+                if (checkpoint != null) {
+                    whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
+                }
             }
         }
 

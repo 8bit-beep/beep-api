@@ -11,14 +11,14 @@ data class StudentResponse(
     val num: Int
 ) {
     companion object {
-        fun of(studentInfo: StudentInfoEntity): StudentResponse {
+        fun of(entity: StudentInfoEntity): StudentResponse {
             return StudentResponse(
-                id = studentInfo.user.id!!,
-                username = studentInfo.user.username,
-                email = studentInfo.user.email,
-                grade = studentInfo.grade,
-                classNumber = studentInfo.classNumber,
-                num = studentInfo.num
+                id = entity.user.id!!,
+                username = entity.user.username,
+                email = entity.user.email,
+                grade = entity.grade,
+                classNumber = entity.classNumber,
+                num = entity.num
             )
         }
     }

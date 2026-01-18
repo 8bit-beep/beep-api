@@ -10,13 +10,13 @@ data class StudentInfoResponse(
     val cardId: String? = null,
 ) {
     companion object {
-        fun of(studentInfo: StudentInfoEntity): StudentInfoResponse {
+        fun of(entity: StudentInfoEntity): StudentInfoResponse {
             return StudentInfoResponse(
-                id = studentInfo.id,
-                grade = studentInfo.grade,
-                classNumber = studentInfo.classNumber,
-                num = studentInfo.num,
-                cardId = studentInfo.cardId,
+                id = entity.id,
+                grade = entity.grade,
+                classNumber = entity.classNumber,
+                num = entity.num,
+                cardId = entity.cardId,
             )
         }
     }

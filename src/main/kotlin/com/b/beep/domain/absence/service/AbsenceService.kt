@@ -62,7 +62,7 @@ class AbsenceService(
             return CreateAbsenceResponse(absenceId = null, skippedUserIds = skippedUserIds)
         }
 
-        val type = request.typeId?.let { attendanceTypeService.getById(it) }
+        val type = request.typeId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
         val absence = saveAbsence(request, validUsers, type)
         return CreateAbsenceResponse(absenceId = absence.id, skippedUserIds = skippedUserIds)
     }
@@ -133,7 +133,7 @@ class AbsenceService(
         val users = getUsers(request.userIds)
         val (validUsers, skippedUserIds) = partitionByOverlap(users, request.startDate, request.endDate, absenceId)
 
-        val type = request.typeId?.let { attendanceTypeService.getById(it) }
+        val type = request.typeId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
 
         clearAbsenceRelations(absence, absenceId)
         updateAbsenceEntity(absence, request, type)
@@ -195,7 +195,7 @@ class AbsenceService(
         overrideType: AttendanceTypeEntity?
     ) {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val sleepoverType = attendanceTypeService.getByName("SLEEPOVER")
+        val sleepoverType = attendanceTypeService.getAttendanceTypeEntityByName("SLEEPOVER")
         var date = startDate
         while (!date.isAfter(endDate)) {
             if (!date.isBefore(today)) {

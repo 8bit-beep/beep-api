@@ -32,7 +32,7 @@ class TeacherShiftService(
     private val attendanceTypeService: AttendanceTypeService,
 ) {
     @Transactional(readOnly = true)
-    fun getAll(): List<ShiftResponse> {
+    fun getShifts(): List<ShiftResponse> {
         return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now(ZoneId.of("Asia/Seoul"))).map { it.toResponse() }
     }
 
@@ -55,7 +55,7 @@ class TeacherShiftService(
         status: ShiftStatus
     ) {
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
-        val shiftAttendType = attendanceTypeService.getByName("SHIFT_ATTEND")
+        val shiftAttendType = attendanceTypeService.getAttendanceTypeEntityByName("SHIFT_ATTEND")
 
         when (status) {
             ShiftStatus.APPROVED -> {

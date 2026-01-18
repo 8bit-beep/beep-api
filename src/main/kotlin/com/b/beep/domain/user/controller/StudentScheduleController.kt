@@ -21,7 +21,7 @@ class StudentScheduleController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     override fun createSchedule(@Valid @RequestBody request: CreateStudentScheduleRequest) {
-        studentScheduleService.create(request)
+        studentScheduleService.createSchedule(request)
     }
 
     @GetMapping
@@ -29,12 +29,12 @@ class StudentScheduleController(
     override fun getSchedulesByUserId(
         @RequestParam @Positive(message = "유저 ID는 양수여야 합니다") userId: Long
     ): List<StudentScheduleResponse> =
-        studentScheduleService.getByUserId(userId).map { StudentScheduleResponse.of(it) }
+        studentScheduleService.getSchedulesByUserId(userId).map { StudentScheduleResponse.of(it) }
 
     @PostMapping("/my")
     @ResponseStatus(HttpStatus.CREATED)
     override fun createMySchedule(@Valid @RequestBody request: CreateMyScheduleRequest) {
-        studentScheduleService.createMy(request)
+        studentScheduleService.createMySchedule(request)
     }
 
     @GetMapping("/my")
@@ -48,7 +48,7 @@ class StudentScheduleController(
         @PathVariable @Positive(message = "스케줄 ID는 양수여야 합니다") scheduleId: Long,
         @Valid @RequestBody request: UpdateStudentScheduleRequest
     ) {
-        studentScheduleService.update(scheduleId, request)
+        studentScheduleService.updateSchedule(scheduleId, request)
     }
 
     @DeleteMapping("/{scheduleId}")
@@ -56,6 +56,6 @@ class StudentScheduleController(
     override fun deleteSchedule(
         @PathVariable @Positive(message = "스케줄 ID는 양수여야 합니다") scheduleId: Long
     ) {
-        studentScheduleService.delete(scheduleId)
+        studentScheduleService.deleteSchedule(scheduleId)
     }
 }

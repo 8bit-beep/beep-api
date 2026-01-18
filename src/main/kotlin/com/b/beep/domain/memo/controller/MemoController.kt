@@ -31,6 +31,6 @@ class MemoController(
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     override fun getMemo(): MemoResponse {
-        return MemoResponse.of(memoService.getMemo())
+        return MemoResponse.of(memoService.getMemoEntity())
     }
 }

@@ -24,7 +24,7 @@ class AttendanceHistoryController(
     override fun getByClass(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): List<ClassAttendanceHistoryResponse> {
-        return attendanceHistoryService.getByClass(date)
+        return attendanceHistoryService.getAttendanceHistoriesByClass(date)
     }
 
     @GetMapping("/by-room")
@@ -32,7 +32,7 @@ class AttendanceHistoryController(
     override fun getByRoom(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): List<RoomAttendanceHistoryResponse> {
-        return attendanceHistoryService.getByRoom(date)
+        return attendanceHistoryService.getAttendanceHistoriesByRoom(date)
     }
 
     @GetMapping
@@ -40,6 +40,6 @@ class AttendanceHistoryController(
     override fun getAll(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): List<StudentAttendanceRecord> {
-        return attendanceHistoryService.getAll(date)
+        return attendanceHistoryService.getAttendanceHistories(date)
     }
 }

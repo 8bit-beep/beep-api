@@ -14,13 +14,13 @@ data class StudentScheduleResponse(
     val room: RoomResponse
 ) {
     companion object {
-        fun of(schedule: StudentScheduleEntity): StudentScheduleResponse {
+        fun of(entity: StudentScheduleEntity): StudentScheduleResponse {
             return StudentScheduleResponse(
-                id = schedule.id!!,
-                dayOfWeek = schedule.dayOfWeek,
-                checkpoint = CheckpointSimpleResponse.of(schedule.checkpoint),
-                type = AttendanceTypeResponse.of(schedule.type),
-                room = RoomResponse.of(schedule.room)
+                id = entity.id!!,
+                dayOfWeek = entity.dayOfWeek,
+                checkpoint = CheckpointSimpleResponse.of(entity.checkpoint),
+                type = AttendanceTypeResponse.of(entity.type),
+                room = RoomResponse.of(entity.room)
             )
         }
     }

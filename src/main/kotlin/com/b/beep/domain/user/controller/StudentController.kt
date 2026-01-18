@@ -26,6 +26,6 @@ class StudentController(
         @RequestParam(required = false) keyword: String?,
         @PageableDefault(size = 20) pageable: Pageable
     ): PageResponse<StudentResponse> {
-        return PageResponse.from(studentService.findAll(grade, classNumber, keyword, pageable))
+        return PageResponse.from(studentService.findStudents(grade, classNumber, keyword, pageable))
     }
 }

@@ -23,7 +23,7 @@ class AttendanceHistoryService(
     private val studentScheduleRepository: StudentScheduleRepository,
     private val checkpointRepository: AttendanceCheckpointRepository
 ) {
-    fun getByClass(date: LocalDate): List<ClassAttendanceHistoryResponse> {
+    fun getAttendanceHistoriesByClass(date: LocalDate): List<ClassAttendanceHistoryResponse> {
         val students = userRepository.findAllByRole(UserRole.STUDENT)
         val checkpoints = checkpointRepository.findAll().sortedBy { it.id }
 
@@ -67,7 +67,7 @@ class AttendanceHistoryService(
             .sortedBy { it.classification }
     }
 
-    fun getByRoom(date: LocalDate): List<RoomAttendanceHistoryResponse> {
+    fun getAttendanceHistoriesByRoom(date: LocalDate): List<RoomAttendanceHistoryResponse> {
         val students = userRepository.findAllByRole(UserRole.STUDENT)
         val checkpoints = checkpointRepository.findAll().sortedBy { it.id }
         val dayOfWeek = date.dayOfWeek
@@ -113,7 +113,7 @@ class AttendanceHistoryService(
             .sortedBy { it.room }
     }
 
-    fun getAll(date: LocalDate): List<StudentAttendanceRecord> {
+    fun getAttendanceHistories(date: LocalDate): List<StudentAttendanceRecord> {
         val students = userRepository.findAllByRole(UserRole.STUDENT)
         val checkpoints = checkpointRepository.findAll().sortedBy { it.id }
 
