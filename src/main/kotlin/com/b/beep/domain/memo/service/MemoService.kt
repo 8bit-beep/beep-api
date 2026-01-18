@@ -2,6 +2,7 @@ package com.b.beep.domain.memo.service
 
 import com.b.beep.domain.memo.controller.dto.request.CreateMemoRequest
 import com.b.beep.domain.memo.controller.dto.request.UpdateMemoRequest
+import com.b.beep.domain.memo.controller.dto.response.MemoResponse
 import com.b.beep.domain.memo.domain.entity.MemoEntity
 import com.b.beep.domain.memo.error.MemoError
 import com.b.beep.domain.memo.repository.MemoRepository
@@ -22,13 +23,17 @@ class MemoService(
     }
 
     fun updateMemo(request: UpdateMemoRequest) {
-        val memo = getMemo()
+        val memo = getMemoEntity()
         memo.content = request.newContent
         memoRepository.save(memo)
     }
 
     @Transactional(readOnly = true)
-    fun getMemo(): MemoEntity {
+    fun getMemo(): MemoResponse {
+        return MemoResponse.of(getMemoEntity())
+    }
+
+    private fun getMemoEntity(): MemoEntity {
         return memoRepository.findAll().firstOrNull()
             ?: throw CustomException(MemoError.MEMO_NOT_FOUND)
     }

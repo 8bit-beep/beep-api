@@ -1,24 +1,31 @@
 package com.b.beep.domain.attendance.service
 
+import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentInfoRepository
+import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Service
 @Transactional
@@ -29,25 +36,23 @@ class TeacherAttendanceService(
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val attendanceQueryRepository: AttendanceQueryRepository,
     private val roomRepository: RoomRepository,
-    private val attendanceTypeService: AttendanceTypeService
+    private val attendanceTypeService: AttendanceTypeService,
+    private val userRepository: UserRepository
 ) {
-    fun updateStudentStatus(
-        grade: Int,
-        classNumber: Int,
-        num: Int,
-        statusId: Long,
-        date: LocalDate? = null,
-        checkpointId: Long? = null
-    ) {
-        val studentInfo = studentInfoRepository.findByGradeAndClassNumberAndNum(grade, classNumber, num)
-            ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
+    fun updateStudentStatus(request: UpdateStatusRequest) {
+        val user = userRepository.findByIdAndIsDeletedFalse(request.userId)
+            ?: throw CustomException(UserError.USER_NOT_FOUND)
 
-        val status = attendanceTypeService.getById(statusId)
-        val user = studentInfo.user
-        val targetDate = date ?: LocalDate.now()
-        val targetCheckpoint = checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
+        val status = attendanceTypeService.getAttendanceTypeEntityById(request.statusId)
+        val targetDate = request.date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val targetCheckpoint = request.checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
             ?: checkpointResolver.getCurrentCheckpoint()
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(targetCheckpoint, user, targetDate)
+
+        if (status.name == AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {
+            attendance?.let { attendanceRepository.delete(it) }
+            return
+        }
 
         if (attendance != null) {
             attendance.type = status
@@ -65,28 +70,32 @@ class TeacherAttendanceService(
         }
     }
 
-    fun findAll(
+    fun getAttendances(
         roomId: Long?,
         statusId: Long?,
         grade: Int?,
         classNumber: Int?,
-        scheduleOnly: Boolean?
-    ): List<AttendanceStudentResponse> {
-        val room = roomId?.let { roomRepository.findById(it).orElse(null) }
-        val status = statusId?.let { attendanceTypeService.getById(it) }
+        isCurrentCheckpoint: Boolean = true,
+        pageable: Pageable
+    ): Page<AttendanceStudentResponse> {
+        val room = roomId?.let {
+            roomRepository.findByIdOrNull(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        }
+        val status = statusId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
         val users = attendanceQueryRepository.findAllByFilters(
             room = room,
             status = status,
             grade = grade,
             classNumber = classNumber,
-            scheduleOnly = scheduleOnly
+            isCurrentCheckpoint = isCurrentCheckpoint,
+            pageable = pageable
         )
 
         return users.map { it.toResponse() }
     }
 
     private fun UserEntity.toResponse(): AttendanceStudentResponse {
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val studentInfo = studentInfoRepository.findByUser(this)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
         val attendances = attendanceRepository.findAllByUserAndDate(this, today)
@@ -99,6 +108,7 @@ class TeacherAttendanceService(
         }
 
         return AttendanceStudentResponse(
+            userId = this.id!!,
             username = this.username,
             studentId = generateStudentId(studentInfo),
             statuses = statuses

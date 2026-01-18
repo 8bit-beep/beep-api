@@ -22,5 +22,8 @@ class AbsenceEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
-    var type: AttendanceTypeEntity? = null
+    var type: AttendanceTypeEntity? = null,
+
+    @Column(nullable = false)
+    var isDeleted: Boolean = false
 ) : BaseEntity()

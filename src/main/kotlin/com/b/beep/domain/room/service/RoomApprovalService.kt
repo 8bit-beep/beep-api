@@ -17,6 +17,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Service
 @Transactional
@@ -30,7 +31,7 @@ class RoomApprovalService(
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val room = getRoomEntity(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
 
         if (roomApprovalRepository.existsByCheckpointAndRoomAndDate(checkpoint, room, today)) {
             throw CustomException(RoomApprovalError.ALREADY_APPROVED)
@@ -53,12 +54,12 @@ class RoomApprovalService(
     @Transactional(readOnly = true)
     fun getApprovals(approved: Boolean?): List<RoomApprovalResponse> {
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val approvalMap = roomApprovalRepository
             .findAllByCheckpointAndDate(checkpoint, today)
             .associateBy { it.room.id }
 
-        val responses = roomRepository.findAll().map { room ->
+        val responses = roomRepository.findAllByIsDeletedFalse().map { room ->
             room.toResponse(approvalMap[room.id])
         }
 
@@ -74,7 +75,7 @@ class RoomApprovalService(
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val room = getRoomEntity(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
-        val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, LocalDate.now())
+        val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, LocalDate.now(ZoneId.of("Asia/Seoul")))
         return room.toResponse(approval)
     }
 
@@ -82,7 +83,7 @@ class RoomApprovalService(
         val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val room = getRoomEntity(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
 
         val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, today)
             ?: throw CustomException(RoomApprovalError.APPROVAL_NOT_FOUND)

@@ -7,13 +7,13 @@ import java.time.LocalDate
 interface AbsenceUserRepository : JpaRepository<AbsenceUserEntity, Long> {
     fun findAllByAbsenceId(absenceId: Long): List<AbsenceUserEntity>
 
-    fun existsByUserIdAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqual(
+    fun existsByUserIdAndAbsenceIsDeletedFalseAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqual(
         userId: Long,
         endDate: LocalDate,
         startDate: LocalDate
     ): Boolean
 
-    fun existsByUserIdAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqualAndAbsenceIdNot(
+    fun existsByUserIdAndAbsenceIsDeletedFalseAndAbsenceStartDateLessThanEqualAndAbsenceEndDateGreaterThanEqualAndAbsenceIdNot(
         userId: Long,
         endDate: LocalDate,
         startDate: LocalDate,

@@ -19,38 +19,38 @@ class AttendanceCheckpointController(
 ) : AttendanceCheckpointDocs {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    override fun createCheckPoint(@Valid @RequestBody request: CreateCheckpointRequest) {
-        checkpointService.createCheckPoint(request)
+    override fun createCheckpoint(@Valid @RequestBody request: CreateCheckpointRequest) {
+        checkpointService.createCheckpoint(request)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    override fun findCheckPoints(): List<CheckpointResponse> {
-        return checkpointService.getCheckPoints()
+    override fun findCheckpoints(): List<CheckpointResponse> {
+        return checkpointService.getCheckpoints()
     }
 
-    @GetMapping("/{checkPointId}")
+    @GetMapping("/{checkpointId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun findCheckPoint(
-        @PathVariable @Positive(message = "체크포인트 ID는 양수여야 합니다") checkPointId: Long
+    override fun findCheckpoint(
+        @PathVariable @Positive(message = "체크포인트 ID는 양수여야 합니다") checkpointId: Long
     ): CheckpointResponse {
-        return checkpointService.getCheckPoint(checkPointId)
+        return checkpointService.getCheckpoint(checkpointId)
     }
 
-    @PatchMapping("/{checkPointId}")
+    @PatchMapping("/{checkpointId}")
     @ResponseStatus(HttpStatus.OK)
-    override fun updateCheckPoint(
-        @PathVariable @Positive(message = "체크포인트 ID는 양수여야 합니다") checkPointId: Long,
+    override fun updateCheckpoint(
+        @PathVariable @Positive(message = "체크포인트 ID는 양수여야 합니다") checkpointId: Long,
         @Valid @RequestBody request: UpdateCheckpointRequest
     ) {
-        checkpointService.updateCheckPoint(checkPointId, request)
+        checkpointService.updateCheckpoint(checkpointId, request)
     }
 
-    @DeleteMapping("/{checkPointId}")
+    @DeleteMapping("/{checkpointId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    override fun deleteCheckPoint(
-        @PathVariable @Positive(message = "체크포인트 ID는 양수여야 합니다") checkPointId: Long
+    override fun deleteCheckpoint(
+        @PathVariable @Positive(message = "체크포인트 ID는 양수여야 합니다") checkpointId: Long
     ) {
-        checkpointService.deleteCheckPoint(checkPointId)
+        checkpointService.deleteCheckpoint(checkpointId)
     }
 }

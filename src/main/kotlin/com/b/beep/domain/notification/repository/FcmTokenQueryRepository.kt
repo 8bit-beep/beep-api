@@ -10,6 +10,7 @@ import com.b.beep.domain.user.domain.entity.QUserEntity
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Repository
 class FcmTokenQueryRepository(
@@ -22,7 +23,7 @@ class FcmTokenQueryRepository(
         val attendance = QAttendanceEntity.attendanceEntity
         val absenceUser = QAbsenceUserEntity.absenceUserEntity
         val absence = QAbsenceEntity.absenceEntity
-        val today = LocalDate.now()
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val checkpoint = checkpointResolver.getCurrentCheckpointOrNull() ?: return emptyList()
 
         return queryFactory

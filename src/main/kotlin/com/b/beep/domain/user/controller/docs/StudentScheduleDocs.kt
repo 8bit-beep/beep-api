@@ -1,15 +1,23 @@
 package com.b.beep.domain.user.controller.docs
 
+import com.b.beep.domain.user.controller.dto.request.CreateMyScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.CreateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.request.UpdateStudentScheduleRequest
 import com.b.beep.domain.user.controller.dto.response.StudentScheduleResponse
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 
 @Tag(name = "학생 스케줄", description = "학생 교시별 실 등록 API")
 interface StudentScheduleDocs {
-    @Operation(summary = "스케줄 생성", description = "교시별 실을 등록합니다.")
+    @Operation(summary = "스케줄 생성", description = "특정 유저의 스케줄을 생성합니다.")
     fun createSchedule(request: CreateStudentScheduleRequest)
+
+    @Operation(summary = "유저별 스케줄 조회", description = "특정 유저의 스케줄 목록을 조회합니다.")
+    fun getSchedulesByUserId(@Parameter(description = "유저 ID") userId: Long): List<StudentScheduleResponse>
+
+    @Operation(summary = "내 스케줄 생성", description = "로그인한 사용자의 스케줄을 생성합니다.")
+    fun createMySchedule(request: CreateMyScheduleRequest)
 
     @Operation(summary = "내 스케줄 조회", description = "로그인한 사용자의 스케줄 목록을 조회합니다.")
     fun getMySchedules(): List<StudentScheduleResponse>

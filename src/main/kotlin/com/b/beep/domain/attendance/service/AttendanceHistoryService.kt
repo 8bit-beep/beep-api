@@ -1,140 +1,55 @@
 package com.b.beep.domain.attendance.service
 
-import com.b.beep.domain.attendance.repository.AttendanceRepository
-import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
-import com.b.beep.domain.attendance.controller.dto.response.history.ClassAttendanceHistoryResponse
-import com.b.beep.domain.attendance.controller.dto.response.history.PeriodStatus
-import com.b.beep.domain.attendance.controller.dto.response.history.RoomAttendanceHistoryResponse
-import com.b.beep.domain.attendance.controller.dto.response.history.StudentAttendanceRecord
-import com.b.beep.domain.user.domain.enums.UserRole
-import com.b.beep.domain.user.repository.StudentInfoRepository
-import com.b.beep.domain.user.repository.StudentScheduleRepository
-import com.b.beep.domain.user.repository.UserRepository
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
+import java.time.Duration
 
 @Service
-@Transactional(readOnly = true)
 class AttendanceHistoryService(
-    private val userRepository: UserRepository,
-    private val studentInfoRepository: StudentInfoRepository,
-    private val attendanceRepository: AttendanceRepository,
-    private val studentScheduleRepository: StudentScheduleRepository,
-    private val checkpointRepository: AttendanceCheckpointRepository
+    private val s3Client: S3Client,
+    private val s3Presigner: S3Presigner,
+    @Value("\${cloud.aws.s3.bucket}") private val bucket: String
 ) {
-    fun getByClass(date: LocalDate): List<ClassAttendanceHistoryResponse> {
-        val students = userRepository.findAllByRole(UserRole.STUDENT)
-        val checkpoints = checkpointRepository.findAll().sortedBy { it.id }
+    fun listFiles(): List<String> {
+        val request = ListObjectsV2Request.builder()
+            .bucket(bucket)
+            .prefix("uploads")
+            .build()
 
-        val records = students.mapNotNull { student ->
-            val studentInfo = studentInfoRepository.findByUser(student) ?: return@mapNotNull null
-            val attendances = attendanceRepository.findAllByUserAndDate(student, date)
-
-            val statuses = checkpoints.map { checkpoint ->
-                val attendance = attendances.find { it.checkpoint.id == checkpoint.id }
-                PeriodStatus(
-                    checkpointId = checkpoint.id!!,
-                    checkpointName = checkpoint.name,
-                    status = attendance?.type?.name ?: "NOT_RECORDED"
-                )
-            }
-
-            Triple(
-                "${studentInfo.grade}-${studentInfo.classNumber}",
-                studentInfo.num,
-                StudentAttendanceRecord(
-                    username = student.username,
-                    studentId = "${studentInfo.grade}${studentInfo.classNumber}${
-                        String.format(
-                            "%02d",
-                            studentInfo.num
-                        )
-                    }",
-                    statuses = statuses
-                )
-            )
-        }
-
-        return records
-            .groupBy { it.first }
-            .map { (classification, list) ->
-                ClassAttendanceHistoryResponse(
-                    classification = classification,
-                    students = list.sortedBy { it.second }.map { it.third }
-                )
-            }
-            .sortedBy { it.classification }
+        return s3Client.listObjectsV2(request).contents().map { it.key() }
     }
 
-    fun getByRoom(date: LocalDate): List<RoomAttendanceHistoryResponse> {
-        val students = userRepository.findAllByRole(UserRole.STUDENT)
-        val checkpoints = checkpointRepository.findAll().sortedBy { it.id }
-        val dayOfWeek = date.dayOfWeek
+    fun generatePresignedUrl(key: String, expiration: Duration = Duration.ofMinutes(10)): String {
+        val getObjectRequest = GetObjectRequest.builder()
+            .bucket(bucket)
+            .key(key)
+            .build()
 
-        val records = students.flatMap { student ->
-            val schedules = studentScheduleRepository.findAllByUser(student)
-            val todaySchedules = schedules.filter { it.dayOfWeek == dayOfWeek }
+        val presignRequest = GetObjectPresignRequest.builder()
+            .signatureDuration(expiration)
+            .getObjectRequest(getObjectRequest)
+            .build()
 
-            todaySchedules.map { schedule ->
-                val attendances = attendanceRepository.findAllByUserAndDate(student, date)
-                val studentInfo = studentInfoRepository.findByUser(student)
-
-                val statuses = checkpoints.map { checkpoint ->
-                    val attendance = attendances.find { it.checkpoint.id == checkpoint.id }
-                    PeriodStatus(
-                        checkpointId = checkpoint.id!!,
-                        checkpointName = checkpoint.name,
-                        status = attendance?.type?.name ?: "NOT_RECORDED"
-                    )
-                }
-
-                Pair(
-                    schedule.room.name,
-                    StudentAttendanceRecord(
-                        username = student.username,
-                        studentId = studentInfo?.let {
-                            "${it.grade}${it.classNumber}${String.format("%02d", it.num)}"
-                        } ?: "",
-                        statuses = statuses
-                    )
-                )
-            }
-        }
-
-        return records
-            .groupBy { it.first }
-            .map { (room, list) ->
-                RoomAttendanceHistoryResponse(
-                    room = room,
-                    students = list.sortedBy { it.second.studentId }.map { it.second }
-                )
-            }
-            .sortedBy { it.room }
+        return s3Presigner.presignGetObject(presignRequest).url().toString()
     }
 
-    fun getAll(date: LocalDate): List<StudentAttendanceRecord> {
-        val students = userRepository.findAllByRole(UserRole.STUDENT)
-        val checkpoints = checkpointRepository.findAll().sortedBy { it.id }
-
-        return students.mapNotNull { student ->
-            val studentInfo = studentInfoRepository.findByUser(student) ?: return@mapNotNull null
-            val attendances = attendanceRepository.findAllByUserAndDate(student, date)
-
-            val statuses = checkpoints.map { checkpoint ->
-                val attendance = attendances.find { it.checkpoint.id == checkpoint.id }
-                PeriodStatus(
-                    checkpointId = checkpoint.id!!,
-                    checkpointName = checkpoint.name,
-                    status = attendance?.type?.name ?: "NOT_RECORDED"
-                )
-            }
-
-            StudentAttendanceRecord(
-                username = student.username,
-                studentId = "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}",
-                statuses = statuses
-            )
-        }.sortedBy { it.studentId }
+    fun exists(key: String): Boolean {
+        return try {
+            val request = HeadObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build()
+            s3Client.headObject(request)
+            true
+        } catch (e: NoSuchKeyException) {
+            false
+        }
     }
 }

@@ -34,4 +34,8 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
     fun existsByCheckpoint(checkpoint: AttendanceCheckpointEntity): Boolean
 
     fun deleteAllByAbsenceAndDateGreaterThanEqual(absence: AbsenceEntity, date: LocalDate)
+
+    fun deleteAllByAbsence(absence: AbsenceEntity)
+
+    fun findAllByDate(date: LocalDate): List<AttendanceEntity>
 }

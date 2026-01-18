@@ -30,4 +30,6 @@ interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long>
     ): Boolean
 
     fun existsByCheckpoint(checkpoint: AttendanceCheckpointEntity): Boolean
+
+    fun findAllByDayOfWeek(dayOfWeek: DayOfWeek): List<StudentScheduleEntity>
 }

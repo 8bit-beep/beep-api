@@ -5,10 +5,12 @@ import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
 import com.b.beep.domain.absence.controller.dto.response.CreateAbsenceResponse
 import com.b.beep.domain.absence.controller.dto.response.UpdateAbsenceResponse
+import com.b.beep.global.common.dto.PageResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Positive
+import org.springframework.data.domain.Pageable
 
 @Tag(name = "장기결석", description = "장기결석 API")
 interface AbsenceDocs {
@@ -20,13 +22,13 @@ interface AbsenceDocs {
             - 선택된 사용자 중 결석 생성이 실패한 경우 해당 유저를 제외하고 생성합니다.
             - typeId: 출석 타입 ID (선택)
               - 지정 시: 모든 출석 기록에 해당 타입 적용
-              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 SLEEPOVER)
+              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
         """
     )
-    fun createAbsence(@RequestBody request: CreateAbsenceRequest): CreateAbsenceResponse
+    fun createAbsence(@Valid request: CreateAbsenceRequest): CreateAbsenceResponse
 
     @Operation(summary = "모든 장기결석 조회")
-    fun getAbsences(): List<AbsenceResponse>
+    fun getAbsences(pageable: Pageable): PageResponse<AbsenceResponse>
 
     @Operation(
         summary = "장기결석 수정",
@@ -35,11 +37,11 @@ interface AbsenceDocs {
 
             - typeId: 출석 타입 ID (선택)
               - 지정 시: 모든 출석 기록에 해당 타입 적용
-              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 SLEEPOVER)
+              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
         """
     )
-    fun updateAbsence(@PathVariable absenceId: Long, @RequestBody request: UpdateAbsenceRequest): UpdateAbsenceResponse
+    fun updateAbsence(@Positive(message = "결석 ID는 양수여야 합니다") absenceId: Long, @Valid request: UpdateAbsenceRequest): UpdateAbsenceResponse
 
     @Operation(summary = "장기결석 삭제")
-    fun deleteAbsence(@PathVariable absenceId: Long)
+    fun deleteAbsence(@Positive(message = "부재 ID는 양수여야 합니다") absenceId: Long)
 }

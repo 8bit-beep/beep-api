@@ -21,6 +21,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Service
 @Transactional
@@ -31,8 +32,8 @@ class TeacherShiftService(
     private val attendanceTypeService: AttendanceTypeService,
 ) {
     @Transactional(readOnly = true)
-    fun getAll(): List<ShiftResponse> {
-        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now()).map { it.toResponse() }
+    fun getShifts(): List<ShiftResponse> {
+        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now(ZoneId.of("Asia/Seoul"))).map { it.toResponse() }
     }
 
     fun updateStatus(id: Long, status: ShiftStatus) {
@@ -54,7 +55,7 @@ class TeacherShiftService(
         status: ShiftStatus
     ) {
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
-        val shiftAttendType = attendanceTypeService.getByName("SHIFT_ATTEND")
+        val shiftAttendType = attendanceTypeService.getAttendanceTypeEntityByName("SHIFT_ATTEND")
 
         when (status) {
             ShiftStatus.APPROVED -> {

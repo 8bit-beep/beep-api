@@ -70,7 +70,7 @@ class StudentShiftService(
     @Transactional(readOnly = true)
     fun getMyShifts(): List<ShiftResponse> {
         val user = contextHolder.user
-        return shiftRepository.findAllByUserAndDate(user, LocalDate.now()).map { it.toResponse() }
+        return shiftRepository.findAllByUserAndDate(user, LocalDate.now(ZoneId.of("Asia/Seoul"))).map { it.toResponse() }
     }
 
     fun updateShift(id: Long, request: UpdateShiftRequest) {
@@ -124,7 +124,7 @@ class StudentShiftService(
     }
 
     private fun isShiftTimeValid(date: LocalDate?, attendanceStartAt: LocalTime?): Boolean {
-        val now = LocalDate.now()
+        val now = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val currentTime = LocalTime.now(ZoneId.of("Asia/Seoul"))
 
         if (date == null) return true

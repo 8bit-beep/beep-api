@@ -31,7 +31,7 @@ class JwtExtractor(
 
     fun getAuthentication(token: String): Authentication {
         val claims = getClaims(token).body
-        val user = userRepository.findByEmail(claims.subject) ?: throw CustomException(
+        val user = userRepository.findByEmailAndIsDeletedFalse(claims.subject) ?: throw CustomException(
             UserError.USER_NOT_FOUND,
             claims.subject
         )

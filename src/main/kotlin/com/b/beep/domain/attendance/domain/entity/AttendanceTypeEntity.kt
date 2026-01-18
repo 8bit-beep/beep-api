@@ -13,4 +13,9 @@ class AttendanceTypeEntity(
 
     @Column(nullable = false)
     var isDeleted: Boolean = false
-)
+) {
+    companion object {
+        const val DEFAULT_ABSENCE_TYPE_NAME = "외박"
+        const val NOT_ATTENDED_TYPE_NAME = "미출석"
+    }
+}

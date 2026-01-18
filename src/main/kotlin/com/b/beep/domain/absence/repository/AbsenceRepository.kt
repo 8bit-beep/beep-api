@@ -11,4 +11,7 @@ interface AbsenceRepository : JpaRepository<AbsenceEntity, Long> {
         rangeEnd: LocalDate,
         rangeStart: LocalDate
     ): List<AbsenceEntity>
+
+    fun findAllByIsDeletedFalse(pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<AbsenceEntity>
+    fun findByIdAndIsDeletedFalse(id: Long): AbsenceEntity?
 }

@@ -5,6 +5,10 @@ import jakarta.validation.constraints.Positive
 import java.time.DayOfWeek
 
 data class CreateStudentScheduleRequest(
+    @field:NotNull(message = "유저 ID는 필수입니다")
+    @field:Positive(message = "유저 ID는 양수여야 합니다")
+    val userId: Long,
+
     @field:NotNull(message = "요일은 필수입니다")
     val dayOfWeek: DayOfWeek,
 

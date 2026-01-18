@@ -10,13 +10,13 @@ data class RoomResponse(
     val floor: Int?
 ) {
     companion object {
-        fun of(room: RoomEntity): RoomResponse {
+        fun of(entity: RoomEntity): RoomResponse {
             return RoomResponse(
-                id = room.id!!,
-                name = room.name,
-                grade = room.grade,
-                classNumber = room.classNumber,
-                floor = room.floor
+                id = entity.id!!,
+                name = entity.name,
+                grade = entity.grade,
+                classNumber = entity.classNumber,
+                floor = entity.floor
             )
         }
     }

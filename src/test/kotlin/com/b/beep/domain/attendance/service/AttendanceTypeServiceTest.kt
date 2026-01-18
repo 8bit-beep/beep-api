@@ -82,7 +82,7 @@ class AttendanceTypeServiceTest {
 
             `when`(attendanceTypeRepository.findAllByIsDeletedFalse()).thenReturn(types)
 
-            val result = attendanceTypeService.getTypes()
+            val result = attendanceTypeService.getAttendanceTypes()
 
             assertEquals(2, result.size)
             assertEquals("PRESENT", result[0].name)
@@ -94,7 +94,7 @@ class AttendanceTypeServiceTest {
         fun emptyList() {
             `when`(attendanceTypeRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<AttendanceTypeEntity>())
 
-            val result = attendanceTypeService.getTypes()
+            val result = attendanceTypeService.getAttendanceTypes()
 
             assertTrue(result.isEmpty())
         }
@@ -111,7 +111,7 @@ class AttendanceTypeServiceTest {
 
             `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(entity)
 
-            val result = attendanceTypeService.getType(1L)
+            val result = attendanceTypeService.getAttendanceType(1L)
 
             assertEquals("PRESENT", result.name)
         }
@@ -122,7 +122,7 @@ class AttendanceTypeServiceTest {
             `when`(attendanceTypeRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                attendanceTypeService.getType(1L)
+                attendanceTypeService.getAttendanceType(1L)
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND, exception.error)
@@ -232,7 +232,7 @@ class AttendanceTypeServiceTest {
 
             `when`(attendanceTypeRepository.findByNameAndIsDeletedFalse("PRESENT")).thenReturn(entity)
 
-            val result = attendanceTypeService.getByName("PRESENT")
+            val result = attendanceTypeService.getAttendanceTypeEntityByName("PRESENT")
 
             assertEquals("PRESENT", result.name)
         }
@@ -243,7 +243,7 @@ class AttendanceTypeServiceTest {
             `when`(attendanceTypeRepository.findByNameAndIsDeletedFalse("UNKNOWN")).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
-                attendanceTypeService.getByName("UNKNOWN")
+                attendanceTypeService.getAttendanceTypeEntityByName("UNKNOWN")
             }
 
             assertEquals(AttendanceTypeError.ATTENDANCE_TYPE_NOT_FOUND, exception.error)

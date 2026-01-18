@@ -1,45 +1,36 @@
 package com.b.beep.domain.attendance.controller
 
 import com.b.beep.domain.attendance.controller.docs.AttendanceHistoryDocs
-import com.b.beep.domain.attendance.controller.dto.response.history.ClassAttendanceHistoryResponse
-import com.b.beep.domain.attendance.controller.dto.response.history.RoomAttendanceHistoryResponse
-import com.b.beep.domain.attendance.controller.dto.response.history.StudentAttendanceRecord
 import com.b.beep.domain.attendance.service.AttendanceHistoryService
-import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
 @RestController
-@RequestMapping("/history")
+@RequestMapping("/attendances/histories")
 class AttendanceHistoryController(
-    private val attendanceHistoryService: AttendanceHistoryService
+    private val attendanceHistoryService: AttendanceHistoryService,
 ) : AttendanceHistoryDocs {
-    @GetMapping("/by-class")
-    @ResponseStatus(HttpStatus.OK)
-    override fun getByClass(
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
-    ): List<ClassAttendanceHistoryResponse> {
-        return attendanceHistoryService.getByClass(date)
-    }
-
-    @GetMapping("/by-room")
-    @ResponseStatus(HttpStatus.OK)
-    override fun getByRoom(
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
-    ): List<RoomAttendanceHistoryResponse> {
-        return attendanceHistoryService.getByRoom(date)
-    }
-
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    override fun getAll(
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
-    ): List<StudentAttendanceRecord> {
-        return attendanceHistoryService.getAll(date)
+    override fun listFiles(): List<String> {
+        return attendanceHistoryService.listFiles()
+    }
+//
+//    @GetMapping("/uploads")
+//    fun listUploads(): List<String> {
+//        return attendanceHistoryService.listFiles("uploads/")
+//    }
+
+    @GetMapping("/download")
+    override fun downloadByDate(@RequestParam date: LocalDate): ResponseEntity<Map<String, String>> {
+        val key = "uploads/attendance_$date.xlsx"
+        if (!attendanceHistoryService.exists(key)) {
+            return ResponseEntity.notFound().build()
+        }
+        val url = attendanceHistoryService.generatePresignedUrl(key)
+        return ResponseEntity.ok(mapOf("url" to url))
     }
 }

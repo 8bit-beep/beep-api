@@ -6,9 +6,9 @@ data class MemoResponse(
     val content: String,
 ) {
     companion object {
-        fun of(memo: MemoEntity): MemoResponse {
+        fun of(entity: MemoEntity): MemoResponse {
             return MemoResponse(
-                content = memo.content,
+                content = entity.content,
             )
         }
     }

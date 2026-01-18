@@ -23,7 +23,7 @@ class AttendanceCheckpointService(
     private val shiftRepository: ShiftRepository,
     private val studentScheduleRepository: StudentScheduleRepository
 ) {
-    fun createCheckPoint(request: CreateCheckpointRequest) {
+    fun createCheckpoint(request: CreateCheckpointRequest) {
         validateTimeOverlap(request.startAt, request.endAt, excludeId = null)
 
         checkpointRepository.save(
@@ -37,20 +37,20 @@ class AttendanceCheckpointService(
     }
 
     @Transactional(readOnly = true)
-    fun getCheckPoints(): List<CheckpointResponse> {
-        return checkpointRepository.findAll().map { CheckpointResponse.of(it) }
+    fun getCheckpoints(): List<CheckpointResponse> {
+        return checkpointRepository.findAllByIsDeletedFalse().map { CheckpointResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
-    fun getCheckPoint(checkPointId: Long): CheckpointResponse {
-        val entity = getCheckPointEntity(checkPointId)
+    fun getCheckpoint(checkPointId: Long): CheckpointResponse {
+        val entity = checkpointRepository.findByIdAndIsDeletedFalse(checkPointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
         return CheckpointResponse.of(entity)
     }
 
-    fun updateCheckPoint(checkPointId: Long, request: UpdateCheckpointRequest) {
-        val checkpoint = getCheckPointEntity(checkPointId)
+    fun updateCheckpoint(checkPointId: Long, request: UpdateCheckpointRequest) {
+        val checkpoint = checkpointRepository.findByIdAndIsDeletedFalse(checkPointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
         val newStartAt = request.startAt ?: checkpoint.startAt
@@ -66,15 +66,15 @@ class AttendanceCheckpointService(
         checkpointRepository.save(checkpoint)
     }
 
-    fun deleteCheckPoint(checkPointId: Long) {
-        val checkpoint = getCheckPointEntity(checkPointId)
+    fun deleteCheckpoint(checkPointId: Long) {
+        val checkpoint = checkpointRepository.findByIdAndIsDeletedFalse(checkPointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
         if (isCheckpointInUse(checkpoint)) {
             throw CustomException(CheckpointError.CHECKPOINT_IN_USE)
         }
 
-        checkpointRepository.delete(checkpoint)
+        checkpoint.isDeleted = true
     }
 
     private fun isCheckpointInUse(checkpoint: AttendanceCheckpointEntity): Boolean {
@@ -84,7 +84,7 @@ class AttendanceCheckpointService(
     }
 
     private fun validateTimeOverlap(startAt: LocalTime, endAt: LocalTime, excludeId: Long?) {
-        val existing = checkpointRepository.findAll()
+        val existing = checkpointRepository.findAllByIsDeletedFalse()
             .filter { excludeId == null || it.id != excludeId }
 
         for (checkpoint in existing) {
@@ -94,7 +94,7 @@ class AttendanceCheckpointService(
         }
     }
 
-    fun getCheckPointEntity(checkPointId: Long): AttendanceCheckpointEntity? {
+    fun getCheckpointEntity(checkPointId: Long): AttendanceCheckpointEntity? {
         return checkpointRepository.findByIdOrNull(checkPointId)
     }
 }
