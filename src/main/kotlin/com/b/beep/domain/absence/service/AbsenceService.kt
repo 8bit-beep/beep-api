@@ -68,7 +68,7 @@ class AbsenceService(
 
     private fun getUsers(userIds: List<Long>): List<UserEntity> {
         val uniqueUserIds = userIds.distinct()
-        val users = userRepository.findAllById(uniqueUserIds)
+        val users = userRepository.findAllByIdInAndIsDeletedFalse(uniqueUserIds)
         if (users.size != uniqueUserIds.size) {
             throw CustomException(UserError.USER_NOT_FOUND)
         }

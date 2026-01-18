@@ -40,7 +40,7 @@ class TeacherAttendanceService(
     private val userRepository: UserRepository
 ) {
     fun updateStudentStatus(request: UpdateStatusRequest) {
-        val user = userRepository.findByIdOrNull(request.userId)
+        val user = userRepository.findByIdAndIsDeletedFalse(request.userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
 
         val status = attendanceTypeService.getAttendanceTypeEntityById(request.statusId)

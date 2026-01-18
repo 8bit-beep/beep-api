@@ -74,6 +74,7 @@ class AttendanceQueryRepository(
 
         val whereBuilder = BooleanBuilder()
         whereBuilder.and(userEntity.role.eq(UserRole.STUDENT))
+        whereBuilder.and(userEntity.isDeleted.eq(false))
 
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }

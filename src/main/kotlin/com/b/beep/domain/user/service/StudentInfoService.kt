@@ -19,7 +19,7 @@ class StudentInfoService(
     fun getOrCreateUser(dodamUser: DAuthUser): UserEntity {
         val email = dodamUser.email
 
-        return userRepository.findByEmail(email) ?: run {
+        return userRepository.findByEmailAndIsDeletedFalse(email) ?: run {
             val newUser = UserEntity(
                 email = email,
                 username = dodamUser.name,
@@ -33,7 +33,7 @@ class StudentInfoService(
     fun getOrCreateUser(dodamUser: DAuthUserResponse): UserEntity {
         val email = dodamUser.data.email
 
-        return userRepository.findByEmail(email) ?: run {
+        return userRepository.findByEmailAndIsDeletedFalse(email) ?: run {
             val newUser = UserEntity(
                 email = email,
                 username = dodamUser.data.name,

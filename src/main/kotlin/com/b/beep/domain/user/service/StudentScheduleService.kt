@@ -35,7 +35,7 @@ class StudentScheduleService(
     private val userRepository: UserRepository,
 ) {
     fun createSchedule(request: CreateStudentScheduleRequest) {
-        val user = userRepository.findByIdOrNull(request.userId)
+        val user = userRepository.findByIdAndIsDeletedFalse(request.userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
         val room = getRoomEntity(request.roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
@@ -116,7 +116,7 @@ class StudentScheduleService(
 
     @Transactional(readOnly = true)
     fun getSchedulesByUserId(userId: Long): List<StudentScheduleResponse> {
-        val user = userRepository.findByIdOrNull(userId)
+        val user = userRepository.findByIdAndIsDeletedFalse(userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
         return studentScheduleRepository.findAllByUser(user).map { StudentScheduleResponse.of(it) }
     }

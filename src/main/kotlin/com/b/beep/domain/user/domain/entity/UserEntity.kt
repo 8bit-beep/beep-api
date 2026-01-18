@@ -21,5 +21,8 @@ class UserEntity(
     val role: UserRole,
 
     @Column(name = "profile_image", nullable = true)
-    var profileImage: String? = null
+    var profileImage: String? = null,
+
+    @Column(nullable = false)
+    var isDeleted: Boolean = false
 ) : BaseEntity()

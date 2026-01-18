@@ -24,6 +24,7 @@ class StudentQueryRepository(
         val user = QUserEntity.userEntity
 
         val whereBuilder = BooleanBuilder()
+        whereBuilder.and(user.isDeleted.eq(false))
 
         grade?.let { whereBuilder.and(studentInfo.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfo.classNumber.eq(it)) }
