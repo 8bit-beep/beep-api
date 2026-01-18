@@ -32,7 +32,6 @@ import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -199,7 +198,7 @@ class AbsenceService(
         overrideType: AttendanceTypeEntity?
     ) {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val sleepoverType = attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.DEFAULT_TYPE_NAME)
+        val sleepoverType = attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.DEFAULT_ABSENCE_TYPE_NAME)
         var date = startDate
         while (!date.isAfter(endDate)) {
             if (!date.isBefore(today)) {
