@@ -38,19 +38,19 @@ class AttendanceCheckpointService(
 
     @Transactional(readOnly = true)
     fun getCheckpoints(): List<CheckpointResponse> {
-        return checkpointRepository.findAll().map { CheckpointResponse.of(it) }
+        return checkpointRepository.findAllByIsDeletedFalse().map { CheckpointResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
     fun getCheckpoint(checkPointId: Long): CheckpointResponse {
-        val entity = getCheckpointEntity(checkPointId)
+        val entity = checkpointRepository.findByIdAndIsDeletedFalse(checkPointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
         return CheckpointResponse.of(entity)
     }
 
     fun updateCheckpoint(checkPointId: Long, request: UpdateCheckpointRequest) {
-        val checkpoint = getCheckpointEntity(checkPointId)
+        val checkpoint = checkpointRepository.findByIdAndIsDeletedFalse(checkPointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
         val newStartAt = request.startAt ?: checkpoint.startAt
@@ -67,14 +67,14 @@ class AttendanceCheckpointService(
     }
 
     fun deleteCheckpoint(checkPointId: Long) {
-        val checkpoint = getCheckpointEntity(checkPointId)
+        val checkpoint = checkpointRepository.findByIdAndIsDeletedFalse(checkPointId)
             ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
 
         if (isCheckpointInUse(checkpoint)) {
             throw CustomException(CheckpointError.CHECKPOINT_IN_USE)
         }
 
-        checkpointRepository.delete(checkpoint)
+        checkpoint.isDeleted = true
     }
 
     private fun isCheckpointInUse(checkpoint: AttendanceCheckpointEntity): Boolean {
@@ -84,7 +84,7 @@ class AttendanceCheckpointService(
     }
 
     private fun validateTimeOverlap(startAt: LocalTime, endAt: LocalTime, excludeId: Long?) {
-        val existing = checkpointRepository.findAll()
+        val existing = checkpointRepository.findAllByIsDeletedFalse()
             .filter { excludeId == null || it.id != excludeId }
 
         for (checkpoint in existing) {

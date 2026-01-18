@@ -22,4 +22,7 @@ class AttendanceCheckpointEntity(
 
     @Column(name = "attendance_end_at")
     var attendanceEndAt: LocalTime,
+
+    @Column(nullable = false)
+    var isDeleted: Boolean = false
 )
