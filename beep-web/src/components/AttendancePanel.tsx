@@ -9,7 +9,7 @@ export function AttendancePanel() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState({ grade: '', classNumber: '', roomId: '', statusId: '' });
+  const [filters, setFilters] = useState({ grade: '', classNumber: '', roomId: '', statusId: '', isCurrentCheckpoint: 'true' });
   const [selectedStudent, setSelectedStudent] = useState<AttendanceStudent | null>(null);
   const [selectedCheckpointId, setSelectedCheckpointId] = useState<number | null>(null);
   const [selectedStatusId, setSelectedStatusId] = useState<string>('');
@@ -27,6 +27,7 @@ export function AttendancePanel() {
         statusId?: number;
         grade?: number;
         classNumber?: number;
+        isCurrentCheckpoint?: boolean;
         page: number;
         size: number;
       } = { page, size: 20 };
@@ -34,6 +35,7 @@ export function AttendancePanel() {
       if (filters.classNumber) params.classNumber = Number(filters.classNumber);
       if (filters.roomId) params.roomId = Number(filters.roomId);
       if (filters.statusId) params.statusId = Number(filters.statusId);
+      if (filters.isCurrentCheckpoint) params.isCurrentCheckpoint = filters.isCurrentCheckpoint === 'true';
 
       const data = await attendanceApi.getAll(params);
       if (data) {
@@ -103,11 +105,15 @@ export function AttendancePanel() {
               <option key={room.id} value={room.id}>{room.name}</option>
             ))}
           </select>
-          <select value={filters.statusId} onChange={(e) => setFilters({ ...filters, statusId: e.target.value })} onKeyDown={handleKeyDown}>
+          <select value={filters.statusId} onChange={(e) => setFilters({ ...filters, statusId: e.target.value })}>
             <option value="">전체 상태</option>
             {types.map(type => (
               <option key={type.id} value={type.id}>{type.name}</option>
             ))}
+          </select>
+          <select value={filters.isCurrentCheckpoint} onChange={(e) => setFilters({ ...filters, isCurrentCheckpoint: e.target.value })} onKeyDown={handleKeyDown}>
+            <option value="true">현재 체크포인트</option>
+            <option value="false">전체 체크포인트</option>
           </select>
           <button
             onClick={handleSearch}

@@ -93,6 +93,7 @@ export const checkpointApi = {
 
 export const scheduleApi = {
   getAll: () => request<import('../types').Schedule[]>('/schedules/my'),
+  getByUserId: (userId: number) => request<import('../types').Schedule[]>(`/schedules?userId=${userId}`),
   create: (data: import('../types').CreateScheduleRequest) =>
     request<void>('/schedules', {
       method: 'POST',
@@ -150,6 +151,7 @@ export const attendanceApi = {
     if (params?.statusId) searchParams.append('statusId', String(params.statusId));
     if (params?.grade) searchParams.append('grade', String(params.grade));
     if (params?.classNumber) searchParams.append('classNumber', String(params.classNumber));
+    if (params?.isCurrentCheckpoint !== undefined) searchParams.append('isCurrentCheckpoint', String(params.isCurrentCheckpoint));
     if (params?.page !== undefined) searchParams.append('page', String(params.page));
     if (params?.size) searchParams.append('size', String(params.size));
     const query = searchParams.toString();

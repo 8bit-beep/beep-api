@@ -58,6 +58,7 @@ export interface Schedule {
 }
 
 export interface CreateScheduleRequest {
+  userId: number;
   dayOfWeek: DayOfWeek;
   checkpointId: number;
   typeId: number;
@@ -151,6 +152,7 @@ export interface AttendanceSearchParams {
   statusId?: number;
   grade?: number;
   classNumber?: number;
+  isCurrentCheckpoint?: boolean;
   page?: number;
   size?: number;
 }

@@ -6,6 +6,7 @@ import com.b.beep.domain.shift.domain.enums.ShiftStatus
 import com.b.beep.domain.shift.service.TeacherShiftService
 import jakarta.validation.constraints.Positive
 import org.springframework.validation.annotation.Validated
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @Validated
@@ -15,11 +16,13 @@ class TeacherShiftController(
     private val teacherShiftService: TeacherShiftService,
 ) : TeacherShiftDocs {
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     override fun getShifts(): List<ShiftResponse> {
         return teacherShiftService.getAll()
     }
 
     @PatchMapping("/{shiftId}/status")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     override fun updateShiftStatus(
         @PathVariable @Positive(message = "이석 ID는 양수여야 합니다") shiftId: Long,
         @RequestParam status: ShiftStatus
