@@ -5,15 +5,15 @@ import com.b.beep.domain.memo.controller.dto.request.UpdateMemoRequest
 import com.b.beep.domain.memo.controller.dto.response.MemoResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.RequestBody
+import jakarta.validation.Valid
 
 @Tag(name = "메모")
 interface MemoDocs {
     @Operation(summary = "메모 생성")
-    fun createMemo(@RequestBody request: CreateMemoRequest)
+    fun createMemo(@Valid request: CreateMemoRequest)
 
     @Operation(summary = "메모 수정")
-    fun updateMemo(@RequestBody request: UpdateMemoRequest)
+    fun updateMemo(@Valid request: UpdateMemoRequest)
 
     @Operation(summary = "메모 조회")
     fun getMemo(): MemoResponse

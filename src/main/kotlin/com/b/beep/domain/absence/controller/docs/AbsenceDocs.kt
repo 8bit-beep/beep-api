@@ -8,9 +8,9 @@ import com.b.beep.domain.absence.controller.dto.response.UpdateAbsenceResponse
 import com.b.beep.global.common.dto.PageResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Positive
 import org.springframework.data.domain.Pageable
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
 
 @Tag(name = "장기결석", description = "장기결석 API")
 interface AbsenceDocs {
@@ -25,7 +25,7 @@ interface AbsenceDocs {
               - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
         """
     )
-    fun createAbsence(@RequestBody request: CreateAbsenceRequest): CreateAbsenceResponse
+    fun createAbsence(@Valid request: CreateAbsenceRequest): CreateAbsenceResponse
 
     @Operation(summary = "모든 장기결석 조회")
     fun getAbsences(pageable: Pageable): PageResponse<AbsenceResponse>
@@ -40,8 +40,8 @@ interface AbsenceDocs {
               - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
         """
     )
-    fun updateAbsence(@PathVariable absenceId: Long, @RequestBody request: UpdateAbsenceRequest): UpdateAbsenceResponse
+    fun updateAbsence(@Positive(message = "결석 ID는 양수여야 합니다") absenceId: Long, @Valid request: UpdateAbsenceRequest): UpdateAbsenceResponse
 
     @Operation(summary = "장기결석 삭제")
-    fun deleteAbsence(@PathVariable absenceId: Long)
+    fun deleteAbsence(@Positive(message = "부재 ID는 양수여야 합니다") absenceId: Long)
 }
