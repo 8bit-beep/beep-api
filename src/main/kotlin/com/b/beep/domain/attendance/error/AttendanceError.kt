@@ -11,4 +11,5 @@ enum class AttendanceError(override val status: HttpStatus, override val message
     NOT_EXISTS_ATTEND_TYPE(HttpStatus.NOT_FOUND, "출석하려는 타입이 등록되지 않았습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 교시에 스케줄이 등록되지 않았습니다."),
     TIME_UNAVAILABLE(HttpStatus.BAD_REQUEST, "출석할 수 없는 시간입니다."),
+    CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "동시 요청으로 인해 처리할 수 없습니다. 다시 시도해주세요."),
 }
