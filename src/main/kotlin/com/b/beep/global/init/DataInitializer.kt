@@ -59,9 +59,9 @@ class DataInitializer(
 
     private fun createAttendanceTypes() {
         val typeNames = listOf(
-            "CLUB", "CLASS", "NOT_ATTEND", "SLEEPOVER", "OUTGOING", "FIELD_PRACTICE",
-            "NARSHA", "AFTER_SCHOOL", "SHIFT_ATTEND", "OTHER", "INDUSTRY",
-            "WINTER_CAMP_SELF_STUDY", "WINTER_CAMP_LECTURE"
+            "동아리", "교실자습", "미출석", "외박", "외출",
+            "현장실습", "나르샤", "방과후", "실이동", "기타",
+            "산학"
         )
 
         typeNames.forEach { name ->
@@ -183,7 +183,7 @@ class DataInitializer(
             DayOfWeek.THURSDAY
         )
 
-        val clubType = typeRepository.findByNameAndIsDeletedFalse("CLUB")!!
+        val clubType = typeRepository.findByNameAndIsDeletedFalse("동아리")!!
 
         students.forEach { student ->
             val room = rooms[student.id!!.toInt() % rooms.size]
