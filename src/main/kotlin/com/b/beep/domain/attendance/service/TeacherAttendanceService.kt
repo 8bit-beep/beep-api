@@ -6,6 +6,7 @@ import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeRespon
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
@@ -47,6 +48,11 @@ class TeacherAttendanceService(
         val targetCheckpoint = request.checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
             ?: checkpointResolver.getCurrentCheckpoint()
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(targetCheckpoint, user, targetDate)
+
+        if (status.name == AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {
+            attendance?.let { attendanceRepository.delete(it) }
+            return
+        }
 
         if (attendance != null) {
             attendance.type = status

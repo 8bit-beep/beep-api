@@ -1,6 +1,7 @@
 package com.b.beep.domain.attendance.scheduler
 
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.repository.AttendanceTypeRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
@@ -108,7 +109,7 @@ class AttendanceExcelScheduler(
                 num = studentInfo.num,
                 name = studentInfo.user.username,
                 statuses = checkpoints.map { cp ->
-                    attendanceByCheckpoint[cp.id]?.type?.name ?: "미출석"
+                    attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
                 }
             )
         }
@@ -272,7 +273,7 @@ class AttendanceExcelScheduler(
                     studentNumber = studentNumber,
                     name = user.username,
                     statuses = checkpoints.map { cp ->
-                        attendanceByCheckpoint[cp.id]?.type?.name ?: "미출석"
+                        attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
                     }
                 )
             }.sortedBy { it.studentNumber }
