@@ -1,5 +1,6 @@
 package com.b.beep.domain.shift.service
 
+import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
@@ -36,6 +37,7 @@ class StudentShiftService(
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val roomRepository: RoomRepository,
     private val studentInfoRepository: StudentInfoRepository,
+    private val attendanceRepository: AttendanceRepository,
 ) {
     @Transactional
     fun createShift(request: CreateShiftRequest) {
@@ -102,6 +104,11 @@ class StudentShiftService(
 
         if (shiftRepository.existsByUserAndDateAndCheckpointAndIdNot(shift.user, shift.date, shift.checkpoint, id))
             throw CustomException(ShiftError.SHIFT_ALREADY_EXISTS)
+
+        if (shift.status == ShiftStatus.APPROVED) {
+            attendanceRepository.findByCheckpointAndUserAndDate(shift.checkpoint, shift.user, shift.date)
+                ?.let { attendanceRepository.delete(it) }
+        }
 
         shift.status = ShiftStatus.WAITING
 
