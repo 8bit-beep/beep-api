@@ -19,8 +19,5 @@ data class UpdateAbsenceRequest(
     val reason: String,
 
     @field:Valid
-    val checkpoints: List<CheckpointSetting>? = null,
-
-    @field:Positive(message = "출석 타입 ID는 양수여야 합니다")
-    val typeId: Long? = null
+    val checkpoints: List<CheckpointSetting>? = null
 )
