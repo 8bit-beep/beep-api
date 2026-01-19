@@ -1,23 +1,26 @@
 package com.b.beep.domain.auth.controller
 
-import com.b.beep.domain.auth.controller.docs.AuthDocs
 import com.b.beep.domain.auth.controller.dto.request.RefreshTokenRequest
 import com.b.beep.domain.auth.service.AuthService
 import com.b.beep.global.security.jwt.dto.response.TokenResponse
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
+@Tag(name = "인증", description = "인증 관련 API")
 @Validated
 @RestController
 @RequestMapping("/auth")
 class AuthController(
     private val authService: AuthService
-) : AuthDocs {
+) {
+    @Operation(summary = "토큰 재발급", description = "RefreshToken을 사용하여 새로운 AccessToken과 RefreshToken을 발급합니다.")
     @PostMapping("/refresh")
     @ResponseStatus(HttpStatus.OK)
-    override fun refresh(@Valid @RequestBody request: RefreshTokenRequest): TokenResponse {
+    fun refresh(@Valid @RequestBody request: RefreshTokenRequest): TokenResponse {
         return authService.refresh(request.refreshToken)
     }
 }

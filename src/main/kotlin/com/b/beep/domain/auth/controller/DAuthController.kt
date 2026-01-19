@@ -1,24 +1,27 @@
 package com.b.beep.domain.auth.controller
 
-import com.b.beep.domain.auth.controller.docs.DAuthDocs
 import com.b.beep.domain.auth.controller.dto.request.LoginRequest
 import com.b.beep.domain.auth.controller.dto.response.TestResponse
 import com.b.beep.domain.auth.service.DAuthService
 import com.b.beep.global.security.jwt.dto.response.TokenResponse
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 
+@Tag(name = "도담 로그인", description = "도담 OAuth 로그인 API")
 @RestController
 @RequestMapping("/dauth")
 class DAuthController(
     private val dauthService: DAuthService,
-) : DAuthDocs {
+) {
+    @Operation(summary = "로그인", description = "도담 OAuth를 통해 로그인합니다.")
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    override fun login(@RequestBody request: LoginRequest): TokenResponse =
+    fun login(@RequestBody request: LoginRequest): TokenResponse =
         dauthService.login(request)
 
     @GetMapping("/home")
