@@ -216,37 +216,47 @@ class AbsenceService(
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val sleepoverType =
             attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.DEFAULT_ABSENCE_TYPE_NAME)
-        var date = startDate
-        while (!date.isAfter(endDate)) {
-            if (!date.isBefore(today)) {
-                for (user in users) {
-                    val schedules = studentScheduleRepository.findAllByUserAndDayOfWeek(user, date.dayOfWeek)
-                    val scheduleByCheckpoint = schedules.associateBy { it.checkpoint.id }
 
-                    for (checkpoint in checkpoints) {
-                        val schedule = scheduleByCheckpoint[checkpoint.id]
-                        val attendanceType = overrideType ?: schedule?.type ?: sleepoverType
+        val datesToProcess = generateSequence(startDate) { it.plusDays(1) }
+            .takeWhile { !it.isAfter(endDate) }
+            .filter { !it.isBefore(today) }
+            .toList()
 
-                        val existing = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
-                        if (existing != null) {
-                            attendanceRepository.delete(existing)
-                        }
+        if (datesToProcess.isEmpty()) return
 
-                        attendanceRepository.save(
-                            AttendanceEntity(
-                                user = user,
-                                checkpoint = checkpoint,
-                                date = date,
-                                type = attendanceType,
-                                room = schedule?.room,
-                                absence = absence
-                            )
-                        )
+        val dayOfWeeks = datesToProcess.map { it.dayOfWeek }.distinct()
+
+        val allSchedules = studentScheduleRepository.findAllByUserInAndDayOfWeekIn(users, dayOfWeeks)
+            .groupBy { Triple(it.user.id, it.checkpoint.id, it.dayOfWeek) }
+
+        val attendancesToSave = mutableListOf<AttendanceEntity>()
+
+        for (date in datesToProcess) {
+            for (user in users) {
+                for (checkpoint in checkpoints) {
+                    val schedule = allSchedules[Triple(user.id, checkpoint.id, date.dayOfWeek)]?.firstOrNull()
+                    val attendanceType = overrideType ?: schedule?.type ?: sleepoverType
+
+                    val existing = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
+                    if (existing != null) {
+                        attendanceRepository.delete(existing)
                     }
+
+                    attendancesToSave.add(
+                        AttendanceEntity(
+                            user = user,
+                            checkpoint = checkpoint,
+                            date = date,
+                            type = attendanceType,
+                            room = schedule?.room,
+                            absence = absence
+                        )
+                    )
                 }
             }
-            date = date.plusDays(1)
         }
+
+        attendanceRepository.saveAll(attendancesToSave)
     }
 
     private fun AbsenceEntity.toResponse(): AbsenceResponse {
