@@ -44,13 +44,13 @@ class AttendanceExcelScheduler(
     private val s3Client: S3Client,
     @Value("\${cloud.aws.s3.bucket}") private val bucket: String
 ) {
-    @Scheduled(cron = "0 12 13 * * *")
+@Scheduled(cron = "0 10 14 * * *")
     fun generateDailyAttendanceExcel() {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = DayOfWeek.MONDAY // TODO: today.dayOfWeek
-        val checkpoints = checkpointRepository.findAllByIsDeletedFalse().sortedBy { it.id }
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalse().sortedBy { it.startAt }
         val attendanceTypes = attendanceTypeRepository.findAllByIsDeletedFalse().map { it.name }
-        val allStudents = studentInfoRepository.findAll()
+        val allStudents = studentInfoRepository.findAllByUserIsDeletedFalse()
         val attendances = attendanceRepository.findAllByDate(today)
         val schedules = studentScheduleRepository.findAllByDayOfWeek(dayOfWeek)
         val rooms = roomRepository.findAllByIsDeletedFalse()

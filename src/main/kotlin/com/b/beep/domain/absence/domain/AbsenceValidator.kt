@@ -14,7 +14,7 @@ class AbsenceValidator(
     fun validateDateRange(startDate: LocalDate, endDate: LocalDate) {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         if (startDate.isBefore(today)) {
-            throw CustomException(AbsenceError.INVALID_DATE_RANGE)
+            throw CustomException(AbsenceError.START_DATE_IN_PAST)
         }
         if (startDate.isAfter(endDate)) {
             throw CustomException(AbsenceError.INVALID_DATE_RANGE)

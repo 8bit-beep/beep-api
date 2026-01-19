@@ -1,5 +1,6 @@
 package com.b.beep.domain.absence.domain.entity
 
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import jakarta.persistence.*
 
@@ -15,5 +16,9 @@ class AbsenceCheckpointEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "absence_id")
-    val absence: AbsenceEntity
+    val absence: AbsenceEntity,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id")
+    val type: AttendanceTypeEntity? = null
 )

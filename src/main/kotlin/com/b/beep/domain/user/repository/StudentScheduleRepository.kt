@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.time.DayOfWeek
 
 interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long> {
+    fun findAllByUserOrderByDayOfWeekAscCheckpointStartAtAsc(user: UserEntity): List<StudentScheduleEntity>
     fun findAllByUser(user: UserEntity): List<StudentScheduleEntity>
     fun findAllByUserAndDayOfWeek(user: UserEntity, dayOfWeek: DayOfWeek): List<StudentScheduleEntity>
     fun findByUserAndDayOfWeekAndCheckpoint(
@@ -32,4 +33,5 @@ interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long>
     fun existsByCheckpoint(checkpoint: AttendanceCheckpointEntity): Boolean
 
     fun findAllByDayOfWeek(dayOfWeek: DayOfWeek): List<StudentScheduleEntity>
+    fun findAllByUserInAndDayOfWeekIn(users: List<UserEntity>, dayOfWeeks: List<DayOfWeek>): List<StudentScheduleEntity>
 }

@@ -24,6 +24,8 @@ class AttendanceCheckpointService(
     private val studentScheduleRepository: StudentScheduleRepository
 ) {
     fun createCheckpoint(request: CreateCheckpointRequest) {
+        validateTimeRange(request.startAt, request.endAt)
+        validateTimeRange(request.attendanceStartAt, request.attendanceEndAt)
         validateTimeOverlap(request.startAt, request.endAt, excludeId = null)
 
         checkpointRepository.save(
@@ -39,7 +41,7 @@ class AttendanceCheckpointService(
 
     @Transactional(readOnly = true)
     fun getCheckpoints(): List<CheckpointResponse> {
-        return checkpointRepository.findAllByIsDeletedFalse().map { CheckpointResponse.of(it) }
+        return checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc().map { CheckpointResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
@@ -56,6 +58,11 @@ class AttendanceCheckpointService(
 
         val newStartAt = request.startAt ?: checkpoint.startAt
         val newEndAt = request.endAt ?: checkpoint.endAt
+        val newAttendanceStartAt = request.attendanceStartAt ?: checkpoint.attendanceStartAt
+        val newAttendanceEndAt = request.attendanceEndAt ?: checkpoint.attendanceEndAt
+
+        validateTimeRange(newStartAt, newEndAt)
+        validateTimeRange(newAttendanceStartAt, newAttendanceEndAt)
         validateTimeOverlap(newStartAt, newEndAt, excludeId = checkPointId)
 
         request.name?.let { checkpoint.name = it }
@@ -82,6 +89,12 @@ class AttendanceCheckpointService(
         return attendanceRepository.existsByCheckpoint(checkpoint) ||
                 shiftRepository.existsByCheckpoint(checkpoint) ||
                 studentScheduleRepository.existsByCheckpoint(checkpoint)
+    }
+
+    private fun validateTimeRange(startAt: LocalTime, endAt: LocalTime) {
+        if (startAt >= endAt) {
+            throw CustomException(CheckpointError.INVALID_TIME_RANGE)
+        }
     }
 
     private fun validateTimeOverlap(startAt: LocalTime, endAt: LocalTime, excludeId: Long?) {

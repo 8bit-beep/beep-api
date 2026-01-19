@@ -1,5 +1,6 @@
 package com.b.beep.global.exception
 
+import jakarta.validation.ConstraintViolationException
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpRequestMethodNotSupportedException
@@ -37,6 +38,19 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(
             ErrorResponse(
                 code = "METHOD_ARGUMENT_NOT_VALID",
+                status = 400,
+                message = message
+            )
+        )
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleConstraintViolationException(e: ConstraintViolationException): ResponseEntity<ErrorResponse> {
+        val message = e.constraintViolations.firstOrNull()?.message
+            ?: "검증 오류가 발생했습니다."
+        return ResponseEntity.badRequest().body(
+            ErrorResponse(
+                code = "CONSTRAINT_VIOLATION",
                 status = 400,
                 message = message
             )

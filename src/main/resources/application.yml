@@ -17,16 +17,6 @@ spring:
         use_sql_comments: true
   upload:
     dir: ${UPLOAD_DIR}
-  mail:
-    username: ${MAIL_USER}
-    password: ${MAIL_PW}
-    host: smtp.gmail.com
-    port: 587
-    properties:
-      mail:
-        smtp.auth: true
-        smtp.timeout: 50000
-        smtp.starttls.enable: true
   security:
     oauth2:
       client:

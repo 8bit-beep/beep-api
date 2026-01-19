@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.time.LocalDate
 
 interface ShiftRepository : JpaRepository<ShiftEntity, Long> {
+    fun findAllByUserAndDateOrderByCheckpointStartAtAsc(user: UserEntity, date: LocalDate): List<ShiftEntity>
     fun findAllByUserAndDate(user: UserEntity, date: LocalDate): List<ShiftEntity>
     fun existsByUserAndDateAndCheckpoint(
         user: UserEntity,
@@ -22,6 +23,8 @@ interface ShiftRepository : JpaRepository<ShiftEntity, Long> {
     ): Boolean
 
     fun findAllByDateGreaterThanEqual(date: LocalDate): List<ShiftEntity>
+    fun findAllByDateGreaterThanEqualOrderByDateAscCheckpointStartAtAsc(date: LocalDate): List<ShiftEntity>
+    fun findAllByUserAndDateGreaterThanEqualOrderByDateAscCheckpointStartAtAsc(user: UserEntity, date: LocalDate): List<ShiftEntity>
     fun deleteByDateBefore(date: LocalDate)
     fun existsByCheckpoint(checkpoint: AttendanceCheckpointEntity): Boolean
 }

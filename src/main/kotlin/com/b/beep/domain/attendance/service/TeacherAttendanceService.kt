@@ -83,7 +83,7 @@ class TeacherAttendanceService(
         pageable: Pageable
     ): Page<AttendanceStudentResponse> {
         val room = roomId?.let {
-            roomRepository.findByIdOrNull(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+            roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }
         val status = statusId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
         val users = attendanceQueryRepository.findAllByFilters(

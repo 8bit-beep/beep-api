@@ -45,6 +45,7 @@ class AttendanceTypeService(
 
     fun deleteType(id: Long) {
         val entity = getAttendanceTypeEntityById(id)
+        entity.name = "${entity.name}_deleted_${entity.id}"
         entity.isDeleted = true
     }
 

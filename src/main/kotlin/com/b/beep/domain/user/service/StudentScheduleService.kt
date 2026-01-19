@@ -111,14 +111,14 @@ class StudentScheduleService(
     @Transactional(readOnly = true)
     fun getMySchedules(): List<StudentScheduleResponse> {
         val user = contextHolder.user
-        return studentScheduleRepository.findAllByUser(user).map { StudentScheduleResponse.of(it) }
+        return studentScheduleRepository.findAllByUserOrderByDayOfWeekAscCheckpointStartAtAsc(user).map { StudentScheduleResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
     fun getSchedulesByUserId(userId: Long): List<StudentScheduleResponse> {
         val user = userRepository.findByIdAndIsDeletedFalse(userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
-        return studentScheduleRepository.findAllByUser(user).map { StudentScheduleResponse.of(it) }
+        return studentScheduleRepository.findAllByUserOrderByDayOfWeekAscCheckpointStartAtAsc(user).map { StudentScheduleResponse.of(it) }
     }
 
     private fun getScheduleEntityOrThrow(scheduleId: Long): StudentScheduleEntity {

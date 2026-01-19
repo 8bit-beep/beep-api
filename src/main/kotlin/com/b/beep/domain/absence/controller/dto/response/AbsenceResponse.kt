@@ -1,7 +1,5 @@
 package com.b.beep.domain.absence.controller.dto.response
 
-import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
-import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import java.time.LocalDate
 
 data class AbsenceResponse(
@@ -10,7 +8,6 @@ data class AbsenceResponse(
     val targetStudents: List<AbsenceStudentResponse>,
     val startDate: LocalDate,
     val endDate: LocalDate,
-    val checkpoints: List<CheckpointSimpleResponse>,
-    val reason: String,
-    val type: AttendanceTypeResponse?
+    val checkpoints: List<AbsenceCheckpointResponse>,
+    val reason: String
 )
