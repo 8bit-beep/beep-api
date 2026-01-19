@@ -7,6 +7,6 @@ enum class RoomError(
     override val status: HttpStatus,
     override val message: String
 ) : CustomError {
-    ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "Room not found"),
-    ROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "Room already exists")
+    ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "실을 찾을 수 없습니다."),
+    ROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 실입니다.")
 }

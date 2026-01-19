@@ -10,6 +10,6 @@ enum class JwtError(override val status: HttpStatus, override val message: Strin
     MALFORMED_TOKEN(HttpStatus.UNAUTHORIZED, "잘못된 토큰입니다."),
     INVALID_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 타입입니다."),
     INCORRECT_TOKEN(HttpStatus.UNAUTHORIZED, "잘못된 토큰입니다."),
-    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "존제하지 않는 리프레쉬 토큰입니다. 로그인 해주세요 "),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "존재하지 않는 리프레시 토큰입니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "리프레쉬 토큰이 저장된 토큰과 다릅니다."),
 }
