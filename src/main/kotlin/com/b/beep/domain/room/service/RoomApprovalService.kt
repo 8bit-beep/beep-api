@@ -59,7 +59,7 @@ class RoomApprovalService(
             .findAllByCheckpointAndDate(checkpoint, today)
             .associateBy { it.room.id }
 
-        val responses = roomRepository.findAllByIsDeletedFalse().map { room ->
+        val responses = roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc().map { room ->
             room.toResponse(approvalMap[room.id])
         }
 

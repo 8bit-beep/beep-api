@@ -70,7 +70,7 @@ class StudentShiftService(
     @Transactional(readOnly = true)
     fun getMyShifts(): List<ShiftResponse> {
         val user = contextHolder.user
-        return shiftRepository.findAllByUserAndDate(user, LocalDate.now(ZoneId.of("Asia/Seoul")))
+        return shiftRepository.findAllByUserAndDateOrderByCheckpointStartAtAsc(user, LocalDate.now(ZoneId.of("Asia/Seoul")))
             .map { it.toResponse() }
     }
 

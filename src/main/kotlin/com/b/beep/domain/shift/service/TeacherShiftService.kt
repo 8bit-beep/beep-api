@@ -34,7 +34,7 @@ class TeacherShiftService(
 ) {
     @Transactional(readOnly = true)
     fun getShifts(): List<ShiftResponse> {
-        return shiftRepository.findAllByDateGreaterThanEqual(LocalDate.now(ZoneId.of("Asia/Seoul")))
+        return shiftRepository.findAllByDateGreaterThanEqualOrderByDateAscCheckpointStartAtAsc(LocalDate.now(ZoneId.of("Asia/Seoul")))
             .map { it.toResponse() }
     }
 

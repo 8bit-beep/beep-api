@@ -32,7 +32,7 @@ class RoomService(
 
     @Transactional(readOnly = true)
     fun getRooms(): List<RoomResponse> {
-        return roomRepository.findAllByIsDeletedFalse().map { RoomResponse.of(it) }
+        return roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc().map { RoomResponse.of(it) }
     }
 
     @Transactional(readOnly = true)
@@ -55,6 +55,7 @@ class RoomService(
 
     fun deleteRoom(roomId: Long) {
         val room = getRoomEntityById(roomId)
+        room.name = "${room.name}_deleted_${room.id}"
         room.isDeleted = true
     }
 
