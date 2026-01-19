@@ -26,6 +26,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 @Component
+// TODO: 배포 전 테스트 Auth 코드 삭제, 등록 가능한 범위는 월~목, 해당 파일 삭제
 class DataInitializer(
     private val userRepository: UserRepository,
     private val studentInfoRepository: StudentInfoRepository,
