@@ -69,4 +69,4 @@ cloud:
       access-key: ${AWS_IAM_ACCESS}
 
 server:
-  port: 8085
+  port: 8080
