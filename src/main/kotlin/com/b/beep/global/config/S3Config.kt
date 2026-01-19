@@ -17,7 +17,7 @@ class S3Config(
 
     @Bean
     fun s3Client(): S3Client = S3Client.builder()
-        .region(Region.AP_NORTHEAST_2)
+        .region(Region.AP_SOUTHEAST_2)
         .credentialsProvider(
             StaticCredentialsProvider.create(
                 AwsBasicCredentials.create(accessKey, secretKey)
@@ -27,13 +27,12 @@ class S3Config(
 
     @Bean
     fun s3Presigner(): S3Presigner = S3Presigner.builder()
-        .region(Region.AP_NORTHEAST_2)
+        .region(Region.AP_SOUTHEAST_2)
         .credentialsProvider(
             StaticCredentialsProvider.create(
                 AwsBasicCredentials.create(accessKey, secretKey)
             )
         )
         .build()
-
 
 }
