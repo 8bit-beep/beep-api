@@ -80,7 +80,7 @@ class SecurityConfig(
 //                .requestMatchers("/checkpoints/**").hasRole("ADMIN")
 //                .requestMatchers("/types/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
 //
-//                .anyRequest().permitAll()
+                .anyRequest().permitAll()
         }
         .oauth2Login { oauth2 ->
             oauth2
