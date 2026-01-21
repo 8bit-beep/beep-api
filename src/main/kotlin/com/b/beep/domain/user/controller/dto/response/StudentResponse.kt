@@ -6,6 +6,7 @@ data class StudentResponse(
     val id: Long,
     val username: String,
     val email: String,
+    val profileImage: String?,
     val grade: Int,
     val classNumber: Int,
     val num: Int
@@ -16,6 +17,7 @@ data class StudentResponse(
                 id = entity.user.id!!,
                 username = entity.user.username,
                 email = entity.user.email,
+                profileImage = entity.user.profileImage,
                 grade = entity.grade,
                 classNumber = entity.classNumber,
                 num = entity.num
