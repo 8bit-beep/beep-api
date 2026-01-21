@@ -47,40 +47,40 @@ class SecurityConfig(
 
         .authorizeHttpRequests {
             it
-                .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/api-docs").permitAll()
-                .requestMatchers("/auth/**", "/dauth/**", "/test/**").permitAll()
-
-                .requestMatchers(HttpMethod.GET, "/users/my").authenticated()
-                .requestMatchers("/fcm/**").authenticated()
-
-                // STUDENT
-                .requestMatchers(HttpMethod.POST, "/attendances").hasRole("STUDENT")
-                .requestMatchers(HttpMethod.PATCH, "/attendances/cancel").hasRole("STUDENT")
-                .requestMatchers(HttpMethod.POST, "/shifts").hasRole("STUDENT")
-                .requestMatchers(HttpMethod.GET, "/shifts/my").hasRole("STUDENT")
-                .requestMatchers(HttpMethod.PATCH, "/shifts/{id}").hasRole("STUDENT")
-                .requestMatchers(HttpMethod.DELETE, "/shifts/{id}").hasRole("STUDENT")
-                .requestMatchers("/schedules/my", "/schedules/my/**").hasRole("STUDENT")
-
-                // TEACHER
-                .requestMatchers(HttpMethod.GET, "/attendances/**").hasRole("TEACHER")
-                .requestMatchers(HttpMethod.PATCH, "/attendances/**").hasRole("TEACHER")
-                .requestMatchers("/absences/**").hasRole("TEACHER")
-                .requestMatchers("/approvals/**").hasRole("TEACHER")
-                .requestMatchers("/memos/**").hasRole("TEACHER")
-                .requestMatchers("/schedules/**").hasRole("TEACHER")
-                .requestMatchers("/students/**").hasAnyRole("TEACHER", "ADMIN", "STUDENT")
-                .requestMatchers(HttpMethod.GET, "/shifts").hasAnyRole("TEACHER")
-                .requestMatchers(HttpMethod.PATCH, "/shifts/{id}/status").hasAnyRole("TEACHER")
-                .requestMatchers("/attendances/histories/**").hasAnyRole("TEACHER")
-
-                .requestMatchers("/rooms/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
-                .requestMatchers("/limited-users/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
-                .requestMatchers("/checkpoints/**").hasRole("ADMIN")
-                .requestMatchers("/types/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
-
-                .anyRequest().permitAll()
+//                .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/api-docs").permitAll()
+//                .requestMatchers("/auth/**", "/dauth/**", "/test/**").permitAll()
+//
+//                .requestMatchers(HttpMethod.GET, "/users/my").authenticated()
+//                .requestMatchers("/fcm/**").authenticated()
+//
+//                // STUDENT
+//                .requestMatchers(HttpMethod.POST, "/attendances").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.PATCH, "/attendances/cancel").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.POST, "/shifts").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.GET, "/shifts/my").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.PATCH, "/shifts/{id}").hasRole("STUDENT")
+//                .requestMatchers(HttpMethod.DELETE, "/shifts/{id}").hasRole("STUDENT")
+//                .requestMatchers("/schedules/my", "/schedules/my/**").hasRole("STUDENT")
+//
+//                // TEACHER
+//                .requestMatchers(HttpMethod.GET, "/attendances/**").hasRole("TEACHER")
+//                .requestMatchers(HttpMethod.PATCH, "/attendances/**").hasRole("TEACHER")
+//                .requestMatchers("/absences/**").hasRole("TEACHER")
+//                .requestMatchers("/approvals/**").hasRole("TEACHER")
+//                .requestMatchers("/memos/**").hasRole("TEACHER")
+//                .requestMatchers("/schedules/**").hasRole("TEACHER")
+//                .requestMatchers("/students/**").hasAnyRole("TEACHER", "ADMIN")
+//                .requestMatchers(HttpMethod.GET, "/shifts").hasAnyRole("TEACHER")
+//                .requestMatchers(HttpMethod.PATCH, "/shifts/{id}/status").hasAnyRole("TEACHER")
+//                .requestMatchers("/attendances/histories/**").hasAnyRole("TEACHER")
+//
+//                .requestMatchers("/rooms/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
+//                .requestMatchers("/limited-users/**").hasRole("ADMIN")
+//                .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
+//                .requestMatchers("/checkpoints/**").hasRole("ADMIN")
+//                .requestMatchers("/types/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
+//
+//                .anyRequest().permitAll()
         }
         .oauth2Login { oauth2 ->
             oauth2
