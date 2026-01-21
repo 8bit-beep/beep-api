@@ -7,9 +7,7 @@ data class StudentResponse(
     val username: String,
     val email: String,
     val profileImage: String?,
-    val grade: Int,
-    val classNumber: Int,
-    val num: Int
+    val studentInfo: StudentInfoResponse
 ) {
     companion object {
         fun of(entity: StudentInfoEntity): StudentResponse {
@@ -18,9 +16,7 @@ data class StudentResponse(
                 username = entity.user.username,
                 email = entity.user.email,
                 profileImage = entity.user.profileImage,
-                grade = entity.grade,
-                classNumber = entity.classNumber,
-                num = entity.num
+                studentInfo = StudentInfoResponse.of(entity)
             )
         }
     }
