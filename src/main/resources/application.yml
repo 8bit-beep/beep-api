@@ -69,4 +69,5 @@ cloud:
       access-key: ${AWS_IAM_ACCESS}
 
 server:
+  forward-headers-strategy: framework
   port: 8080

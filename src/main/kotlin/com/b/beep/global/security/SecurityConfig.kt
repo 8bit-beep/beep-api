@@ -97,7 +97,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
         registerCorsConfiguration("/**", CorsConfiguration().apply {
-            allowedOriginPatterns = listOf("http://localhost:5173", "http://localhost:8085", "https://beep.cher1shrxd.me", "https://dev-beep.cher1shrxd.me","http://localhost:3000")
+            allowedOriginPatterns = listOf("http://localhost:5173", "http://localhost:8085", "https://beep.cher1shrxd.me", "https://dev-beep.cher1shrxd.me","https://teacher.8beep.site","http://localhost:3000","https://admin.8beep.site")
             allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD")
             allowedHeaders = listOf("*")
             allowCredentials = true
