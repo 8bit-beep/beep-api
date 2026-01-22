@@ -88,7 +88,7 @@ class RoomServiceTest {
                 createRoomEntity(id = 2L, name = "Room B")
             )
 
-            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(rooms)
+            `when`(roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc()).thenReturn(rooms)
 
             val result = roomService.getRooms()
 
@@ -100,7 +100,7 @@ class RoomServiceTest {
         @Test
         @DisplayName("빈 목록")
         fun emptyList() {
-            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<RoomEntity>())
+            `when`(roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc()).thenReturn(emptyList<RoomEntity>())
 
             val result = roomService.getRooms()
 
