@@ -19,8 +19,6 @@ import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -79,9 +77,8 @@ class TeacherAttendanceService(
         statusId: Long?,
         grade: Int?,
         classNumber: Int?,
-        isCurrentCheckpoint: Boolean = true,
-        pageable: Pageable
-    ): Page<AttendanceStudentResponse> {
+        isCurrentCheckpoint: Boolean = true
+    ): List<AttendanceStudentResponse> {
         val room = roomId?.let {
             roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }
@@ -91,8 +88,7 @@ class TeacherAttendanceService(
             status = status,
             grade = grade,
             classNumber = classNumber,
-            isCurrentCheckpoint = isCurrentCheckpoint,
-            pageable = pageable
+            isCurrentCheckpoint = isCurrentCheckpoint
         )
 
         return users.map { it.toResponse() }
