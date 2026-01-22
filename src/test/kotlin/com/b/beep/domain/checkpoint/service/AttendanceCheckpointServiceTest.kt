@@ -153,7 +153,7 @@ class AttendanceCheckpointServiceTest {
                 createCheckpointEntity(id = 2L, name = "2교시")
             )
 
-            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(checkpoints)
+            `when`(checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc()).thenReturn(checkpoints)
 
             val result = checkpointService.getCheckpoints()
 
@@ -163,7 +163,7 @@ class AttendanceCheckpointServiceTest {
         @Test
         @DisplayName("빈 목록")
         fun emptyList() {
-            `when`(checkpointRepository.findAllByIsDeletedFalse()).thenReturn(emptyList<AttendanceCheckpointEntity>())
+            `when`(checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc()).thenReturn(emptyList<AttendanceCheckpointEntity>())
 
             val result = checkpointService.getCheckpoints()
 

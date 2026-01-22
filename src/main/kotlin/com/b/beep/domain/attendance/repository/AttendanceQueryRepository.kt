@@ -12,9 +12,6 @@ import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.time.ZoneId
@@ -41,9 +38,8 @@ class AttendanceQueryRepository(
         status: AttendanceTypeEntity? = null,
         grade: Int? = null,
         classNumber: Int? = null,
-        isCurrentCheckpoint: Boolean = true,
-        pageable: Pageable
-    ): Page<UserEntity> {
+        isCurrentCheckpoint: Boolean = true
+    ): List<UserEntity> {
         val userEntity = QUserEntity.userEntity
         val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
@@ -102,31 +98,8 @@ class AttendanceQueryRepository(
             }
         }
 
-        val content = query
+        return query
             .where(whereBuilder)
-            .offset(pageable.offset)
-            .limit(pageable.pageSize.toLong())
             .fetch()
-
-        val countQuery = queryFactory
-            .select(userEntity.countDistinct())
-            .from(userEntity)
-            .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
-
-        if (room != null) {
-            countQuery.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
-        }
-
-        if (status != null && checkpoint != null) {
-            countQuery.leftJoin(attendanceEntity).on(
-                attendanceEntity.user.id.eq(userEntity.id),
-                attendanceEntity.date.eq(today),
-                attendanceEntity.checkpoint.id.eq(checkpoint.id)
-            )
-        }
-
-        countQuery.where(whereBuilder)
-
-        return PageableExecutionUtils.getPage(content, pageable) { countQuery.fetchOne() ?: 0L }
     }
 }

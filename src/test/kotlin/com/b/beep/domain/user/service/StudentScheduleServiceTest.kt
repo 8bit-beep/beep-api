@@ -128,7 +128,7 @@ class StudentScheduleServiceTest {
                 roomId = 1L
             )
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user))
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(user)
             `when`(roomRepository.findById(1L)).thenReturn(java.util.Optional.of(room))
             `when`(checkpointRepository.findById(1L)).thenReturn(java.util.Optional.of(checkpoint))
             `when`(attendanceTypeService.getAttendanceTypeEntityById(1L)).thenReturn(type)
@@ -152,7 +152,7 @@ class StudentScheduleServiceTest {
                 roomId = 1L
             )
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.empty())
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
                 studentScheduleService.createSchedule(request)
@@ -174,7 +174,7 @@ class StudentScheduleServiceTest {
                 roomId = 1L
             )
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user))
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(user)
             `when`(roomRepository.findById(1L)).thenReturn(java.util.Optional.empty())
 
             val exception = assertThrows(CustomException::class.java) {
@@ -198,7 +198,7 @@ class StudentScheduleServiceTest {
                 roomId = 1L
             )
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user))
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(user)
             `when`(roomRepository.findById(1L)).thenReturn(java.util.Optional.of(room))
             `when`(checkpointRepository.findById(1L)).thenReturn(java.util.Optional.empty())
 
@@ -224,7 +224,7 @@ class StudentScheduleServiceTest {
                 roomId = 1L
             )
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user))
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(user)
             `when`(roomRepository.findById(1L)).thenReturn(java.util.Optional.of(room))
             `when`(checkpointRepository.findById(1L)).thenReturn(java.util.Optional.of(checkpoint))
             `when`(attendanceTypeService.getAttendanceTypeEntityById(1L))
@@ -253,7 +253,7 @@ class StudentScheduleServiceTest {
                 roomId = 1L
             )
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user))
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(user)
             `when`(roomRepository.findById(1L)).thenReturn(java.util.Optional.of(room))
             `when`(checkpointRepository.findById(1L)).thenReturn(java.util.Optional.of(checkpoint))
             `when`(attendanceTypeService.getAttendanceTypeEntityById(1L)).thenReturn(type)
@@ -529,7 +529,7 @@ class StudentScheduleServiceTest {
             )
 
             `when`(contextHolder.user).thenReturn(user)
-            `when`(studentScheduleRepository.findAllByUser(user)).thenReturn(schedules)
+            `when`(studentScheduleRepository.findAllByUserOrderByDayOfWeekAscCheckpointStartAtAsc(user)).thenReturn(schedules)
 
             val result = studentScheduleService.getMySchedules()
 
@@ -542,7 +542,7 @@ class StudentScheduleServiceTest {
             val user = createUserEntity()
 
             `when`(contextHolder.user).thenReturn(user)
-            `when`(studentScheduleRepository.findAllByUser(user)).thenReturn(emptyList<StudentScheduleEntity>())
+            `when`(studentScheduleRepository.findAllByUserOrderByDayOfWeekAscCheckpointStartAtAsc(user)).thenReturn(emptyList<StudentScheduleEntity>())
 
             val result = studentScheduleService.getMySchedules()
 
@@ -563,8 +563,8 @@ class StudentScheduleServiceTest {
                 createScheduleEntity(id = 2L, user = user, dayOfWeek = DayOfWeek.TUESDAY)
             )
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user))
-            `when`(studentScheduleRepository.findAllByUser(user)).thenReturn(schedules)
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(user)
+            `when`(studentScheduleRepository.findAllByUserOrderByDayOfWeekAscCheckpointStartAtAsc(user)).thenReturn(schedules)
 
             val result = studentScheduleService.getSchedulesByUserId(1L)
 
@@ -576,8 +576,8 @@ class StudentScheduleServiceTest {
         fun emptyList() {
             val user = createUserEntity()
 
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user))
-            `when`(studentScheduleRepository.findAllByUser(user)).thenReturn(emptyList<StudentScheduleEntity>())
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(user)
+            `when`(studentScheduleRepository.findAllByUserOrderByDayOfWeekAscCheckpointStartAtAsc(user)).thenReturn(emptyList<StudentScheduleEntity>())
 
             val result = studentScheduleService.getSchedulesByUserId(1L)
 
@@ -587,7 +587,7 @@ class StudentScheduleServiceTest {
         @Test
         @DisplayName("유저 없으면 예외")
         fun userNotFound_throwsException() {
-            `when`(userRepository.findById(1L)).thenReturn(java.util.Optional.empty())
+            `when`(userRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(null)
 
             val exception = assertThrows(CustomException::class.java) {
                 studentScheduleService.getSchedulesByUserId(1L)
