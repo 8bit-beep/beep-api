@@ -18,6 +18,9 @@ data class UpdateAbsenceRequest(
     @field:Size(max = 500, message = "사유는 500자 이하여야 합니다")
     val reason: String,
 
+    @field:Positive(message = "출석 타입 ID는 양수여야 합니다")
+    val typeId: Long?,
+
     @field:Valid
-    val checkpoints: List<CheckpointSetting>? = null
+    val checkpoints: List<AbsenceExceptionRequest>? = null
 )
