@@ -7,4 +7,5 @@ interface AttendanceCheckpointRepository : JpaRepository<AttendanceCheckpointEnt
     fun findAllByIsDeletedFalseOrderByStartAtAsc(): List<AttendanceCheckpointEntity>
     fun findAllByIsDeletedFalse(): List<AttendanceCheckpointEntity>
     fun findByIdAndIsDeletedFalse(id: Long): AttendanceCheckpointEntity?
+    fun findAllByIdInAndIsDeletedFalse(ids: List<Long>): List<AttendanceCheckpointEntity>
 }

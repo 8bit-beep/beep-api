@@ -21,6 +21,12 @@ class AbsenceValidator(
         }
     }
 
+    fun validateDateInRange(date: LocalDate, startDate: LocalDate, endDate: LocalDate) {
+        if (date.isBefore(startDate) || date.isAfter(endDate)) {
+            throw CustomException(AbsenceError.DATE_OUT_OF_ABSENCE_RANGE)
+        }
+    }
+
     fun existsOverlappingAbsence(
         userId: Long,
         startDate: LocalDate,
