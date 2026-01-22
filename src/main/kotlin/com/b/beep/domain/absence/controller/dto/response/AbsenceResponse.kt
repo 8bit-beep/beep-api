@@ -8,7 +8,7 @@ data class AbsenceResponse(
     val targetStudents: List<AbsenceStudentResponse>,
     val startDate: LocalDate,
     val endDate: LocalDate,
-    val checkpoints: List<AbsenceExceptionResponse>, // Changed from AbsenceCheckpointResponse
+    val checkpoints: List<AbsenceExceptionResponse>,
     val reason: String,
     val typeId: Long? // Added typeId
 )
