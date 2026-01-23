@@ -10,4 +10,6 @@ enum class AuthError(override val status: HttpStatus, override val message: Stri
     NULL_STU_NUM(HttpStatus.UNAUTHORIZED, "학번이 넘어오지 않았습니다"),
     NULL_ROLE(HttpStatus.UNAUTHORIZED, "role이 null 입니다."),
     DAUTH_LOGIN(HttpStatus.UNAUTHORIZED, "로그인 해주세요"),
+    OAUTH_ONLY_ACCOUNT(HttpStatus.UNAUTHORIZED, "OAuth 전용 계정입니다."),
+    PASSWORD_MISMATCH(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.")
 }

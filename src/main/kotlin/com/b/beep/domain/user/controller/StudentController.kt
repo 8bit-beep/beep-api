@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.*
 class StudentController(
     private val studentService: StudentService
 ) {
+
     @Operation(summary = "학생 검색", description = "학년, 반, 이름으로 학생을 검색합니다.")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun getStudents(
         @Parameter(description = "학년") @RequestParam(required = false) grade: Int?,
         @Parameter(description = "반") @RequestParam(required = false) classNumber: Int?,
-        @Parameter(description = "이름 검색 키워드") @RequestParam(required = false) keyword: String?,
-        @PageableDefault(size = 20) pageable: Pageable
-    ): PageResponse<StudentResponse> {
-        return PageResponse.from(studentService.findStudents(grade, classNumber, keyword, pageable))
+        @Parameter(description = "이름 검색 키워드") @RequestParam(required = false) keyword: String?
+    ): List<StudentResponse> {
+        return studentService.findStudents(grade, classNumber, keyword)
     }
 }

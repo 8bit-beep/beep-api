@@ -15,10 +15,11 @@ class StudentService(
     fun findStudents(
         grade: Int?,
         classNumber: Int?,
-        keyword: String?,
-        pageable: Pageable
-    ): Page<StudentResponse> {
-        return studentQueryRepository.findAllByFilters(grade, classNumber, keyword, pageable)
+        keyword: String?
+    ): List<StudentResponse> {
+        return studentQueryRepository
+            .findAllByFilters(grade, classNumber, keyword)
             .map { StudentResponse.of(it) }
     }
 }
+

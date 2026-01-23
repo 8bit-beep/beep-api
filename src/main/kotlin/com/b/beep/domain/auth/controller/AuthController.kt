@@ -1,5 +1,6 @@
 package com.b.beep.domain.auth.controller
 
+import com.b.beep.domain.auth.controller.dto.request.AdminLoginRequest
 import com.b.beep.domain.auth.controller.dto.request.RefreshTokenRequest
 import com.b.beep.domain.auth.service.AuthService
 import com.b.beep.global.security.jwt.dto.response.TokenResponse
@@ -22,5 +23,12 @@ class AuthController(
     @ResponseStatus(HttpStatus.OK)
     fun refresh(@Valid @RequestBody request: RefreshTokenRequest): TokenResponse {
         return authService.refresh(request.refreshToken)
+    }
+
+    @Operation(summary = "어드민 로그인", description = "어드민 전용 로그인 입니다")
+    @PostMapping("/signin")
+    @ResponseStatus(HttpStatus.OK)
+    fun signin(@Valid @RequestBody request: AdminLoginRequest): TokenResponse{
+        return authService.login(request)
     }
 }
