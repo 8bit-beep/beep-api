@@ -62,6 +62,6 @@ class OAuth2SuccessHandler(
         val accessToken = tokens.accessToken
 
         SecurityContextHolder.clearContext()
-        response.sendRedirect("https://beep.cher1shrxd.me/callback/dauth?refreshToken=$refreshToken&accessToken=$accessToken")
+        response.sendRedirect("https://admin.8beep.site/callback/dauth?refreshToken=$refreshToken&accessToken=$accessToken")
     }
 }
