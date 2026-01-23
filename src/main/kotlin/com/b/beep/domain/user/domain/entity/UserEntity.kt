@@ -24,5 +24,9 @@ class UserEntity(
     var profileImage: String? = null,
 
     @Column(nullable = false)
-    var isDeleted: Boolean = false
+    var isDeleted: Boolean = false,
+
+    @Column(nullable = true)
+    val password: String? = null
+
 ) : BaseEntity()
