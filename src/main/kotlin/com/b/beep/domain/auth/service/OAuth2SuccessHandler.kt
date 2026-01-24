@@ -5,6 +5,7 @@ import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException
+import com.b.beep.global.properties.DomainProperties
 import com.b.beep.global.security.jwt.JwtProvider
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Component
 @Component
 class OAuth2SuccessHandler(
     private val studentInfoService: StudentInfoService,
-    private val jwtProvider: JwtProvider
+    private val jwtProvider: JwtProvider,
+    private val domainProperties: DomainProperties
 ) : AuthenticationSuccessHandler {
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
@@ -74,6 +76,10 @@ class OAuth2SuccessHandler(
         val accessToken = tokens.accessToken
 
         SecurityContextHolder.clearContext()
-        response.sendRedirect("https://admin.8beep.site/callback/dauth?refreshToken=$refreshToken&accessToken=$accessToken")
+        val redirectUrl =
+            "${domainProperties.web}/callback/dauth" +
+            "?refreshToken=$refreshToken&accessToken=$accessToken"
+
+        response.sendRedirect(redirectUrl)
     }
 }
