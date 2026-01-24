@@ -8,9 +8,11 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 
 @Tag(name = "출석 관리", description = "출석 관리 API")
 @Validated
@@ -33,6 +35,8 @@ class TeacherAttendanceController(
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun getAttendances(
+        @Parameter(description = "조회 날짜") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?,
+        @Parameter(description = "체크포인트 ID") @RequestParam(required = false) @Positive(message = "체크포인트 ID는 양수여야 합니다") checkpointId: Long?,
         @Parameter(description = "실 ID (입력 시 해당 실 스케줄 학생만 조회)") @RequestParam(required = false) @Positive(message = "실 ID는 양수여야 합니다") roomId: Long?,
         @Parameter(description = "출석 상태 ID(type ID) 필터") @RequestParam(required = false) @Positive(message = "상태 ID는 양수여야 합니다") statusId: Long?,
         @Parameter(description = "학년") @RequestParam(required = false) grade: Int?,
@@ -40,6 +44,8 @@ class TeacherAttendanceController(
         @Parameter(description = "현재 체크포인트 기준 필터 (기본값: true)") @RequestParam(required = false, defaultValue = "true") isCurrentCheckpoint: Boolean
     ): List<AttendanceStudentResponse> {
         return teacherAttendanceService.getAttendances(
+            date = date,
+            checkpointId = checkpointId,
             roomId,
             statusId,
             grade,

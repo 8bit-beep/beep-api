@@ -3,6 +3,7 @@ package com.b.beep.domain.attendance.repository
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
 import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
@@ -34,6 +35,8 @@ class AttendanceQueryRepository(
     }
 
     fun findAllByFilters(
+        date: LocalDate?,
+        checkpoint: AttendanceCheckpointEntity? = null,
         room: RoomEntity? = null,
         status: AttendanceTypeEntity? = null,
         grade: Int? = null,
@@ -45,11 +48,17 @@ class AttendanceQueryRepository(
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
         val attendanceEntity = QAttendanceEntity.attendanceEntity
 
-        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val dayOfWeek = today.dayOfWeek
-        val checkpoint = if (isCurrentCheckpoint) checkpointResolver.getCurrentCheckpointOrNull() else null
+        val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val dayOfWeek = targetDate.dayOfWeek
+        val targetCheckpoint = checkpoint ?: if (isCurrentCheckpoint) {
+            checkpointResolver.getCurrentCheckpoint()
+        } else { null }
 
-        log.info("[findAllByFilters] room=${room?.id}, isCurrentCheckpoint=$isCurrentCheckpoint, checkpoint=${checkpoint?.id}, dayOfWeek=$dayOfWeek")
+//        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+//        val dayOfWeek = today.dayOfWeek
+//        val checkpoint = if (isCurrentCheckpoint) checkpointResolver.getCurrentCheckpointOrNull() else null
+
+        log.info("[findAllByFilters] date=$targetDate, room=${room?.id}, checkpoint=${targetCheckpoint?.id}, dayOfWeek=$dayOfWeek")
 
         val query = queryFactory
             .selectFrom(userEntity)
@@ -60,11 +69,11 @@ class AttendanceQueryRepository(
             query.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
         }
 
-        if (status != null && checkpoint != null) {
+        if (status != null && targetCheckpoint != null) {
             query.leftJoin(attendanceEntity).on(
                 attendanceEntity.user.id.eq(userEntity.id),
-                attendanceEntity.date.eq(today),
-                attendanceEntity.checkpoint.id.eq(checkpoint.id)
+                attendanceEntity.date.eq(targetDate),
+                attendanceEntity.checkpoint.id.eq(targetCheckpoint.id)
             )
         }
 
@@ -75,17 +84,24 @@ class AttendanceQueryRepository(
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
+//        if (room != null) {
+//            whereBuilder.and(scheduleEntity.room.id.eq(room.id))
+//            if (isCurrentCheckpoint) {
+//                whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
+//                if (checkpoint != null) {
+//                    whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
+//                }
+//            }
+//        }
         if (room != null) {
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
-            if (isCurrentCheckpoint) {
-                whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
-                if (checkpoint != null) {
-                    whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
-                }
+            whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
+            if (targetCheckpoint != null) {
+                whereBuilder.and(scheduleEntity.checkpoint.id.eq(targetCheckpoint.id))
             }
         }
 
-        if (status != null && checkpoint != null) {
+        if (status != null && targetCheckpoint != null) {
             if (status.name == AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {
                 whereBuilder.and(attendanceEntity.id.isNull)
             } else if (status.name == "OUTGOING") {
