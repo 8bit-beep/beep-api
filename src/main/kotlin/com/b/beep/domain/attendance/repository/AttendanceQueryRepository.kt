@@ -54,10 +54,6 @@ class AttendanceQueryRepository(
             checkpointResolver.getCurrentCheckpoint()
         } else { null }
 
-//        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-//        val dayOfWeek = today.dayOfWeek
-//        val checkpoint = if (isCurrentCheckpoint) checkpointResolver.getCurrentCheckpointOrNull() else null
-
         log.info("[findAllByFilters] date=$targetDate, room=${room?.id}, checkpoint=${targetCheckpoint?.id}, dayOfWeek=$dayOfWeek")
 
         val query = queryFactory
@@ -84,15 +80,6 @@ class AttendanceQueryRepository(
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
-//        if (room != null) {
-//            whereBuilder.and(scheduleEntity.room.id.eq(room.id))
-//            if (isCurrentCheckpoint) {
-//                whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
-//                if (checkpoint != null) {
-//                    whereBuilder.and(scheduleEntity.checkpoint.id.eq(checkpoint.id))
-//                }
-//            }
-//        }
         if (room != null) {
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
             whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
