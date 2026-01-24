@@ -10,6 +10,7 @@ import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
+import com.b.beep.domain.checkpoint.error.CheckpointError
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
@@ -73,17 +74,25 @@ class TeacherAttendanceService(
     }
 
     fun getAttendances(
+        date: LocalDate?,
+        checkpointId: Long?,
         roomId: Long?,
         statusId: Long?,
         grade: Int?,
         classNumber: Int?,
         isCurrentCheckpoint: Boolean = true
     ): List<AttendanceStudentResponse> {
+        val checkpoint = checkpointId?.let {
+            checkpointRepository.findByIdAndIsDeletedFalse(it)
+                ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+        }
         val room = roomId?.let {
             roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }
         val status = statusId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
         val users = attendanceQueryRepository.findAllByFilters(
+            date = date,
+            checkpoint = checkpoint,
             room = room,
             status = status,
             grade = grade,
