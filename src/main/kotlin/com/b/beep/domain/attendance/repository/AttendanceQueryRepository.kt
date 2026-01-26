@@ -26,7 +26,7 @@ class AttendanceQueryRepository(
     private val log = LoggerFactory.getLogger(javaClass)
     fun findCurrentStatus(user: UserEntity): AttendanceTypeEntity? {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val checkpoint = checkpointResolver.getCurrentCheckpointOrNull() ?: return null
+        val checkpoint = checkpointResolver.getCurrentCheckpointOrNearest()
 
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, today)
             ?: return null
