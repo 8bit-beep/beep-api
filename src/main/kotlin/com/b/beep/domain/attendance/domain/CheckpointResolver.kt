@@ -28,6 +28,23 @@ class CheckpointResolver(
         return null
     }
 
+    fun getCurrentCheckpointOrNearest(): AttendanceCheckpointEntity {
+        getCurrentCheckpointOrNull()?.let { return it }
+
+        val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc()
+        if (checkpoints.isEmpty()) throw CustomException(AttendanceError.TIME_UNAVAILABLE)
+
+        val first = checkpoints.first()
+        val last = checkpoints.last()
+
+        return when {
+            now.isBefore(first.startAt) -> first
+            !now.isBefore(last.endAt) -> last
+            else -> throw CustomException(AttendanceError.TIME_UNAVAILABLE)
+        }
+    }
+
     fun getCurrentAttendableCheckpoint(): AttendanceCheckpointEntity {
         return getCurrentAttendableCheckpointOrNull() ?: throw CustomException(AttendanceError.TIME_UNAVAILABLE)
     }

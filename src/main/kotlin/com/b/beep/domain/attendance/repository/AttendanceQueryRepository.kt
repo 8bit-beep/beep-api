@@ -51,7 +51,7 @@ class AttendanceQueryRepository(
         val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = targetDate.dayOfWeek
         val targetCheckpoint = checkpoint ?: if (isCurrentCheckpoint) {
-            checkpointResolver.getCurrentCheckpoint()
+            checkpointResolver.getCurrentCheckpointOrNearest()
         } else { null }
 
         log.info("[findAllByFilters] date=$targetDate, room=${room?.id}, checkpoint=${targetCheckpoint?.id}, dayOfWeek=$dayOfWeek")
