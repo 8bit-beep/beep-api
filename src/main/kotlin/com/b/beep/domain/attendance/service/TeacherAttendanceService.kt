@@ -10,6 +10,7 @@ import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.room.error.RoomError
@@ -101,14 +102,16 @@ class TeacherAttendanceService(
             isCurrentCheckpoint = isCurrentCheckpoint
         )
 
-        return users.map { it.toResponse(targetDate) }
+        return users.map { it.toResponse(targetDate, checkpoint) }
     }
 
-    private fun UserEntity.toResponse(date: LocalDate): AttendanceStudentResponse {
+    private fun UserEntity.toResponse(date: LocalDate,
+                                      checkpoint: AttendanceCheckpointEntity?): AttendanceStudentResponse {
         val studentInfo = studentInfoRepository.findByUser(this)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
         val attendances = attendanceRepository.findAllByUserAndDate(this, date)
-        val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
+        val checkpoints = checkpoint?.let { listOf(it) }
+            ?: checkpointRepository.findAllByIsDeletedFalse()
 
         val attendanceMap = attendances.associateBy { it.checkpoint.id }
         val statuses = checkpoints.map { checkpoint ->
