@@ -82,6 +82,7 @@ class TeacherAttendanceService(
         classNumber: Int?,
         isCurrentCheckpoint: Boolean = true
     ): List<AttendanceStudentResponse> {
+        val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
         val checkpoint = checkpointId?.let {
             checkpointRepository.findByIdAndIsDeletedFalse(it)
                 ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
@@ -100,14 +101,13 @@ class TeacherAttendanceService(
             isCurrentCheckpoint = isCurrentCheckpoint
         )
 
-        return users.map { it.toResponse() }
+        return users.map { it.toResponse(targetDate) }
     }
 
-    private fun UserEntity.toResponse(): AttendanceStudentResponse {
-        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+    private fun UserEntity.toResponse(date: LocalDate): AttendanceStudentResponse {
         val studentInfo = studentInfoRepository.findByUser(this)
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
-        val attendances = attendanceRepository.findAllByUserAndDate(this, today)
+        val attendances = attendanceRepository.findAllByUserAndDate(this, date)
         val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
 
         val attendanceMap = attendances.associateBy { it.checkpoint.id }
