@@ -44,7 +44,7 @@ class AttendanceExcelScheduler(
     private val s3Client: S3Client,
     @Value("\${cloud.aws.s3.bucket}") private val bucket: String
 ) {
-    @Scheduled(cron = "0 10 23 * * *")
+    @Scheduled(cron = "0 17 12 * * *")
     fun generateDailyAttendanceExcel() {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = DayOfWeek.MONDAY // TODO: today.dayOfWeek
