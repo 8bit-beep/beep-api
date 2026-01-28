@@ -44,10 +44,10 @@ class AttendanceExcelScheduler(
     private val s3Client: S3Client,
     @Value("\${cloud.aws.s3.bucket}") private val bucket: String
 ) {
-    @Scheduled(cron = "0 17 12 * * *")
+    @Scheduled(cron = "0 10 23 * * *")
     fun generateDailyAttendanceExcel() {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val dayOfWeek = DayOfWeek.MONDAY // TODO: today.dayOfWeek
+        val dayOfWeek = today.dayOfWeek
         val checkpoints = checkpointRepository.findAllByIsDeletedFalse().sortedBy { it.startAt }
         val attendanceTypes = attendanceTypeRepository.findAllByIsDeletedFalse().map { it.name }
         val allStudents = studentInfoRepository.findAllByUserIsDeletedFalse()
@@ -380,7 +380,13 @@ class AttendanceExcelScheduler(
     }
 
     private fun autoSizeColumns(sheet: XSSFSheet, totalCols: Int) {
-        (0 until totalCols).forEach { sheet.autoSizeColumn(it) }
+        val minWidth = 256 * 10
+        (0 until totalCols).forEach { col ->
+            sheet.autoSizeColumn(col)
+            if (sheet.getColumnWidth(col) < minWidth) {
+                sheet.setColumnWidth(col, minWidth)
+            }
+        }
     }
 
     private fun uploadToS3(key: String, bytes: ByteArray) {
