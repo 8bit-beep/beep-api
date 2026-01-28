@@ -84,10 +84,16 @@ class TeacherAttendanceService(
         isCurrentCheckpoint: Boolean = true
     ): List<AttendanceStudentResponse> {
         val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val checkpoint = checkpointId?.let {
-            checkpointRepository.findByIdAndIsDeletedFalse(it)
-                ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+
+        val checkpoint = if (isCurrentCheckpoint) {
+            checkpointResolver.getCurrentCheckpointOrNearest()
+        } else {
+            checkpointId?.let {
+                checkpointRepository.findByIdAndIsDeletedFalse(it)
+                    ?: throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
+            }
         }
+
         val room = roomId?.let {
             roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }
