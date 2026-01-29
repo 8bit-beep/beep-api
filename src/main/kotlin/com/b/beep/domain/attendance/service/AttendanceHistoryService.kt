@@ -327,6 +327,7 @@ class AttendanceHistoryService(
                 val studentInfo = studentInfoByUser[userId] ?: return@mapNotNull null
                 val userAttendances = attendanceByUser[userId] ?: emptyList()
                 val attendanceByCheckpoint = userAttendances.associateBy { it.checkpoint.id }
+                val userScheduleByCheckpoint = userSchedules.associateBy { it.checkpoint.id }
 
                 val studentNumber =
                     "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}"
@@ -335,7 +336,11 @@ class AttendanceHistoryService(
                     studentNumber = studentNumber,
                     name = user.username,
                     statuses = checkpoints.map { cp ->
-                        attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
+                        if (userScheduleByCheckpoint[cp.id] == null) {
+                            "--"
+                        } else {
+                            attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
+                        }
                     }
                 )
             }.sortedBy { it.studentNumber }
