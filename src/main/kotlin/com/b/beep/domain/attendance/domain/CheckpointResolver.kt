@@ -38,11 +38,20 @@ class CheckpointResolver(
         val first = checkpoints.first()
         val last = checkpoints.last()
 
-        return when {
-            now.isBefore(first.startAt) -> first
-            !now.isBefore(last.endAt) -> last
-            else -> throw CustomException(AttendanceError.TIME_UNAVAILABLE)
+        if (now.isBefore(first.startAt)) return first
+        if (!now.isBefore(last.endAt)) return last
+
+        for (i in checkpoints.indices) {
+            val current = checkpoints[i]
+            if (i < checkpoints.lastIndex) {
+                val next = checkpoints[i + 1]
+                if (!now.isBefore(current.endAt) && now.isBefore(next.startAt)) {
+                    return next
+                }
+            }
         }
+
+        throw CustomException(AttendanceError.TIME_UNAVAILABLE)
     }
 
     fun getCurrentAttendableCheckpoint(): AttendanceCheckpointEntity {
