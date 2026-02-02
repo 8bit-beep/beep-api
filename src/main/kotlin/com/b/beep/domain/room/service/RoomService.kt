@@ -32,7 +32,7 @@ class RoomService(
 
     @Transactional(readOnly = true)
     fun getRooms(): List<RoomResponse> {
-        return roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc().map { RoomResponse.of(it) }
+        return roomRepository.findAllSortedByFloorAndClass().map { RoomResponse.of(it) }
     }
 
     @Transactional(readOnly = true)

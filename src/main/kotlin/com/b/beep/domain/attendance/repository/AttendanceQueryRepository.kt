@@ -107,6 +107,11 @@ class AttendanceQueryRepository(
 
         return query
             .where(whereBuilder)
+            .orderBy(
+                studentInfoEntity.grade.asc(),
+                studentInfoEntity.classNumber.asc(),
+                studentInfoEntity.num.asc()
+            )
             .fetch()
     }
 }
