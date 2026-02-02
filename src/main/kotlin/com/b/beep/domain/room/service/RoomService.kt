@@ -35,17 +35,19 @@ class RoomService(
         return roomRepository.findAllByIsDeletedFalse()
             .sortedWith(compareBy(
                 { it.floor ?: Int.MAX_VALUE },
-                { getRoomSortPriority(it.name) },
+                { getRoomSortPriority(it) },
+                { it.grade ?: Int.MAX_VALUE },
+                { it.classNumber ?: Int.MAX_VALUE },
                 { it.name }
             ))
             .map { RoomResponse.of(it) }
     }
 
-    private fun getRoomSortPriority(name: String): Int {
+    private fun getRoomSortPriority(room: RoomEntity): Int {
         return when {
-            name.first().isDigit() -> 0
-            name.startsWith("프로젝트") -> 1
-            name.contains("랩") -> 2
+            room.grade != null && room.classNumber != null -> 0
+            room.name.startsWith("프로젝트") -> 1
+            room.name.contains("랩") -> 2
             else -> 3
         }
     }
