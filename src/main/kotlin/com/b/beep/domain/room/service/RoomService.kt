@@ -32,7 +32,22 @@ class RoomService(
 
     @Transactional(readOnly = true)
     fun getRooms(): List<RoomResponse> {
-        return roomRepository.findAllSortedByFloorAndClass().map { RoomResponse.of(it) }
+        return roomRepository.findAllByIsDeletedFalse()
+            .sortedWith(compareBy(
+                { it.floor ?: Int.MAX_VALUE },
+                { getRoomSortPriority(it.name) },
+                { it.name }
+            ))
+            .map { RoomResponse.of(it) }
+    }
+
+    private fun getRoomSortPriority(name: String): Int {
+        return when {
+            name.first().isDigit() -> 0
+            name.startsWith("프로젝트") -> 1
+            name.contains("랩") -> 2
+            else -> 3
+        }
     }
 
     @Transactional(readOnly = true)
