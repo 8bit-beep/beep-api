@@ -34,11 +34,16 @@ class StudentInfoService(
         val email = dodamUser.data.email
 
         return userRepository.findByEmailAndIsDeletedFalse(email) ?: run {
+            var profileImage = dodamUser.data.profileImage
+            if (profileImage.isNullOrEmpty()) {
+                profileImage = "https://cloud.cher1shrxd.me/uploads/c8ef0529-a85b-4e09-acea-fe75764317c9.png"
+            }
+
             val newUser = UserEntity(
                 email = email,
                 username = dodamUser.data.name,
                 role = if (dodamUser.data.role == "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
-                profileImage = dodamUser.data.profileImage
+                profileImage = profileImage
             )
             userRepository.save(newUser)
         }
