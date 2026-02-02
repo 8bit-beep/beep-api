@@ -6,6 +6,7 @@ import com.b.beep.domain.checkpoint.controller.dto.request.UpdateCheckpointReque
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.notification.scheduler.DynamicNotificationScheduler
 import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
@@ -36,6 +37,9 @@ class AttendanceCheckpointServiceTest {
 
     @Mock
     private lateinit var studentScheduleRepository: StudentScheduleRepository
+
+    @Mock
+    private lateinit var notificationScheduler: DynamicNotificationScheduler
 
     @InjectMocks
     private lateinit var checkpointService: AttendanceCheckpointService

@@ -7,6 +7,7 @@ import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointResponse
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.notification.scheduler.DynamicNotificationScheduler
 import com.b.beep.domain.shift.repository.ShiftRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
@@ -21,7 +22,8 @@ class AttendanceCheckpointService(
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val attendanceRepository: AttendanceRepository,
     private val shiftRepository: ShiftRepository,
-    private val studentScheduleRepository: StudentScheduleRepository
+    private val studentScheduleRepository: StudentScheduleRepository,
+    private val notificationScheduler: DynamicNotificationScheduler
 ) {
     fun createCheckpoint(request: CreateCheckpointRequest) {
         validateTimeRange(request.startAt, request.endAt)
@@ -37,6 +39,7 @@ class AttendanceCheckpointService(
                 attendanceEndAt = request.attendanceEndAt
             )
         )
+        notificationScheduler.scheduleAllNotifications()
     }
 
     @Transactional(readOnly = true)
@@ -72,6 +75,7 @@ class AttendanceCheckpointService(
         request.attendanceEndAt?.let { checkpoint.attendanceEndAt = it }
 
         checkpointRepository.save(checkpoint)
+        notificationScheduler.scheduleAllNotifications()
     }
 
     fun deleteCheckpoint(checkPointId: Long) {
@@ -83,6 +87,7 @@ class AttendanceCheckpointService(
         }
 
         checkpoint.isDeleted = true
+        notificationScheduler.scheduleAllNotifications()
     }
 
     private fun isCheckpointInUse(checkpoint: AttendanceCheckpointEntity): Boolean {

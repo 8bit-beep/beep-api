@@ -47,7 +47,7 @@ class SecurityConfig(
 
         .authorizeHttpRequests {
             it
-                .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/api-docs").permitAll()
+                .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/api-docs").authenticated()
                 .requestMatchers("/auth/**", "/dauth/login", "/test/**").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/users/my").authenticated()
@@ -63,6 +63,8 @@ class SecurityConfig(
                 .requestMatchers("/schedules/my", "/schedules/my/**").hasRole("STUDENT")
 
                 // TEACHER
+                .requestMatchers(HttpMethod.GET, "/attendances/**").hasRole("TEACHER")
+                .requestMatchers(HttpMethod.GET, "/attendances").hasRole("TEACHER")
                 .requestMatchers(HttpMethod.GET, "/attendances/**").hasRole("TEACHER")
                 .requestMatchers(HttpMethod.PATCH, "/attendances/**").hasRole("TEACHER")
                 .requestMatchers("/absences/**").hasRole("TEACHER")
