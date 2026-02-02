@@ -62,7 +62,6 @@ class AttendanceQueryRepository(
 
         val query = queryFactory
             .selectFrom(userEntity)
-            .distinct()
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
         if (room != null) {
