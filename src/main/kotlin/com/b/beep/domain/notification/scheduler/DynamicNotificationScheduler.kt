@@ -19,10 +19,10 @@ class DynamicNotificationScheduler(
     private val logger = LoggerFactory.getLogger(javaClass)
     private val scheduledTasks = mutableListOf<ScheduledFuture<*>>()
 
-    @PostConstruct
-    fun init() {
-        scheduleAllNotifications()
-    }
+//    @PostConstruct
+//    fun init() {
+//        scheduleAllNotifications()
+//    }
 
     fun scheduleAllNotifications() {
         cancelAll()
@@ -56,7 +56,7 @@ class DynamicNotificationScheduler(
     }
 
     private fun scheduleDaily(time: LocalTime, description: String, task: Runnable) {
-        val cronExpression = "0 ${time.minute} ${time.hour} * * MON-FRI"
+        val cronExpression = "0 ${time.minute} ${time.hour} * * MON-THU"
         val trigger = CronTrigger(cronExpression)
         val scheduledTask = taskScheduler.schedule(task, trigger)
         scheduledTask?.let {
