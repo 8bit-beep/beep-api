@@ -77,7 +77,7 @@ class AttendanceHistoryService(
         }
 
         val bytes = createExcel(checkpoints, attendanceTypes, allStudents, attendances, schedules, rooms, roomApprovals)
-        val key = "uploads/attendance_$date.xlsx"
+        val key = "uploads/출석_$date.xlsx"
 
         uploadToS3(key, bytes)
 
