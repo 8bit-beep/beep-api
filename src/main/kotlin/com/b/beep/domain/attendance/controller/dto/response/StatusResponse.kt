@@ -4,5 +4,6 @@ import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResp
 
 data class StatusResponse(
     val checkpoint: CheckpointSimpleResponse,
-    val status: AttendanceTypeResponse?
+    val status: AttendanceTypeResponse?,
+    val isLate: Boolean = false
 )

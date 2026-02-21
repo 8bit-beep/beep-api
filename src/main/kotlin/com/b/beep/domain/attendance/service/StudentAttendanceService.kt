@@ -8,6 +8,7 @@ import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
+import com.b.beep.domain.room.repository.RoomApprovalRepository
 import com.b.beep.domain.room.service.RoomService
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -30,6 +31,7 @@ class StudentAttendanceService(
     private val checkpointResolver: CheckpointResolver,
     private val roomService: RoomService,
     private val attendanceTypeService: AttendanceTypeService,
+    private val roomApprovalRepository: RoomApprovalRepository,
 ) {
     fun attend(request: CreateAttendanceRequest) {
         val user = contextHolder.user
@@ -44,7 +46,7 @@ class StudentAttendanceService(
         getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
 
         val attendance = attendanceRepository.findByUserIdAndCheckpointIdAndDate(user.id!!, checkpoint.id!!, today)
-            ?: attendanceRepository.save(
+            ?: attendanceRepository.saveAndFlush(
                 AttendanceEntity(
                     user = user,
                     checkpoint = checkpoint,
@@ -57,8 +59,13 @@ class StudentAttendanceService(
             throw CustomException(AttendanceError.ALREADY_ATTENDED)
         }
 
+        val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, today)
+        val isLate = approval != null && (attendance.createdAt?.isAfter(approval.createdAt) == true)
+
         attendance.type = type
         attendance.room = room
+        attendance.isLate = isLate
+
         try {
             attendanceRepository.save(attendance)
         } catch (e: OptimisticLockingFailureException) {
