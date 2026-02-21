@@ -28,6 +28,7 @@ import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.PageImpl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -147,7 +148,13 @@ class AbsenceService(
 
     @Transactional(readOnly = true)
     fun getAbsences(pageable: Pageable): Page<AbsenceResponse> {
-        return absenceRepository.findAllByIsDeletedFalse(pageable).map { it.toResponse() }
+        val page = absenceRepository.findAllByIsDeletedFalseOrderByStartDateAscEndDateAsc(pageable)
+
+        val sorted = page.content.map { it.toResponse() }
+            .map { it.copy(targetStudents = it.targetStudents.sortedWith(compareBy({ it.info?.grade ?: Int.MAX_VALUE }, { it.info?.classNumber ?: Int.MAX_VALUE }, { it.info?.num ?: Int.MAX_VALUE }))) }
+            .sortedWith(compareBy({ it.startDate }, { it.endDate }, { it.targetStudents.firstOrNull()?.info?.grade ?: Int.MAX_VALUE }, { it.targetStudents.firstOrNull()?.info?.classNumber ?: Int.MAX_VALUE }, { it.targetStudents.firstOrNull()?.info?.num ?: Int.MAX_VALUE }))
+
+        return PageImpl(sorted, pageable, page.totalElements)
     }
 
     fun updateAbsence(absenceId: Long, request: UpdateAbsenceRequest): UpdateAbsenceResponse {
