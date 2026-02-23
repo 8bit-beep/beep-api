@@ -77,7 +77,7 @@ class AttendanceHistoryService(
         }
 
         val bytes = createExcel(checkpoints, attendanceTypes, allStudents, attendances, schedules, rooms, roomApprovals)
-        val key = "uploads/attendance_$date.xlsx"
+        val key = "uploads/출석기록_$date.xlsx"
 
         uploadToS3(key, bytes)
 
@@ -111,27 +111,8 @@ class AttendanceHistoryService(
         val checkpointNames = checkpoints.map { it.name }
         val headerStyle = createCenteredStyle(workbook)
 
-        createGradeSheets(
-            workbook,
-            allStudents,
-            attendances,
-            checkpoints,
-            checkpointNames,
-            attendanceTypes,
-            headerStyle
-        )
-        createFloorSheets(
-            workbook,
-            attendances,
-            schedules,
-            allStudents,
-            rooms,
-            roomApprovals,
-            checkpoints,
-            checkpointNames,
-            attendanceTypes,
-            headerStyle
-        )
+        createGradeSheets(workbook, allStudents, attendances, checkpoints, checkpointNames, attendanceTypes, headerStyle)
+        createFloorSheets(workbook, attendances, schedules, allStudents, rooms, roomApprovals, checkpoints, checkpointNames, attendanceTypes, headerStyle)
 
         return ByteArrayOutputStream().use { out ->
             workbook.write(out)
@@ -172,57 +153,52 @@ class AttendanceHistoryService(
             val gradeStudents = studentDataList.filter { it.grade == grade }
             val classesSorted = gradeStudents.groupBy { it.classNumber }.toSortedMap()
 
-            createClassHeaders(sheet, classesSorted, checkpointNames, colsPerClass, headerStyle)
-            fillClassStudents(sheet, classesSorted, colsPerClass)
-            addDropdownValidation(sheet, classesSorted, checkpointNames, colsPerClass, attendanceTypes)
-            autoSizeColumns(sheet, classesSorted.size * (colsPerClass + 1))
+            var rowOffset = 0
+            classesSorted.forEach { (classNumber, classStudents) ->
+                val sortedStudents = classStudents.sortedBy { it.num }
+                createClassHeader(sheet, classNumber, checkpointNames, colsPerClass, headerStyle, rowOffset)
+                fillClassStudents(sheet, sortedStudents, rowOffset)
+                addDropdownValidation(sheet, sortedStudents.size, checkpointNames, attendanceTypes, rowOffset)
+                rowOffset += sortedStudents.size + 3
+            }
+            autoSizeColumns(sheet, colsPerClass)
         }
     }
 
-    private fun createClassHeaders(
+    private fun createClassHeader(
         sheet: XSSFSheet,
-        classesSorted: Map<Int, List<GradeStudentData>>,
+        classNumber: Int,
         checkpointNames: List<String>,
         colsPerClass: Int,
-        headerStyle: XSSFCellStyle
+        headerStyle: XSSFCellStyle,
+        rowOffset: Int
     ) {
-        val classHeaderRow = sheet.createRow(0)
-        val colHeaderRow = sheet.createRow(1)
-        var colOffset = 0
+        val classHeaderRow = sheet.createRow(rowOffset)
+        classHeaderRow.createCell(0).apply {
+            setCellValue("${classNumber}반")
+            cellStyle = headerStyle
+        }
+        sheet.addMergedRegion(CellRangeAddress(rowOffset, rowOffset, 0, colsPerClass - 1))
 
-        classesSorted.forEach { (classNumber, _) ->
-            classHeaderRow.createCell(colOffset).apply {
-                setCellValue("${classNumber}반")
-                cellStyle = headerStyle
-            }
-            sheet.addMergedRegion(CellRangeAddress(0, 0, colOffset, colOffset + colsPerClass - 1))
-
-            val headers = listOf("번호", "이름") + checkpointNames
-            headers.forEachIndexed { index, header ->
-                colHeaderRow.createCell(colOffset + index).setCellValue(header)
-            }
-            colOffset += colsPerClass + 1
+        val colHeaderRow = sheet.createRow(rowOffset + 1)
+        val headers = listOf("번호", "이름") + checkpointNames
+        headers.forEachIndexed { index, header ->
+            colHeaderRow.createCell(index).setCellValue(header)
         }
     }
 
     private fun fillClassStudents(
         sheet: XSSFSheet,
-        classesSorted: Map<Int, List<GradeStudentData>>,
-        colsPerClass: Int
+        sortedStudents: List<GradeStudentData>,
+        rowOffset: Int
     ) {
-        var colOffset = 0
-        classesSorted.forEach { (_, classStudents) ->
-            val sortedStudents = classStudents.sortedBy { it.num }
-            sortedStudents.forEachIndexed { index, student ->
-                val rowIndex = 2 + index
-                val row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
-                row.createCell(colOffset).setCellValue(student.num.toDouble())
-                row.createCell(colOffset + 1).setCellValue(student.name)
-                student.statuses.forEachIndexed { statusIndex, status ->
-                    row.createCell(colOffset + 2 + statusIndex).setCellValue(status)
-                }
+        sortedStudents.forEachIndexed { index, student ->
+            val row = sheet.createRow(rowOffset + 2 + index)
+            row.createCell(0).setCellValue(student.num.toDouble())
+            row.createCell(1).setCellValue(student.name)
+            student.statuses.forEachIndexed { statusIndex, status ->
+                row.createCell(2 + statusIndex).setCellValue(status)
             }
-            colOffset += colsPerClass + 1
         }
     }
 
@@ -250,165 +226,146 @@ class AttendanceHistoryService(
 
             if (floorRooms.isEmpty()) return@forEach
 
-            createRoomHeaders(sheet, floorRooms, checkpoints, checkpointNames, colsPerRoom, approvalMap, headerStyle)
-            fillRoomStudents(
-                sheet,
-                floorRooms,
-                schedulesByRoom,
-                attendanceByUser,
-                studentInfoByUser,
-                checkpoints,
-                colsPerRoom
-            )
-            addRoomDropdownValidation(sheet, floorRooms, schedulesByRoom, checkpointNames, colsPerRoom, attendanceTypes)
-            autoSizeColumns(sheet, floorRooms.size * (colsPerRoom + 1))
+            var rowOffset = 0
+            floorRooms.forEach { room ->
+                val students = buildRoomStudents(room, schedulesByRoom, attendanceByUser, studentInfoByUser, checkpoints)
+                createRoomHeader(sheet, room, checkpoints, checkpointNames, colsPerRoom, approvalMap, headerStyle, rowOffset)
+                fillRoomStudents(sheet, students, rowOffset)
+                addRoomDropdownValidation(sheet, students.size, checkpointNames, attendanceTypes, rowOffset)
+                rowOffset += students.size + 4
+            }
+            autoSizeColumns(sheet, colsPerRoom)
         }
     }
 
-    private fun createRoomHeaders(
+    private fun buildRoomStudents(
+        room: RoomEntity,
+        schedulesByRoom: Map<Long?, List<StudentScheduleEntity>>,
+        attendanceByUser: Map<Long?, List<AttendanceEntity>>,
+        studentInfoByUser: Map<Long?, StudentInfoEntity>,
+        checkpoints: List<AttendanceCheckpointEntity>
+    ): List<RoomStudentData> {
+        val roomSchedules = schedulesByRoom[room.id] ?: emptyList()
+        val userIds = roomSchedules.map { it.user.id }.distinct()
+
+        return userIds.mapNotNull { userId ->
+            val userSchedules = roomSchedules.filter { it.user.id == userId }
+            val user = userSchedules.firstOrNull()?.user ?: return@mapNotNull null
+            val studentInfo = studentInfoByUser[userId] ?: return@mapNotNull null
+            val userAttendances = attendanceByUser[userId] ?: emptyList()
+            val attendanceByCheckpoint = userAttendances.associateBy { it.checkpoint.id }
+            val userScheduleByCheckpoint = userSchedules.associateBy { it.checkpoint.id }
+
+            val studentNumber =
+                "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}"
+
+            RoomStudentData(
+                studentNumber = studentNumber,
+                name = user.username,
+                statuses = checkpoints.map { cp ->
+                    if (userScheduleByCheckpoint[cp.id] == null) {
+                        "--"
+                    } else {
+                        attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
+                    }
+                }
+            )
+        }.sortedBy { it.studentNumber }
+    }
+
+    private fun createRoomHeader(
         sheet: XSSFSheet,
-        floorRooms: List<RoomEntity>,
+        room: RoomEntity,
         checkpoints: List<AttendanceCheckpointEntity>,
         checkpointNames: List<String>,
         colsPerRoom: Int,
         approvalMap: Map<Pair<Long?, Long?>, List<RoomApprovalEntity>>,
-        headerStyle: XSSFCellStyle
+        headerStyle: XSSFCellStyle,
+        rowOffset: Int
     ) {
-        val roomHeaderRow = sheet.createRow(0)
-        val approvalHeaderRow = sheet.createRow(1)
-        val colHeaderRow = sheet.createRow(2)
-        var colOffset = 0
+        val roomHeaderRow = sheet.createRow(rowOffset)
+        roomHeaderRow.createCell(0).apply {
+            setCellValue(room.name)
+            cellStyle = headerStyle
+        }
+        sheet.addMergedRegion(CellRangeAddress(rowOffset, rowOffset, 0, colsPerRoom - 1))
 
-        floorRooms.forEach { room ->
-            roomHeaderRow.createCell(colOffset).apply {
-                setCellValue(room.name)
-                cellStyle = headerStyle
-            }
-            sheet.addMergedRegion(CellRangeAddress(0, 0, colOffset, colOffset + colsPerRoom - 1))
+        val approvalHeaderRow = sheet.createRow(rowOffset + 1)
+        approvalHeaderRow.createCell(0).setCellValue("")
+        approvalHeaderRow.createCell(1).setCellValue("")
+        checkpoints.forEachIndexed { cpIndex, cp ->
+            val approval = approvalMap[room.id to cp.id]?.firstOrNull()
+            val approvalText = if (approval != null) {
+                val time = approval.createdAt?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: ""
+                val teacher = approval.teacher?.username ?: "-"
+                "승인 $time $teacher"
+            } else "미승인"
+            approvalHeaderRow.createCell(2 + cpIndex).setCellValue(approvalText)
+        }
 
-            approvalHeaderRow.createCell(colOffset).setCellValue("")
-            approvalHeaderRow.createCell(colOffset + 1).setCellValue("")
-            checkpoints.forEachIndexed { cpIndex, cp ->
-                val approval = approvalMap[room.id to cp.id]?.firstOrNull()
-                val approvalText = if (approval != null) {
-                    val time = approval.createdAt?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: ""
-                    val teacher = approval.teacher?.username ?: "-"
-                    "승인 $time $teacher"
-                } else "미승인"
-                approvalHeaderRow.createCell(colOffset + 2 + cpIndex).setCellValue(approvalText)
-            }
-
-            val headers = listOf("학번", "이름") + checkpointNames
-            headers.forEachIndexed { index, header ->
-                colHeaderRow.createCell(colOffset + index).setCellValue(header)
-            }
-
-            colOffset += colsPerRoom + 1
+        val colHeaderRow = sheet.createRow(rowOffset + 2)
+        val headers = listOf("학번", "이름") + checkpointNames
+        headers.forEachIndexed { index, header ->
+            colHeaderRow.createCell(index).setCellValue(header)
         }
     }
 
     private fun fillRoomStudents(
         sheet: XSSFSheet,
-        floorRooms: List<RoomEntity>,
-        schedulesByRoom: Map<Long?, List<StudentScheduleEntity>>,
-        attendanceByUser: Map<Long?, List<AttendanceEntity>>,
-        studentInfoByUser: Map<Long?, StudentInfoEntity>,
-        checkpoints: List<AttendanceCheckpointEntity>,
-        colsPerRoom: Int
+        students: List<RoomStudentData>,
+        rowOffset: Int
     ) {
-        var colOffset = 0
-        floorRooms.forEach { room ->
-            val roomSchedules = schedulesByRoom[room.id] ?: emptyList()
-            val userIds = roomSchedules.map { it.user.id }.distinct()
-
-            val students = userIds.mapNotNull { userId ->
-                val userSchedules = roomSchedules.filter { it.user.id == userId }
-                val user = userSchedules.firstOrNull()?.user ?: return@mapNotNull null
-                val studentInfo = studentInfoByUser[userId] ?: return@mapNotNull null
-                val userAttendances = attendanceByUser[userId] ?: emptyList()
-                val attendanceByCheckpoint = userAttendances.associateBy { it.checkpoint.id }
-                val userScheduleByCheckpoint = userSchedules.associateBy { it.checkpoint.id }
-
-                val studentNumber =
-                    "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}"
-
-                RoomStudentData(
-                    studentNumber = studentNumber,
-                    name = user.username,
-                    statuses = checkpoints.map { cp ->
-                        if (userScheduleByCheckpoint[cp.id] == null) {
-                            "--"
-                        } else {
-                            attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
-                        }
-                    }
-                )
-            }.sortedBy { it.studentNumber }
-
-            students.forEachIndexed { index, student ->
-                val rowIndex = 3 + index
-                val row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
-                row.createCell(colOffset).setCellValue(student.studentNumber)
-                row.createCell(colOffset + 1).setCellValue(student.name)
-                student.statuses.forEachIndexed { statusIndex, status ->
-                    row.createCell(colOffset + 2 + statusIndex).setCellValue(status)
-                }
+        students.forEachIndexed { index, student ->
+            val row = sheet.createRow(rowOffset + 3 + index)
+            row.createCell(0).setCellValue(student.studentNumber)
+            row.createCell(1).setCellValue(student.name)
+            student.statuses.forEachIndexed { statusIndex, status ->
+                row.createCell(2 + statusIndex).setCellValue(status)
             }
-            colOffset += colsPerRoom + 1
         }
     }
 
     private fun addDropdownValidation(
         sheet: XSSFSheet,
-        classesSorted: Map<Int, List<GradeStudentData>>,
+        studentCount: Int,
         checkpointNames: List<String>,
-        colsPerClass: Int,
-        attendanceTypes: List<String>
+        attendanceTypes: List<String>,
+        rowOffset: Int
     ) {
+        if (studentCount == 0) return
         val helper = sheet.dataValidationHelper
         val constraint = helper.createExplicitListConstraint(attendanceTypes.toTypedArray())
-        var colOffset = 0
+        val startRow = rowOffset + 2
+        val endRow = rowOffset + 1 + studentCount
 
-        classesSorted.forEach { (_, classStudents) ->
-            if (classStudents.isNotEmpty()) {
-                val maxRow = 2 + classStudents.size - 1
-                for (cpIndex in checkpointNames.indices) {
-                    val statusCol = colOffset + 2 + cpIndex
-                    val addressList = CellRangeAddressList(2, maxRow, statusCol, statusCol)
-                    val validation = helper.createValidation(constraint, addressList)
-                    validation.showErrorBox = true
-                    sheet.addValidationData(validation)
-                }
-            }
-            colOffset += colsPerClass + 1
+        for (cpIndex in checkpointNames.indices) {
+            val statusCol = 2 + cpIndex
+            val addressList = CellRangeAddressList(startRow, endRow, statusCol, statusCol)
+            val validation = helper.createValidation(constraint, addressList)
+            validation.showErrorBox = true
+            sheet.addValidationData(validation)
         }
     }
 
     private fun addRoomDropdownValidation(
         sheet: XSSFSheet,
-        floorRooms: List<RoomEntity>,
-        schedulesByRoom: Map<Long?, List<StudentScheduleEntity>>,
+        studentCount: Int,
         checkpointNames: List<String>,
-        colsPerRoom: Int,
-        attendanceTypes: List<String>
+        attendanceTypes: List<String>,
+        rowOffset: Int
     ) {
+        if (studentCount == 0) return
         val helper = sheet.dataValidationHelper
         val constraint = helper.createExplicitListConstraint(attendanceTypes.toTypedArray())
-        var colOffset = 0
+        val startRow = rowOffset + 3
+        val endRow = rowOffset + 2 + studentCount
 
-        floorRooms.forEach { room ->
-            val studentCount = schedulesByRoom[room.id]?.map { it.user.id }?.distinct()?.size ?: 0
-            if (studentCount > 0) {
-                val maxRow = 3 + studentCount - 1
-                for (cpIndex in checkpointNames.indices) {
-                    val statusCol = colOffset + 2 + cpIndex
-                    val addressList = CellRangeAddressList(3, maxRow, statusCol, statusCol)
-                    val validation = helper.createValidation(constraint, addressList)
-                    validation.showErrorBox = true
-                    sheet.addValidationData(validation)
-                }
-            }
-            colOffset += colsPerRoom + 1
+        for (cpIndex in checkpointNames.indices) {
+            val statusCol = 2 + cpIndex
+            val addressList = CellRangeAddressList(startRow, endRow, statusCol, statusCol)
+            val validation = helper.createValidation(constraint, addressList)
+            validation.showErrorBox = true
+            sheet.addValidationData(validation)
         }
     }
 
