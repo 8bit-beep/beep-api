@@ -121,8 +121,11 @@ class TeacherAttendanceService(
 
         val attendanceMap = attendances.associateBy { it.checkpoint.id }
         val statuses = checkpoints.map { checkpoint ->
+            val attendance = attendanceMap[checkpoint.id]
             val type = attendanceMap[checkpoint.id]?.type
-            StatusResponse(CheckpointSimpleResponse.of(checkpoint), type?.let { AttendanceTypeResponse.of(it) })
+            StatusResponse(CheckpointSimpleResponse.of(checkpoint),
+                type?.let { AttendanceTypeResponse.of(it) },
+                isLate = attendance?.isLate ?: false)
         }
 
         return AttendanceStudentResponse(

@@ -9,5 +9,8 @@ class MemoEntity(
     val id: Long? = null,
 
     @Lob @Column(columnDefinition = "TEXT", nullable = false)
-    var content: String
+    var content: String,
+
+    @Column(nullable = false)
+    var isRead: Boolean = false
 )

@@ -25,12 +25,15 @@ class MemoService(
     fun updateMemo(request: UpdateMemoRequest) {
         val memo = getMemoEntity()
         memo.content = request.newContent
+        memo.isRead = false
         memoRepository.save(memo)
     }
 
-    @Transactional(readOnly = true)
     fun getMemo(): MemoResponse {
-        return MemoResponse.of(getMemoEntity())
+        val memo = getMemoEntity()
+        memo.isRead = true
+        memoRepository.save(memo)
+        return MemoResponse.of(memo)
     }
 
     private fun getMemoEntity(): MemoEntity {
