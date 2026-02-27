@@ -53,4 +53,23 @@ class TeacherAttendanceController(
             isCurrentCheckpoint
         )
     }
+
+    @Operation(summary = "모든 체크포인트 출석 조회", description = "모든 교시의 출석 상태를 한 번에 조회합니다.")
+    @GetMapping("/all-checkpoints")
+    @ResponseStatus(HttpStatus.OK)
+    fun getAllCheckpointAttendances(
+        @Parameter(description = "조회 날짜") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate?,
+        @Parameter(description = "실 ID (입력 시 해당 실 스케줄 학생만 조회)") @RequestParam(required = false) @Positive(message = "실 ID는 양수여야 합니다") roomId: Long?,
+        @Parameter(description = "출석 상태 ID(type ID) 필터") @RequestParam(required = false) @Positive(message = "상태 ID는 양수여야 합니다") statusId: Long?,
+        @Parameter(description = "학년") @RequestParam(required = false) grade: Int?,
+        @Parameter(description = "반") @RequestParam(required = false) classNumber: Int?
+    ): List<AttendanceStudentResponse> {
+        return teacherAttendanceService.getAllCheckpointAttendances(
+            date = date,
+            roomId = roomId,
+            statusId = statusId,
+            grade = grade,
+            classNumber = classNumber
+        )
+    }
 }
