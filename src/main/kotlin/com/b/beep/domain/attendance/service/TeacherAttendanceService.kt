@@ -111,6 +111,33 @@ class TeacherAttendanceService(
         return users.map { it.toResponse(targetDate, checkpoint) }
     }
 
+    fun getAllCheckpointAttendances(
+        date: LocalDate?,
+        roomId: Long?,
+        statusId: Long?,
+        grade: Int?,
+        classNumber: Int?
+    ): List<AttendanceStudentResponse> {
+        val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
+
+        val room = roomId?.let {
+            roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        }
+        val status = statusId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
+
+        val users = attendanceQueryRepository.findAllByFilters(
+            date = targetDate,
+            checkpoint = null,
+            room = room,
+            status = status,
+            grade = grade,
+            classNumber = classNumber,
+            isCurrentCheckpoint = false
+        )
+
+        return users.map { it.toResponse(targetDate, checkpoint = null) }
+    }
+
     private fun UserEntity.toResponse(date: LocalDate,
                                       checkpoint: AttendanceCheckpointEntity?): AttendanceStudentResponse {
         val studentInfo = studentInfoRepository.findByUser(this)
