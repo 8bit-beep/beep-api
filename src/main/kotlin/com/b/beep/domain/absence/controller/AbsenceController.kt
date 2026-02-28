@@ -30,9 +30,15 @@ class AbsenceController(
             장기결석을 생성합니다.
 
             - 선택된 사용자 중 결석 생성이 실패한 경우 해당 유저를 제외하고 생성합니다.
-            - typeId: 출석 타입 ID (선택)
-              - 지정 시: 모든 출석 기록에 해당 타입 적용
-              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
+            - absenceType: 결석 사유 (필수)
+              - ILLNESS: 질병
+              - FAMILY: 가정사
+              - SCHOOL_ACTIVITY: 학교공식활동
+              - EXTERNAL_ACTIVITY: 외부대회/활동
+              - INSTITUTION_VISIT: (공공)기관 방문
+              - PERSONAL: 개인사유
+              - OTHER: 기타
+              - UNAUTHORIZED: 무단
         """
     )
     @PostMapping
@@ -55,9 +61,15 @@ class AbsenceController(
         description = """
             장기결석을 수정합니다.
 
-            - typeId: 출석 타입 ID (선택)
-              - 지정 시: 모든 출석 기록에 해당 타입 적용
-              - 미지정 시: 학생 스케줄 기반 타입 적용 (스케줄 없으면 외박)
+            - absenceType: 결석 사유 (필수)
+              - ILLNESS: 질병
+              - FAMILY: 가정사
+              - SCHOOL_ACTIVITY: 학교공식활동
+              - EXTERNAL_ACTIVITY: 외부대회/활동
+              - INSTITUTION_VISIT: (공공)기관 방문
+              - PERSONAL: 개인사유
+              - OTHER: 기타
+              - UNAUTHORIZED: 무단
         """
     )
     @PatchMapping("/{absenceId}")

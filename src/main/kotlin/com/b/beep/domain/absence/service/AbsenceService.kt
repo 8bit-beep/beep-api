@@ -94,13 +94,12 @@ class AbsenceService(
         request: CreateAbsenceRequest,
         users: List<UserEntity>
     ): AbsenceEntity {
-        val type = request.typeId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
         val absence = absenceRepository.save(
             AbsenceEntity(
                 startDate = request.startDate,
                 endDate = request.endDate,
                 reason = request.reason,
-                type = type
+                absenceType = request.absenceType
             )
         )
         saveAbsenceRelations(absence, users, request.startDate, request.endDate, request.checkpoints)
@@ -193,7 +192,7 @@ class AbsenceService(
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason
-        absence.type = request.typeId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
+        absence.absenceType = request.absenceType
         absenceRepository.save(absence)
     }
 
@@ -244,7 +243,7 @@ class AbsenceService(
                     }
 
                     val schedule = allSchedules[Triple(user.id, checkpoint.id, date.dayOfWeek)]?.firstOrNull()
-                    val attendanceType = absence.type ?: schedule?.type ?: defaultAbsenceType
+                    val attendanceType = schedule?.type ?: defaultAbsenceType
 
                     val existing = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
                     if (existing != null) {
@@ -293,7 +292,7 @@ class AbsenceService(
             endDate = this.endDate,
             checkpoints = exceptionResponses,
             reason = this.reason,
-            typeId = this.type?.id
+            absenceType = this.absenceType
         )
     }
 }
