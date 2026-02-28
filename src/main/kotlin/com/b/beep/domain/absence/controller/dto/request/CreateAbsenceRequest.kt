@@ -1,6 +1,6 @@
 package com.b.beep.domain.absence.controller.dto.request
 
-import com.b.beep.domain.absence.domain.AbsenceReason
+import com.b.beep.domain.absence.domain.enums.AbsenceReason
 import jakarta.validation.Valid
 import jakarta.validation.constraints.*
 import java.time.LocalDate

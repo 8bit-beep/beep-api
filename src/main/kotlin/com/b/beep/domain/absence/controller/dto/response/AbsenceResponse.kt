@@ -1,6 +1,6 @@
 package com.b.beep.domain.absence.controller.dto.response
 
-import com.b.beep.domain.absence.domain.AbsenceReason
+import com.b.beep.domain.absence.domain.enums.AbsenceReason
 import java.time.LocalDate
 
 data class AbsenceResponse(

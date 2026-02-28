@@ -1,6 +1,6 @@
 package com.b.beep.domain.absence.domain.entity
 
-import com.b.beep.domain.absence.domain.AbsenceReason
+import com.b.beep.domain.absence.domain.enums.AbsenceReason
 import com.b.beep.global.common.entity.BaseEntity
 import jakarta.persistence.*
 import java.time.LocalDate

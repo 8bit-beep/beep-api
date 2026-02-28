@@ -1,4 +1,4 @@
-package com.b.beep.domain.absence.domain
+package com.b.beep.domain.absence.domain.enums
 
 enum class AbsenceReason {
     ILLNESS,            // 질병
