@@ -113,13 +113,9 @@ class AttendanceHelpService(
             studentScheduleRepository.findByUserAndDayOfWeekAndCheckpoint(user, dayOfWeek, checkpoint)
 
         if (existingSchedule != null) {
-            if (existingSchedule.type.id != type.id) {
-                throw CustomException(AttendanceError.TYPE_MISMATCH)
-            }
-            if (existingSchedule.room.id != room.id) {
-                throw CustomException(AttendanceError.ROOM_MISMATCH)
-            }
-            return existingSchedule
+            existingSchedule.type = type
+            existingSchedule.room = room
+            return studentScheduleRepository.save(existingSchedule)
         }
 
         return studentScheduleRepository.save(
