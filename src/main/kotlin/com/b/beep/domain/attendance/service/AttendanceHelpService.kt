@@ -8,11 +8,18 @@ import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.repository.HelpQrTokenRepository
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.service.RoomService
+import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
+import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -21,6 +28,7 @@ import java.time.ZoneId
 class AttendanceHelpService(
     private val helpQrTokenRepository: HelpQrTokenRepository,
     private val attendanceRepository: AttendanceRepository,
+    private val studentScheduleRepository: StudentScheduleRepository,
     private val checkpointResolver: CheckpointResolver,
     private val contextHolder: ContextHolder,
     private val roomService: RoomService,
@@ -59,15 +67,18 @@ class AttendanceHelpService(
         }
 
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val dayOfWeek = today.dayOfWeek
         val room = roomService.getRoomEntityById(tokenData.roomId)
         val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
         val notAttendType = attendanceTypeService.getAttendanceTypeEntityByName(
             AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
         )
 
+        getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
+
         val attendance = attendanceRepository.findByUserIdAndCheckpointIdAndDate(
             user.id!!, checkpoint.id!!, today
-        ) ?: attendanceRepository.save(
+        ) ?: attendanceRepository.saveAndFlush(
             AttendanceEntity(
                 user = user,
                 checkpoint = checkpoint,
@@ -82,8 +93,43 @@ class AttendanceHelpService(
 
         attendance.type = type
         attendance.room = room
-        attendanceRepository.save(attendance)
+        try {
+            attendanceRepository.saveAndFlush(attendance)
+        } catch (e: OptimisticLockingFailureException) {
+            throw CustomException(AttendanceError.CONCURRENT_MODIFICATION)
+        }
 
         helpQrTokenRepository.delete(request.token)
+    }
+
+    private fun getOrCreateSchedule(
+        user: UserEntity,
+        dayOfWeek: DayOfWeek,
+        checkpoint: AttendanceCheckpointEntity,
+        type: AttendanceTypeEntity,
+        room: RoomEntity
+    ): StudentScheduleEntity {
+        val existingSchedule =
+            studentScheduleRepository.findByUserAndDayOfWeekAndCheckpoint(user, dayOfWeek, checkpoint)
+
+        if (existingSchedule != null) {
+            if (existingSchedule.type.id != type.id) {
+                throw CustomException(AttendanceError.TYPE_MISMATCH)
+            }
+            if (existingSchedule.room.id != room.id) {
+                throw CustomException(AttendanceError.ROOM_MISMATCH)
+            }
+            return existingSchedule
+        }
+
+        return studentScheduleRepository.save(
+            StudentScheduleEntity(
+                user = user,
+                dayOfWeek = dayOfWeek,
+                checkpoint = checkpoint,
+                type = type,
+                room = room
+            )
+        )
     }
 }
