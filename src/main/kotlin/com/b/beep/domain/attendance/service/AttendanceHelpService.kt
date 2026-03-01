@@ -42,8 +42,7 @@ class AttendanceHelpService(
         val token = helpQrTokenRepository.save(
             helperId = helper.id!!,
             checkpointId = checkpoint.id!!,
-            roomId = attendance.room!!.id!!,
-            typeId = attendance.type.id!!
+            roomId = attendance.room!!.id!!
         )
 
         return HelpQrResponse(token = token)
@@ -54,8 +53,6 @@ class AttendanceHelpService(
         val tokenData = helpQrTokenRepository.findByToken(request.token)
             ?: throw CustomException(AttendanceError.INVALID_HELP_QR)
 
-        helpQrTokenRepository.delete(request.token)
-
         val checkpoint = checkpointResolver.getCurrentAttendableCheckpoint()
         if (checkpoint.id != tokenData.checkpointId) {
             throw CustomException(AttendanceError.INVALID_HELP_QR)
@@ -63,7 +60,7 @@ class AttendanceHelpService(
 
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val room = roomService.getRoomEntityById(tokenData.roomId)
-        val type = attendanceTypeService.getAttendanceTypeEntityById(tokenData.typeId)
+        val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
         val notAttendType = attendanceTypeService.getAttendanceTypeEntityByName(
             AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
         )
@@ -86,5 +83,7 @@ class AttendanceHelpService(
         attendance.type = type
         attendance.room = room
         attendanceRepository.save(attendance)
+
+        helpQrTokenRepository.delete(request.token)
     }
 }
