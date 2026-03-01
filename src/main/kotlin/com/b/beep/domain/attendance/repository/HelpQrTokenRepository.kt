@@ -12,9 +12,9 @@ class HelpQrTokenRepository(
     private val prefix = "help-qr:"
     private val ttl = Duration.ofMinutes(1)
 
-    fun save(helperId: Long, checkpointId: Long, roomId: Long, typeId: Long): String {
+    fun save(helperId: Long, checkpointId: Long, roomId: Long): String {
         val token = UUID.randomUUID().toString()
-        val value = "$helperId:$checkpointId:$roomId:$typeId"
+        val value = "$helperId:$checkpointId:$roomId"
         redisTemplate.opsForValue().set(prefix + token, value, ttl)
         return token
     }
@@ -22,12 +22,11 @@ class HelpQrTokenRepository(
     fun findByToken(token: String): HelpQrTokenData? {
         val value = redisTemplate.opsForValue().get(prefix + token) ?: return null
         val parts = value.split(":")
-        if (parts.size != 4) return null
+        if (parts.size != 3) return null
         return HelpQrTokenData(
             helperId = parts[0].toLong(),
             checkpointId = parts[1].toLong(),
-            roomId = parts[2].toLong(),
-            typeId = parts[3].toLong()
+            roomId = parts[2].toLong()
         )
     }
 
@@ -39,6 +38,5 @@ class HelpQrTokenRepository(
 data class HelpQrTokenData(
     val helperId: Long,
     val checkpointId: Long,
-    val roomId: Long,
-    val typeId: Long
+    val roomId: Long
 )
