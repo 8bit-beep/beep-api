@@ -36,6 +36,7 @@ class StudentAttendanceController(
 
     @Operation(summary = "출석 도움 QR 생성", description = "다른 학생의 출석을 도와주기 위한 QR 토큰을 생성합니다.")
     @PostMapping("/help/qr")
+    @ResponseStatus(HttpStatus.CREATED)
     fun generateHelpQr(): HelpQrResponse {
         return attendanceHelpService.generateHelpQr()
     }
