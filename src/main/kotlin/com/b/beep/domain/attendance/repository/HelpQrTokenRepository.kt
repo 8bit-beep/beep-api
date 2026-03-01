@@ -9,18 +9,26 @@ import java.util.UUID
 class HelpQrTokenRepository(
     private val redisTemplate: StringRedisTemplate
 ) {
-    private val prefix = "help-qr:"
+    private val tokenPrefix = "help-qr:"
+    private val userPrefix = "help-qr-user:"
     private val ttl = Duration.ofMinutes(1)
 
     fun save(helperId: Long, checkpointId: Long, roomId: Long): String {
+        val userKey = "$userPrefix$helperId:$checkpointId"
+        val existingToken = redisTemplate.opsForValue().get(userKey)
+        if (existingToken != null) {
+            redisTemplate.delete(tokenPrefix + existingToken)
+        }
+
         val token = UUID.randomUUID().toString()
         val value = "$helperId:$checkpointId:$roomId"
-        redisTemplate.opsForValue().set(prefix + token, value, ttl)
+        redisTemplate.opsForValue().set(tokenPrefix + token, value, ttl)
+        redisTemplate.opsForValue().set(userKey, token, ttl)
         return token
     }
 
     fun findByToken(token: String): HelpQrTokenData? {
-        val value = redisTemplate.opsForValue().get(prefix + token) ?: return null
+        val value = redisTemplate.opsForValue().get(tokenPrefix + token) ?: return null
         val parts = value.split(":")
         if (parts.size != 3) return null
         return HelpQrTokenData(
@@ -31,7 +39,9 @@ class HelpQrTokenRepository(
     }
 
     fun delete(token: String) {
-        redisTemplate.delete(prefix + token)
+        val tokenData = findByToken(token) ?: return
+        redisTemplate.delete(tokenPrefix + token)
+        redisTemplate.delete("$userPrefix${tokenData.helperId}:${tokenData.checkpointId}")
     }
 }
 
