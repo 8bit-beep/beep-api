@@ -46,7 +46,7 @@ jobs:
             .
           sudo docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
 
-      - name: Deploy to Server
+      - name: Deploy to main Server
         uses: appleboy/ssh-action@master
         id: deploy_server
         with:
@@ -54,6 +54,18 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}  # 서버의 private key
           envs: GITHUB_SHA
+          script: |
+            sudo docker rm -f $(docker ps -qa)
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
+            sudo docker compose up -d
+            sudo docker image prune -f
+
+      - name: Deploy to dev Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DEV }}
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY_DEV }}
           script: |
             sudo docker rm -f $(docker ps -qa)
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
