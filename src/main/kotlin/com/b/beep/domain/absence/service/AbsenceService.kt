@@ -243,7 +243,6 @@ class AbsenceService(
                     }
 
                     val schedule = allSchedules[Triple(user.id, checkpoint.id, date.dayOfWeek)]?.firstOrNull()
-                    val attendanceType = schedule?.type ?: defaultAbsenceType
 
                     val existing = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, date)
                     if (existing != null) {
@@ -255,7 +254,7 @@ class AbsenceService(
                             user = user,
                             checkpoint = checkpoint,
                             date = date,
-                            type = attendanceType,
+                            type = defaultAbsenceType,
                             room = schedule?.room,
                             absence = absence
                         )
