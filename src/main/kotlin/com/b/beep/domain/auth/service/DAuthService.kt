@@ -31,6 +31,7 @@ class DAuthService(
 
         if (user.role == UserRole.STUDENT) {
             studentInfoService.getOrCreateStudentInfo(user, dodamUser)
+            studentInfoService.updateStudentInfo(user, dodamUser)
         }
 
         return jwtProvider.generateToken(user.email)

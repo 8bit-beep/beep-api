@@ -72,4 +72,20 @@ class StudentInfoService(
             studentInfoRepository.save(newStudentInfo)
         }
     }
+
+    fun updateStudentInfo(user: UserEntity, dodamUser: DAuthUser) {
+        val studentInfo = studentInfoRepository.findByUser(user) ?: return
+        studentInfo.grade = dodamUser.grade!!
+        studentInfo.classNumber = dodamUser.room!!
+        studentInfo.num = dodamUser.number!!
+        studentInfoRepository.save(studentInfo)
+    }
+
+    fun updateStudentInfo(user: UserEntity, dodamUser: DAuthUserResponse) {
+        val studentInfo = studentInfoRepository.findByUser(user) ?: return
+        studentInfo.grade = dodamUser.data.grade
+        studentInfo.classNumber = dodamUser.data.room
+        studentInfo.num = dodamUser.data.number
+        studentInfoRepository.save(studentInfo)
+    }
 }

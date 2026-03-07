@@ -70,6 +70,7 @@ class OAuth2SuccessHandler(
 
         if (user.role == UserRole.STUDENT) {
             studentInfoService.getOrCreateStudentInfo(user, dauthUser)
+            studentInfoService.updateStudentInfo(user, dauthUser)
         }
         val tokens = jwtProvider.generateToken(user.email)
         val refreshToken = tokens.refreshToken
