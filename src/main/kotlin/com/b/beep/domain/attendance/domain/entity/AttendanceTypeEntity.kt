@@ -15,7 +15,7 @@ class AttendanceTypeEntity(
     var isDeleted: Boolean = false
 ) {
     companion object {
-        const val DEFAULT_ABSENCE_TYPE_NAME = "외박"
+        const val DEFAULT_ABSENCE_TYPE_NAME = "결석"
         const val NOT_ATTENDED_TYPE_NAME = "미출석"
         const val SHIFT_ATTEND_TYPE_NAME = "실이동"
     }

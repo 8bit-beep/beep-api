@@ -1,5 +1,6 @@
 package com.b.beep.domain.absence.controller.dto.response
 
+import com.b.beep.domain.absence.domain.enums.AbsenceReason
 import java.time.LocalDate
 
 data class AbsenceResponse(
@@ -10,5 +11,5 @@ data class AbsenceResponse(
     val endDate: LocalDate,
     val checkpoints: List<AbsenceExceptionResponse>,
     val reason: String,
-    val typeId: Long? // Added typeId
+    val absenceType: AbsenceReason
 )

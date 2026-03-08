@@ -1,6 +1,6 @@
 package com.b.beep.domain.absence.domain.entity
 
-import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.absence.domain.enums.AbsenceReason
 import com.b.beep.global.common.entity.BaseEntity
 import jakarta.persistence.*
 import java.time.LocalDate
@@ -20,9 +20,9 @@ class AbsenceEntity(
     @Column(nullable = false)
     var reason: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id")
-    var type: AttendanceTypeEntity? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var absenceType: AbsenceReason,
 
     @Column(nullable = false)
     var isDeleted: Boolean = false

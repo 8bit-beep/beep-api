@@ -31,7 +31,7 @@ class DataInitializer(
         val typeNames = listOf(
             "동아리", "교실자습", "미출석", "외박", "외출",
             "현장실습", "나르샤", "방과후", "실이동", "기타",
-            "산학", "POTC"
+            "산학", "POTC", "결석"
         )
 
         typeNames.forEach { name ->
