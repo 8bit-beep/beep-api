@@ -2,7 +2,9 @@ package com.b.beep.domain.absence.controller
 
 import com.b.beep.domain.absence.controller.dto.request.CreateAbsenceRequest
 import com.b.beep.domain.absence.controller.dto.request.UpdateAbsenceRequest
+import com.b.beep.domain.absence.controller.dto.response.AbsenceReasonResponse
 import com.b.beep.domain.absence.controller.dto.response.AbsenceResponse
+import com.b.beep.domain.absence.domain.enums.AbsenceReason
 import com.b.beep.domain.absence.controller.dto.response.CreateAbsenceResponse
 import com.b.beep.domain.absence.controller.dto.response.UpdateAbsenceResponse
 import com.b.beep.domain.absence.service.AbsenceService
@@ -24,6 +26,14 @@ import org.springframework.web.bind.annotation.*
 class AbsenceController(
     private val absenceService: AbsenceService,
 ) {
+
+    @Operation(summary = "결석 사유 타입 목록 조회")
+    @GetMapping("/reasons")
+    @ResponseStatus(HttpStatus.OK)
+    fun getAbsenceReasons(): AbsenceReasonResponse {
+        return AbsenceReasonResponse(AbsenceReason.entries.map { it.name })
+    }
+
     @Operation(
         summary = "장기결석 생성",
         description = """
