@@ -19,10 +19,10 @@ class DynamicNotificationScheduler(
     private val logger = LoggerFactory.getLogger(javaClass)
     private val scheduledTasks = mutableListOf<ScheduledFuture<*>>()
 
-//    @PostConstruct
-//    fun init() {
-//        scheduleAllNotifications()
-//    }
+    @PostConstruct
+    fun init() {
+        scheduleAllNotifications()
+    }
 
     fun scheduleAllNotifications() {
         cancelAll()
