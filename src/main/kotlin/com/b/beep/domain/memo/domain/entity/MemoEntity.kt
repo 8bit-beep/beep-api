@@ -1,5 +1,6 @@
 package com.b.beep.domain.memo.domain.entity
 
+import com.b.beep.global.common.entity.BaseEntity
 import jakarta.persistence.*
 
 @Entity
@@ -13,4 +14,4 @@ class MemoEntity(
 
     @Column(nullable = false)
     var isRead: Boolean = false
-)
+) : BaseEntity()
