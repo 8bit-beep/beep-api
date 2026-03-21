@@ -14,6 +14,7 @@ import com.b.beep.global.exception.CustomException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 @Service
@@ -28,7 +29,7 @@ class AttendanceCheckpointService(
     fun createCheckpoint(request: CreateCheckpointRequest) {
         validateTimeRange(request.startAt, request.endAt)
         validateTimeRange(request.attendanceStartAt, request.attendanceEndAt)
-        validateTimeOverlap(request.startAt, request.endAt, excludeId = null)
+        validateTimeOverlap(request.startAt, request.endAt, excludeId = null, request.dayOfWeek, request.grade)
 
         checkpointRepository.save(
             AttendanceCheckpointEntity(
@@ -36,7 +37,9 @@ class AttendanceCheckpointService(
                 startAt = request.startAt,
                 endAt = request.endAt,
                 attendanceStartAt = request.attendanceStartAt,
-                attendanceEndAt = request.attendanceEndAt
+                attendanceEndAt = request.attendanceEndAt,
+                dayOfWeek = request.dayOfWeek,
+                grade = request.grade
             )
         )
         notificationScheduler.scheduleAllNotifications()
@@ -66,7 +69,7 @@ class AttendanceCheckpointService(
 
         validateTimeRange(newStartAt, newEndAt)
         validateTimeRange(newAttendanceStartAt, newAttendanceEndAt)
-        validateTimeOverlap(newStartAt, newEndAt, excludeId = checkPointId)
+        validateTimeOverlap(newStartAt, newEndAt, excludeId = checkPointId, checkpoint.dayOfWeek, checkpoint.grade)
 
         request.name?.let { checkpoint.name = it }
         request.startAt?.let { checkpoint.startAt = it }
@@ -102,9 +105,16 @@ class AttendanceCheckpointService(
         }
     }
 
-    private fun validateTimeOverlap(startAt: LocalTime, endAt: LocalTime, excludeId: Long?) {
+    private fun validateTimeOverlap(
+        startAt: LocalTime,
+        endAt: LocalTime,
+        excludeId: Long?,
+        dayOfWeek: DayOfWeek?,
+        grade: Int?
+    ) {
         val existing = checkpointRepository.findAllByIsDeletedFalse()
             .filter { excludeId == null || it.id != excludeId }
+            .filter { it.dayOfWeek == dayOfWeek && it.grade == grade }
 
         for (checkpoint in existing) {
             if (startAt < checkpoint.endAt && checkpoint.startAt < endAt) {

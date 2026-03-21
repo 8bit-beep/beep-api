@@ -5,6 +5,8 @@ import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Component
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 
@@ -73,6 +75,26 @@ class CheckpointResolver(
         return null
     }
 
+    fun getCurrentAttendableCheckpoint(grade: Int): AttendanceCheckpointEntity {
+        return getCurrentAttendableCheckpointOrNull(grade) ?: throw CustomException(AttendanceError.TIME_UNAVAILABLE)
+    }
+
+    fun getCurrentAttendableCheckpointOrNull(grade: Int): AttendanceCheckpointEntity? {
+        val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul")).dayOfWeek
+        val checkpoints = filterForStudent(checkpointRepository.findAllByIsDeletedFalse(), grade, today)
+
+        for (checkpoint in checkpoints) {
+            val attendanceStartAt = checkpoint.attendanceStartAt
+            val attendanceEndAt = checkpoint.attendanceEndAt
+
+            if (!now.isBefore(attendanceStartAt) && now.isBefore(attendanceEndAt)) {
+                return checkpoint
+            }
+        }
+        return null
+    }
+
     fun canAttend(): Boolean {
         return getCurrentAttendableCheckpointOrNull() != null
     }
@@ -83,5 +105,22 @@ class CheckpointResolver(
 
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
         return !now.isBefore(attendanceStartAt) && now.isBefore(attendanceEndAt)
+    }
+
+    private fun filterForStudent(
+        checkpoints: List<AttendanceCheckpointEntity>,
+        grade: Int,
+        dayOfWeek: DayOfWeek
+    ): List<AttendanceCheckpointEntity> {
+        val specific = checkpoints.filter { it.grade == grade && it.dayOfWeek == dayOfWeek }
+        val general = checkpoints.filter { it.grade == null && it.dayOfWeek == null }
+
+        val filteredGeneral = general.filter { gen ->
+            specific.none { spec ->
+                spec.startAt.isBefore(gen.endAt) && gen.startAt.isBefore(spec.endAt)
+            }
+        }
+
+        return specific + filteredGeneral
     }
 }

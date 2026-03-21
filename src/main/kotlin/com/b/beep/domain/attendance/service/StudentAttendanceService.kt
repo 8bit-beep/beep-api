@@ -12,6 +12,7 @@ import com.b.beep.domain.room.repository.RoomApprovalRepository
 import com.b.beep.domain.room.service.RoomService
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
+import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.ContextHolder
@@ -28,6 +29,7 @@ class StudentAttendanceService(
     private val attendanceRepository: AttendanceRepository,
     private val contextHolder: ContextHolder,
     private val studentScheduleRepository: StudentScheduleRepository,
+    private val studentInfoRepository: StudentInfoRepository,
     private val checkpointResolver: CheckpointResolver,
     private val roomService: RoomService,
     private val attendanceTypeService: AttendanceTypeService,
@@ -35,7 +37,12 @@ class StudentAttendanceService(
 ) {
     fun attend(request: CreateAttendanceRequest) {
         val user = contextHolder.user
-        val checkpoint = checkpointResolver.getCurrentAttendableCheckpoint()
+        val grade = studentInfoRepository.findByUser(user)?.grade
+        val checkpoint = if (grade != null) {
+            checkpointResolver.getCurrentAttendableCheckpoint(grade)
+        } else {
+            checkpointResolver.getCurrentAttendableCheckpoint()
+        }
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
         val dayOfWeek = today.dayOfWeek
         val room = roomService.getRoomEntityById(request.roomId)
@@ -75,7 +82,12 @@ class StudentAttendanceService(
 
     fun cancelAttendance() {
         val user = contextHolder.user
-        val checkpoint = checkpointResolver.getCurrentAttendableCheckpoint()
+        val grade = studentInfoRepository.findByUser(user)?.grade
+        val checkpoint = if (grade != null) {
+            checkpointResolver.getCurrentAttendableCheckpoint(grade)
+        } else {
+            checkpointResolver.getCurrentAttendableCheckpoint()
+        }
 
         val attendance = getAttendanceEntity(user, checkpoint)
             ?: throw CustomException(AttendanceError.ATTENDANCE_NOT_FOUND)
