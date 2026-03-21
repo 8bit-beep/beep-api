@@ -1,6 +1,7 @@
 package com.b.beep.domain.checkpoint.controller.dto.response
 
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 data class CheckpointResponse(
@@ -9,7 +10,9 @@ data class CheckpointResponse(
     val startAt: LocalTime,
     val endAt: LocalTime,
     val attendanceStartAt: LocalTime?,
-    val attendanceEndAt: LocalTime?
+    val attendanceEndAt: LocalTime?,
+    val dayOfWeek: DayOfWeek?,
+    val grade: Int?
 ) {
     companion object {
         fun of(entity: AttendanceCheckpointEntity): CheckpointResponse {
@@ -19,7 +22,9 @@ data class CheckpointResponse(
                 startAt = entity.startAt,
                 endAt = entity.endAt,
                 attendanceStartAt = entity.attendanceStartAt,
-                attendanceEndAt = entity.attendanceEndAt
+                attendanceEndAt = entity.attendanceEndAt,
+                dayOfWeek = entity.dayOfWeek,
+                grade = entity.grade
             )
         }
     }
