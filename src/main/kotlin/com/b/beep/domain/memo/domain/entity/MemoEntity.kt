@@ -8,6 +8,9 @@ class MemoEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @Column(nullable = false)
+    val grade: Int,
+
     @Lob @Column(columnDefinition = "TEXT", nullable = false)
     var content: String,
 

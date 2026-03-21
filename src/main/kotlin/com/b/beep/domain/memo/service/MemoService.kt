@@ -15,29 +15,30 @@ import org.springframework.transaction.annotation.Transactional
 class MemoService(
     private val memoRepository: MemoRepository
 ) {
-    fun createMemo(request: CreateMemoRequest) {
+    fun createMemo(grade: Int, request: CreateMemoRequest) {
         val memo = MemoEntity(
+            grade = grade,
             content = request.content
         )
         memoRepository.save(memo)
     }
 
-    fun updateMemo(request: UpdateMemoRequest) {
-        val memo = getMemoEntity()
+    fun updateMemo(grade: Int, request: UpdateMemoRequest) {
+        val memo = getMemoEntityByGrade(grade)
         memo.content = request.newContent
         memo.isRead = false
         memoRepository.save(memo)
     }
 
-    fun getMemo(): MemoResponse {
-        val memo = getMemoEntity()
+    fun getMemo(grade: Int): MemoResponse {
+        val memo = getMemoEntityByGrade(grade)
         memo.isRead = true
         memoRepository.save(memo)
         return MemoResponse.of(memo)
     }
 
-    private fun getMemoEntity(): MemoEntity {
-        return memoRepository.findAll().firstOrNull()
+    private fun getMemoEntityByGrade(grade: Int): MemoEntity {
+        return memoRepository.findByGrade(grade)
             ?: throw CustomException(MemoError.MEMO_NOT_FOUND)
     }
 }
