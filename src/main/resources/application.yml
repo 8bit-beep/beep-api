@@ -70,6 +70,9 @@ cloud:
       secret-key: ${AWS_IAM_SECRET}
       access-key: ${AWS_IAM_ACCESS}
 
+discord:
+  webhook-url: ${DISCORD_WEBHOOK_URL}
+
 server:
   forward-headers-strategy: framework
   port: 8080
