@@ -4,6 +4,7 @@ import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -47,4 +48,10 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
     fun deleteAllByAbsence(absence: AbsenceEntity)
 
     fun findAllByDate(date: LocalDate): List<AttendanceEntity>
+
+    @Query("SELECT DISTINCT a.room FROM AttendanceEntity a WHERE a.checkpoint = :checkpoint AND a.date = :date AND a.room IS NOT NULL")
+    fun findDistinctRoomsByCheckpointAndDate(
+        @Param("checkpoint") checkpoint: AttendanceCheckpointEntity,
+        @Param("date") date: LocalDate
+    ): List<RoomEntity>
 }

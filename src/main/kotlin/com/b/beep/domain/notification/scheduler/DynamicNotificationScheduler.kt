@@ -1,12 +1,16 @@
 package com.b.beep.domain.notification.scheduler
 
+import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
+import com.b.beep.domain.notification.service.DiscordWebhookService
 import com.b.beep.domain.notification.service.NotificationService
+import com.b.beep.domain.room.repository.RoomApprovalRepository
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.support.CronTrigger
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.ScheduledFuture
 
@@ -14,7 +18,10 @@ import java.util.concurrent.ScheduledFuture
 class DynamicNotificationScheduler(
     private val taskScheduler: TaskScheduler,
     private val checkpointRepository: AttendanceCheckpointRepository,
-    private val notificationService: NotificationService
+    private val notificationService: NotificationService,
+    private val discordWebhookService: DiscordWebhookService,
+    private val attendanceRepository: AttendanceRepository,
+    private val roomApprovalRepository: RoomApprovalRepository
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val scheduledTasks = mutableListOf<ScheduledFuture<*>>()
@@ -49,6 +56,25 @@ class DynamicNotificationScheduler(
                     body = "${checkpoint.name} 출석이 5분 후 마감됩니다.",
                     imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
                 )
+            }
+        }
+
+        checkpoints.forEach { checkpoint ->
+            val endAt = checkpoint.endAt
+            val approvalReminderTime = endAt.minusMinutes(5)
+            scheduleDaily(approvalReminderTime, "${checkpoint.name} 미승인 실 알림") {
+                logger.info("${checkpoint.name} 미승인 실 확인 중")
+                val today = LocalDate.now()
+                val roomsWithAttendance = attendanceRepository.findDistinctRoomsByCheckpointAndDate(checkpoint, today)
+                val approvedRoomIds = roomApprovalRepository.findApprovedRoomIdsByCheckpointAndDate(checkpoint, today)
+                val unapprovedRooms = roomsWithAttendance.filter { it.id !in approvedRoomIds }
+
+                if (unapprovedRooms.isNotEmpty()) {
+                    val roomNames = unapprovedRooms.joinToString(", ") { it.name }
+                    discordWebhookService.send(
+                        "미승인실 : [$roomNames]\nhttps://docs.google.com/spreadsheets/d/1NBGqXzb-VrFiZUu0y4t7qIWeg69HQjDFgHN8RMOQr8s"
+                    )
+                }
             }
         }
 
