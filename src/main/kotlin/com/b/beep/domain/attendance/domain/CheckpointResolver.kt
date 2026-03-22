@@ -107,6 +107,11 @@ class CheckpointResolver(
         return !now.isBefore(attendanceStartAt) && now.isBefore(attendanceEndAt)
     }
 
+    // [주의] 학년/요일 전용 체크포인트와 일반 체크포인트의 겹침은 startAt~endAt 기준으로 판단합니다.
+    // 현재 1학년 월요일 전용: 7~8교시(15:20~17:19), 9교시(17:20~18:10)
+    // 현재 일반 체크포인트: 8~9교시(16:30~18:59)
+    // 추후 시간 변경 시 전용 체크포인트의 startAt~endAt이 일반 체크포인트와 반드시 겹쳐야
+    // 1학년 월요일에서 일반 체크포인트(8~9교시)가 정상적으로 제외됩니다.
     private fun filterForStudent(
         checkpoints: List<AttendanceCheckpointEntity>,
         grade: Int,

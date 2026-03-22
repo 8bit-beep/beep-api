@@ -68,19 +68,19 @@ class DataInitializer(
             ),
             AttendanceCheckpointEntity(
                 name = "7~8교시",
-                startAt = LocalTime.of(15, 30),
-                endAt = LocalTime.of(16, 20),
-                attendanceStartAt = LocalTime.of(15, 30),
-                attendanceEndAt = LocalTime.of(15, 50),
+                startAt = LocalTime.of(15, 20),
+                endAt = LocalTime.of(17, 19),
+                attendanceStartAt = LocalTime.of(15, 20),
+                attendanceEndAt = LocalTime.of(15, 45),
                 dayOfWeek = DayOfWeek.MONDAY,
                 grade = 1
             ),
             AttendanceCheckpointEntity(
                 name = "9교시",
-                startAt = LocalTime.of(16, 30),
+                startAt = LocalTime.of(17, 20),
                 endAt = LocalTime.of(18, 10),
-                attendanceStartAt = LocalTime.of(16, 30),
-                attendanceEndAt = LocalTime.of(16, 50),
+                attendanceStartAt = LocalTime.of(17, 20),
+                attendanceEndAt = LocalTime.of(17, 45),
                 dayOfWeek = DayOfWeek.MONDAY,
                 grade = 1
             )
