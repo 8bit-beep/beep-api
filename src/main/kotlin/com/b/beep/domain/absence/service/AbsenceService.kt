@@ -16,7 +16,6 @@ import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.service.AttendanceTypeService
-import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.error.CheckpointError
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.user.controller.dto.response.StudentInfoResponse
@@ -94,12 +93,13 @@ class AbsenceService(
         request: CreateAbsenceRequest,
         users: List<UserEntity>
     ): AbsenceEntity {
+        val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
         val absence = absenceRepository.save(
             AbsenceEntity(
                 startDate = request.startDate,
                 endDate = request.endDate,
                 reason = request.reason,
-                absenceType = request.absenceType
+                type = type
             )
         )
         saveAbsenceRelations(absence, users, request.startDate, request.endDate, request.checkpoints)
@@ -156,6 +156,28 @@ class AbsenceService(
         return PageImpl(sorted, pageable, page.totalElements)
     }
 
+    @Transactional(readOnly = true)
+    fun getAbsencesToday(pageable: Pageable): Page<AbsenceResponse> {
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val page = absenceRepository.findAllByDateAndIsDeletedFalse(today, pageable)
+
+        val sorted = page.content.map { it.toResponse() }
+            .map { it.copy(targetStudents = it.targetStudents.sortedWith(compareBy(
+                { it.info?.grade ?: Int.MAX_VALUE },
+                { it.info?.classNumber ?: Int.MAX_VALUE },
+                { it.info?.num ?: Int.MAX_VALUE }
+            ))) }
+            .sortedWith(compareBy(
+                { it.startDate },
+                { it.endDate },
+                { it.targetStudents.firstOrNull()?.info?.grade ?: Int.MAX_VALUE },
+                { it.targetStudents.firstOrNull()?.info?.classNumber ?: Int.MAX_VALUE },
+                { it.targetStudents.firstOrNull()?.info?.num ?: Int.MAX_VALUE }
+            ))
+
+        return PageImpl(sorted, pageable, page.totalElements)
+    }
+
     fun updateAbsence(absenceId: Long, request: UpdateAbsenceRequest): UpdateAbsenceResponse {
         val absence = absenceRepository.findByIdAndIsDeletedFalse(absenceId)
             ?: throw CustomException(AbsenceError.ABSENCE_NOT_FOUND)
@@ -192,7 +214,7 @@ class AbsenceService(
         absence.startDate = request.startDate
         absence.endDate = request.endDate
         absence.reason = request.reason
-        absence.absenceType = request.absenceType
+        absence.type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
         absenceRepository.save(absence)
     }
 
@@ -215,8 +237,6 @@ class AbsenceService(
         exceptions: List<AbsenceExceptionEntity>
     ) {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val defaultAbsenceType =
-            attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.DEFAULT_ABSENCE_TYPE_NAME)
 
         val datesToProcess = generateSequence(startDate) { it.plusDays(1) }
             .takeWhile { !it.isAfter(endDate) }
@@ -254,7 +274,7 @@ class AbsenceService(
                             user = user,
                             checkpoint = checkpoint,
                             date = date,
-                            type = defaultAbsenceType,
+                            type = absence.type,
                             room = schedule?.room,
                             absence = absence
                         )
@@ -291,7 +311,8 @@ class AbsenceService(
             endDate = this.endDate,
             checkpoints = exceptionResponses,
             reason = this.reason,
-            absenceType = this.absenceType
+            typeId = this.type.id!!,
+            typeName = this.type.name
         )
     }
 }

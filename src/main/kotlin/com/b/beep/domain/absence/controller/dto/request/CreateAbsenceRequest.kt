@@ -20,7 +20,7 @@ data class CreateAbsenceRequest(
     val reason: String,
 
     @field:NotNull(message = "결석 사유 타입은 필수입니다")
-    val absenceType: AbsenceReason,
+    val typeId: Long,
 
     @field:Valid
     val checkpoints: List<AbsenceExceptionRequest>? = null

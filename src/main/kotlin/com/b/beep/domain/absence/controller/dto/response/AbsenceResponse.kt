@@ -11,5 +11,6 @@ data class AbsenceResponse(
     val endDate: LocalDate,
     val checkpoints: List<AbsenceExceptionResponse>,
     val reason: String,
-    val absenceType: AbsenceReason
+    val typeId: Long,
+    val typeName: String
 )
