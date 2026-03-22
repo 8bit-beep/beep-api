@@ -3,6 +3,7 @@ package com.b.beep.domain.checkpoint.controller.dto.request
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 data class CreateCheckpointRequest(
@@ -20,5 +21,9 @@ data class CreateCheckpointRequest(
     val attendanceStartAt: LocalTime,
 
     @field:NotNull(message = "출석 종료 시간은 필수입니다")
-    val attendanceEndAt: LocalTime
+    val attendanceEndAt: LocalTime,
+
+    val dayOfWeek: DayOfWeek? = null,
+
+    val grade: Int? = null
 )

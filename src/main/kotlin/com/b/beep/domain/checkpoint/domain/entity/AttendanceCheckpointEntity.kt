@@ -1,6 +1,7 @@
 package com.b.beep.domain.checkpoint.domain.entity
 
 import jakarta.persistence.*
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 @Entity
@@ -22,6 +23,13 @@ class AttendanceCheckpointEntity(
 
     @Column(name = "attendance_end_at")
     var attendanceEndAt: LocalTime,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week", nullable = true)
+    var dayOfWeek: DayOfWeek? = null,
+
+    @Column(name = "grade", nullable = true)
+    var grade: Int? = null,
 
     @Column(nullable = false)
     var isDeleted: Boolean = false

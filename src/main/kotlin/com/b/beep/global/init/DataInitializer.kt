@@ -8,6 +8,7 @@ import com.b.beep.logger
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 @Component
@@ -43,11 +44,6 @@ class DataInitializer(
     }
 
     private fun createCheckpoints() {
-        if (checkpointRepository.count() > 0) {
-            logger.info("Checkpoints already exist, skipping")
-            return
-        }
-
         val checkpointData = listOf(
             AttendanceCheckpointEntity(
                 name = "8~9교시",
@@ -69,10 +65,32 @@ class DataInitializer(
                 endAt = LocalTime.of(21, 50),
                 attendanceStartAt = LocalTime.of(20, 40),
                 attendanceEndAt = LocalTime.of(20, 59)
+            ),
+            AttendanceCheckpointEntity(
+                name = "7~8교시",
+                startAt = LocalTime.of(15, 20),
+                endAt = LocalTime.of(17, 19),
+                attendanceStartAt = LocalTime.of(15, 20),
+                attendanceEndAt = LocalTime.of(15, 45),
+                dayOfWeek = DayOfWeek.MONDAY,
+                grade = 1
+            ),
+            AttendanceCheckpointEntity(
+                name = "9교시",
+                startAt = LocalTime.of(17, 20),
+                endAt = LocalTime.of(18, 10),
+                attendanceStartAt = LocalTime.of(17, 20),
+                attendanceEndAt = LocalTime.of(17, 45),
+                dayOfWeek = DayOfWeek.MONDAY,
+                grade = 1
             )
         )
 
-        checkpointData.forEach { checkpointRepository.save(it) }
+        checkpointData.forEach { data ->
+            if (checkpointRepository.findByNameAndIsDeletedFalse(data.name) == null) {
+                checkpointRepository.save(data)
+            }
+        }
         logger.info("Checkpoints initialized")
     }
 }
