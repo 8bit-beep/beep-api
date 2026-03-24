@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
-@Tag(name = "장기결석", description = "장기결석 API")
+@Tag(name = "외박자 관리", description = "외박자 관리 API")
 @Validated
 @RestController
 @RequestMapping("/absences")
@@ -35,20 +35,13 @@ class AbsenceController(
     }
 
     @Operation(
-        summary = "장기결석 생성",
+        summary = "외박자 생성",
         description = """
-            장기결석을 생성합니다.
+            외박자를 생성합니다.
 
-            - 선택된 사용자 중 결석 생성이 실패한 경우 해당 유저를 제외하고 생성합니다.
-            - absenceType: 결석 사유 (필수)
-              - ILLNESS: 질병
-              - FAMILY: 가정사
-              - SCHOOL_ACTIVITY: 학교공식활동
-              - EXTERNAL_ACTIVITY: 외부대회/활동
-              - INSTITUTION_VISIT: (공공)기관 방문
-              - PERSONAL: 개인사유
-              - OTHER: 기타
-              - UNAUTHORIZED: 무단
+            - 선택된 사용자 중 기간이 겹치는 경우 해당 유저를 제외하고 생성합니다.
+            - typeId: 출석 타입 ID (필수)
+              - 외박 또는 외출 AttendanceType의 ID를 입력하세요.
         """
     )
     @PostMapping
@@ -57,7 +50,7 @@ class AbsenceController(
         return absenceService.createAbsence(request)
     }
 
-    @Operation(summary = "모든 장기결석 조회")
+    @Operation(summary = "전체 외박자 조회")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun getAbsences(
@@ -66,20 +59,22 @@ class AbsenceController(
         return PageResponse.from(absenceService.getAbsences(pageable))
     }
 
-    @Operation(
-        summary = "장기결석 수정",
-        description = """
-            장기결석을 수정합니다.
+    @Operation(summary = "오늘 외박자 조회")
+    @GetMapping("/today")
+    @ResponseStatus(HttpStatus.OK)
+    fun getAbsencesToday(
+        @PageableDefault(size = 20, sort = ["id"]) pageable: Pageable
+    ): PageResponse<AbsenceResponse> {
+        return PageResponse.from(absenceService.getAbsencesToday(pageable))
+    }
 
-            - absenceType: 결석 사유 (필수)
-              - ILLNESS: 질병
-              - FAMILY: 가정사
-              - SCHOOL_ACTIVITY: 학교공식활동
-              - EXTERNAL_ACTIVITY: 외부대회/활동
-              - INSTITUTION_VISIT: (공공)기관 방문
-              - PERSONAL: 개인사유
-              - OTHER: 기타
-              - UNAUTHORIZED: 무단
+    @Operation(
+        summary = "외박자 수정",
+        description = """
+            외박자를 수정합니다.
+
+            - typeId: 출석 타입 ID (필수)
+              - 외박 또는 외출 AttendanceType의 ID를 입력하세요.
         """
     )
     @PatchMapping("/{absenceId}")
@@ -91,7 +86,7 @@ class AbsenceController(
         return absenceService.updateAbsence(absenceId, request)
     }
 
-    @Operation(summary = "장기결석 삭제")
+    @Operation(summary = "외박자 삭제")
     @DeleteMapping("/{absenceId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteAbsence(
