@@ -144,14 +144,16 @@ class TeacherAttendanceService(
             ?: throw CustomException(UserError.STUDENT_INFO_NOT_FOUND)
         val attendances = attendanceRepository.findAllByUserAndDate(this, date)
         val checkpoints = checkpoint?.let { listOf(it) }
-            ?: checkpointRepository.findAllByIsDeletedFalse()
+            ?: run {
+                val grade = studentInfo.grade
+                checkpointResolver.getCheckpointsForStudent(grade, date.dayOfWeek)
+            }
 
         val attendanceMap = attendances.associateBy { it.checkpoint.id }
         val statuses = checkpoints.map { checkpoint ->
             val attendance = attendanceMap[checkpoint.id]
-            val type = attendanceMap[checkpoint.id]?.type
             StatusResponse(CheckpointSimpleResponse.of(checkpoint),
-                type?.let { AttendanceTypeResponse.of(it) },
+                attendance?.type?.let { AttendanceTypeResponse.of(it) },
                 isLate = attendance?.isLate ?: false)
         }
 
