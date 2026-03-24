@@ -128,4 +128,9 @@ class CheckpointResolver(
 
         return specific + filteredGeneral
     }
+
+    fun getCheckpointsForStudent(grade: Int?, dayOfWeek: DayOfWeek): List<AttendanceCheckpointEntity> {
+        val all = checkpointRepository.findAllByIsDeletedFalse()
+        return if (grade != null) filterForStudent(all, grade, dayOfWeek) else all.filter { it.grade == null && it.dayOfWeek == null }
+    }
 }
