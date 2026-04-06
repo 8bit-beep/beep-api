@@ -10,6 +10,9 @@ class UserEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @Column(name = "public_id")
+    var publicId: String? = null,
+
     @Column(name = "email", nullable = false, unique = true)
     val email: String,
 
