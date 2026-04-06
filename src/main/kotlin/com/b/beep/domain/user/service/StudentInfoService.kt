@@ -1,7 +1,6 @@
 package com.b.beep.domain.user.service
 
 import com.b.beep.domain.auth.infrastructure.DAuthUser
-import com.b.beep.domain.auth.infrastructure.DAuthUserResponse
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
