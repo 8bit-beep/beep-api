@@ -16,75 +16,32 @@ class StudentInfoService(
     private val studentInfoRepository: StudentInfoRepository,
 ) {
     fun getOrCreateUser(dodamUser: DAuthUser): UserEntity {
-        val email = dodamUser.email
-
-        return userRepository.findByEmailAndIsDeletedFalse(email) ?: run {
-            val newUser = UserEntity(
-                email = email,
-                username = dodamUser.name,
-                role = if (dodamUser.role == "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
+        return userRepository.findByPublicIdAndIsDeletedFalse(dodamUser.publicId)
+            ?: userRepository.save(UserEntity(
+                publicId = dodamUser.publicId,
+                username = dodamUser.userName,
+                name = dodamUser.name,
+                role = if (dodamUser.roles.contains("STUDENT")) UserRole.STUDENT else UserRole.TEACHER,
                 profileImage = dodamUser.profileImage
-            )
-            userRepository.save(newUser)
-        }
-    }
-
-    fun getOrCreateUser(dodamUser: DAuthUserResponse): UserEntity {
-        val email = dodamUser.data.email
-
-        return userRepository.findByEmailAndIsDeletedFalse(email) ?: run {
-            var profileImage = dodamUser.data.profileImage
-            if (profileImage.isNullOrEmpty()) {
-                profileImage = "https://cloud.cher1shrxd.me/uploads/c8ef0529-a85b-4e09-acea-fe75764317c9.png"
-            }
-
-            val newUser = UserEntity(
-                email = email,
-                username = dodamUser.data.name,
-                role = if (dodamUser.data.role == "STUDENT") UserRole.STUDENT else UserRole.TEACHER,
-                profileImage = profileImage
-            )
-            userRepository.save(newUser)
-        }
+            ))
     }
 
     fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUser): StudentInfoEntity {
         return studentInfoRepository.findByUser(user) ?: run {
-            val newStudentInfo = StudentInfoEntity(
+            studentInfoRepository.save(StudentInfoEntity(
                 user = user,
-                grade = dodamUser.grade!!,
-                classNumber = dodamUser.room!!,
-                num = dodamUser.number!!
-            )
-            studentInfoRepository.save(newStudentInfo)
-        }
-    }
-
-    fun getOrCreateStudentInfo(user: UserEntity, dodamUser: DAuthUserResponse): StudentInfoEntity {
-        return studentInfoRepository.findByUser(user) ?: run {
-            val newStudentInfo = StudentInfoEntity(
-                user = user,
-                grade = dodamUser.data.grade,
-                classNumber = dodamUser.data.room,
-                num = dodamUser.data.number
-            )
-            studentInfoRepository.save(newStudentInfo)
+                grade = dodamUser.student!!.grade,
+                classNumber = dodamUser.student.room,
+                num = dodamUser.student.number
+            ))
         }
     }
 
     fun updateStudentInfo(user: UserEntity, dodamUser: DAuthUser) {
         val studentInfo = studentInfoRepository.findByUser(user) ?: return
-        studentInfo.grade = dodamUser.grade!!
-        studentInfo.classNumber = dodamUser.room!!
-        studentInfo.num = dodamUser.number!!
-        studentInfoRepository.save(studentInfo)
-    }
-
-    fun updateStudentInfo(user: UserEntity, dodamUser: DAuthUserResponse) {
-        val studentInfo = studentInfoRepository.findByUser(user) ?: return
-        studentInfo.grade = dodamUser.data.grade
-        studentInfo.classNumber = dodamUser.data.room
-        studentInfo.num = dodamUser.data.number
+        studentInfo.grade = dodamUser.student!!.grade
+        studentInfo.classNumber = dodamUser.student.room
+        studentInfo.num = dodamUser.student.number
         studentInfoRepository.save(studentInfo)
     }
 }

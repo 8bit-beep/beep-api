@@ -27,11 +27,11 @@ class JwtExtractor(
         return Keys.hmacShaKeyFor(keyBytes)
     }
 
-    fun getEmail(token: String): String = getClaims(token).body.subject
+    fun getPublicId(token: String): String = getClaims(token).body.subject
 
     fun getAuthentication(token: String): Authentication {
         val claims = getClaims(token).body
-        val user = userRepository.findByEmailAndIsDeletedFalse(claims.subject) ?: throw CustomException(
+        val user = userRepository.findByPublicIdAndIsDeletedFalse(claims.subject) ?: throw CustomException(
             UserError.USER_NOT_FOUND,
             claims.subject
         )

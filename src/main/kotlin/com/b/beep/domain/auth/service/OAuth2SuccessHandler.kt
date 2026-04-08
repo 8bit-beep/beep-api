@@ -29,41 +29,38 @@ class OAuth2SuccessHandler(
         val oauth2User = authentication.principal as OAuth2User
         val attributes = oauth2User.attributes
 
-        val roleString = attributes["role"] as? String
+        val roles = attributes["roles"] as? List<*>
+            ?: throw CustomException(AuthError.NULL_ROLE)
+        val roleString = roles.firstOrNull() as? String
             ?: throw CustomException(AuthError.NULL_ROLE)
 
-        val role = UserRole.valueOf(roleString)
-
-        val email = attributes["email"] as? String
-            ?: throw CustomException(AuthError.NULL_EMAIL)
+        val username = attributes["username"] as? String
+            ?: throw CustomException(AuthError.NULL_NAME)
 
         val name = attributes["name"] as? String
             ?: throw CustomException(AuthError.NULL_NAME)
 
-        val (grade, room, number) =
-            if (role == UserRole.STUDENT) {
-                Triple(
-                    (attributes["grade"] as? Number)?.toInt()
-                        ?: throw CustomException(AuthError.NULL_STU_NUM),
-                    (attributes["room"] as? Number)?.toInt()
-                        ?: throw CustomException(AuthError.NULL_STU_NUM),
-                    (attributes["number"] as? Number)?.toInt()
-                        ?: throw CustomException(AuthError.NULL_STU_NUM)
-                )
-            } else {
-                Triple(null, null, null)
-            }
+        val publicId = attributes["publicId"] as? String
+            ?: throw CustomException(AuthError.NULL_ROLE)
+
+        val studentMap = attributes["student"] as? Map<*, *>
+        val student = if (studentMap != null) {
+            com.b.beep.domain.auth.infrastructure.StudentInfo(
+                grade = (studentMap["grade"] as Number).toInt(),
+                room = (studentMap["room"] as Number).toInt(),
+                number = (studentMap["number"] as Number).toInt(),
+                isGraduated = studentMap["isGraduated"] as? Boolean ?: false
+            )
+        } else null
 
         val dauthUser = DAuthUser(
-            id = attributes["sub"] as String,
+            publicId = publicId,
+            username = username,
             name = name,
-            email = email,
-            profileImage = attributes["profile_image"] as? String,
-            role = roleString,
-            phone = attributes["phone"] as? String,
-            grade = grade,
-            room = room,
-            number = number
+            profileImage = attributes["profileImage"] as? String,
+            roles = listOf(roleString),
+            status = attributes["status"] as? String ?: "ACTIVE",
+            student = student
         )
 
         val user = studentInfoService.getOrCreateUser(dauthUser)
@@ -72,7 +69,7 @@ class OAuth2SuccessHandler(
             studentInfoService.getOrCreateStudentInfo(user, dauthUser)
             studentInfoService.updateStudentInfo(user, dauthUser)
         }
-        val tokens = jwtProvider.generateToken(user.email)
+        val tokens = jwtProvider.generateToken(user.publicId!!)
         val refreshToken = tokens.refreshToken
         val accessToken = tokens.accessToken
 
