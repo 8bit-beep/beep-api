@@ -32,7 +32,7 @@ spring:
             authorization-uri: https://dauth.b1nd.com/authorize
             token-uri: https://dodam-api.b1nd.com/oauth/token
             user-info-uri: https://dodam-api.b1nd.com/user/me
-            user-name-attribute: publicId
+            user-name-attribute: username
 
 application:
   jwt:
