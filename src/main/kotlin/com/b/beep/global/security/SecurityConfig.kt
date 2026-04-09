@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
@@ -21,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
+    private val clientRegistrationRepository: ClientRegistrationRepository,
     private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
@@ -91,6 +93,14 @@ class SecurityConfig(
         }
         .oauth2Login { oauth2 ->
             oauth2
+                .authorizationEndpoint { authorization ->
+                    authorization.authorizationRequestResolver(
+                        CustomAuthorizationRequestResolver(
+                            clientRegistrationRepository,
+                            "/oauth2/authorization"
+                        )
+                    )
+                }
                 .userInfoEndpoint { userInfo ->
                     userInfo.userService(customOAuth2UserService)
                 }
