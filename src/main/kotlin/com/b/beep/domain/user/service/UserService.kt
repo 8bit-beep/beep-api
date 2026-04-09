@@ -42,8 +42,8 @@ class UserService(
 
         return UserResponse(
             id = id,
-            email = email,
             username = username,
+            name = name,
             role = role,
             profileImage = profileImage,
             studentInfo = studentInfo,

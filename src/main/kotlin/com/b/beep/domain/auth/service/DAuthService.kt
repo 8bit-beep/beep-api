@@ -6,6 +6,7 @@ import com.b.beep.domain.auth.infrastructure.DAuthProperties
 import com.b.beep.domain.auth.infrastructure.DAuthTokenResponse
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.error.UserError
+import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.jwt.JwtProvider
@@ -13,7 +14,6 @@ import com.b.beep.global.security.jwt.dto.response.TokenResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
@@ -33,26 +33,22 @@ class DAuthService(
             studentInfoService.updateStudentInfo(user, dodamUser)
         }
 
-        return jwtProvider.generateToken(user.email)
+        return jwtProvider.generateToken(user.publicId!!)
     }
 
     private fun getDAuthToken(code: String): String {
-        val webClient: WebClient = WebClient.create("https://dauthapi.b1nd.com")
-
-        val clientId = dAuthProperties.clientId
-        val clientSecret = dAuthProperties.clientSecret
+        val webClient: WebClient = WebClient.create("https://dodam-api.b1nd.com")
 
         val response = webClient.post()
             .uri("/oauth/token")
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(
-                BodyInserters
-                    .fromFormData("code", code)
-                    .with("grant_type", "authorization_code")
-                    .with("redirect_uri", "https://beepapi.com/login/oauth2/code/dauth")
-                    .with("client_id", clientId)
-                    .with("client_secret", clientSecret)
-            )
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(mapOf(
+                "code" to code,
+                "grant_type" to "authorization_code",
+                "redirect_uri" to "https://api.8beep.site/login/oauth2/code/dauth",
+                "client_id" to dAuthProperties.clientId,
+                "client_secret" to dAuthProperties.clientSecret
+            ))
             .retrieve()
             .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java)
@@ -64,23 +60,20 @@ class DAuthService(
         return response?.accessToken ?: throw CustomException(AuthError.TOKEN_FETCH_FAILED)
     }
 
-    private fun getDAuthUser(token: String): DAuthUserResponse {
-        val webClient: WebClient = WebClient.create("https://dauthapi.b1nd.com")
+    private fun getDAuthUser(token: String): DAuthUser {
+        val webClient: WebClient = WebClient.create("https://dodam-api.b1nd.com")
 
         val response = webClient.get()
-            .uri("/oauth/userinfo")
+            .uri("/user/me")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java)
-                    .doOnNext { body ->
-                        println(body)
-                    }
                     .flatMap { body ->
                         Mono.error(RuntimeException("Failed to fetch token: $body"))
                     }
             }
-            .bodyToMono(DAuthUserResponse::class.java)
+            .bodyToMono(DAuthUser::class.java)
             .block() ?: throw CustomException(UserError.USER_NOT_FOUND)
 
         return response

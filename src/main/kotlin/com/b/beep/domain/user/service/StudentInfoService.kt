@@ -19,7 +19,7 @@ class StudentInfoService(
         return userRepository.findByPublicIdAndIsDeletedFalse(dodamUser.publicId)
             ?: userRepository.save(UserEntity(
                 publicId = dodamUser.publicId,
-                username = dodamUser.userName,
+                username = dodamUser.username,
                 name = dodamUser.name,
                 role = if (dodamUser.roles.contains("STUDENT")) UserRole.STUDENT else UserRole.TEACHER,
                 profileImage = dodamUser.profileImage

@@ -5,14 +5,11 @@ import com.b.beep.domain.user.domain.enums.UserRole
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface UserRepository : JpaRepository<UserEntity, Long> {
-    fun findByEmail(email: String): UserEntity?
     fun findByPublicId(publicId: String): UserEntity?
-    fun existsByEmail(email: String): Boolean
     fun findAllByRole(role: UserRole): List<UserEntity>
 
-    fun findByEmailAndIsDeletedFalse(email: String): UserEntity?
     fun findByPublicIdAndIsDeletedFalse(publicId: String): UserEntity?
-    fun existsByEmailAndIsDeletedFalse(email: String): Boolean
+    fun findByUsernameAndIsDeletedFalse(username: String): UserEntity?
     fun findAllByRoleAndIsDeletedFalse(role: UserRole): List<UserEntity>
     fun findByIdAndIsDeletedFalse(id: Long): UserEntity?
     fun findAllByIdInAndIsDeletedFalse(ids: List<Long>): List<UserEntity>
