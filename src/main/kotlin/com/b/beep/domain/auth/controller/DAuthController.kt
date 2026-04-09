@@ -28,13 +28,13 @@ class DAuthController(
     @ResponseStatus(HttpStatus.OK)
     fun home(@AuthenticationPrincipal oauth2User: OAuth2User, model: Model): TestResponse {
         model.addAttribute("name", oauth2User.getAttribute<String>("name"))
-        model.addAttribute("email", oauth2User.getAttribute<String>("email"))
+        model.addAttribute("username", oauth2User.getAttribute<String>("username"))
         model.addAttribute("profileImage", oauth2User.getAttribute<String>("profile_image"))
         model.addAttribute("role", oauth2User.getAttribute<String>("role"))
 
         return TestResponse(
             name = oauth2User.getAttribute("name")!!,
-            email = oauth2User.getAttribute("email")!!,
+            username = oauth2User.getAttribute("name")!!,
             profileImage = oauth2User.getAttribute("profile_image"),
             role = oauth2User.getAttribute("role")
         )

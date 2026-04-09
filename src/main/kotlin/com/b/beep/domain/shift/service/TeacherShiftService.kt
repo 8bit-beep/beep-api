@@ -86,8 +86,8 @@ class TeacherShiftService(
             id = id!!,
             user = UserResponse(
                 id = user.id,
-                email = user.email,
                 username = user.username,
+                name = user.name,
                 role = user.role,
                 profileImage = user.profileImage,
                 studentInfo = studentInfo?.let { StudentInfoResponse.of(it) }

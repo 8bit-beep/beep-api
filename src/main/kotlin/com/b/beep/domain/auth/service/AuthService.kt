@@ -3,7 +3,6 @@ package com.b.beep.domain.auth.service
 import com.b.beep.domain.auth.controller.dto.request.AdminLoginRequest
 import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.repository.RefreshTokenRepository
-import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.user.repository.UserRepository
 import com.b.beep.global.exception.CustomException
@@ -25,21 +24,21 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder
 ) {
     fun refresh(refreshToken: String): TokenResponse {
-        val email = jwtExtractor.getEmail(refreshToken)
+        val publicId = jwtExtractor.getPublicId(refreshToken)
 
-        val savedToken = refreshTokenRepository.findByUserId(email)
+        val savedToken = refreshTokenRepository.findByUserId(publicId)
             ?: throw CustomException(JwtError.REFRESH_TOKEN_NOT_FOUND)
         if (savedToken != refreshToken) {
             throw CustomException(JwtError.INVALID_REFRESH_TOKEN)
         }
 
-        val newTokens = jwtProvider.generateToken(email)
+        val newTokens = jwtProvider.generateToken(publicId)
 
         return newTokens
     }
 
     fun login(request: AdminLoginRequest): TokenResponse {
-        val user = userRepository.findByEmailAndIsDeletedFalse(request.email)
+        val user = userRepository.findByUsernameAndIsDeletedFalse(request.username)
             ?: throw CustomException(UserError.USER_NOT_FOUND)
 
         if (user.password == null) {
@@ -50,7 +49,7 @@ class AuthService(
             throw  CustomException(AuthError.PASSWORD_MISMATCH)
         }
 
-        val newTokens = jwtProvider.generateToken(request.email)
+        val newTokens = jwtProvider.generateToken(user.publicId!!)
 
         return newTokens
     }
