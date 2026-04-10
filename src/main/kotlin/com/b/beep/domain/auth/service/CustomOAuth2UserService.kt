@@ -7,10 +7,15 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.stereotype.Service
+import org.slf4j.LoggerFactory
 
 @Service
 class CustomOAuth2UserService : OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+    private val log = LoggerFactory.getLogger(CustomOAuth2UserService::class.java)
     override fun loadUser(userRequest: OAuth2UserRequest): OAuth2User {
+        log.info("userInfoEndpointUri: ${userRequest.clientRegistration.providerDetails.userInfoEndpoint.uri}")
+        log.info("userNameAttributeName: ${userRequest.clientRegistration.providerDetails.userInfoEndpoint.userNameAttributeName}")
+
         val delegate = DefaultOAuth2UserService()
         val oauth2User = delegate.loadUser(userRequest)
 
