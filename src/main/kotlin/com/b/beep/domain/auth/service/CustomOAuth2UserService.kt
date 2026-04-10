@@ -1,28 +1,32 @@
 package com.b.beep.domain.auth.service
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.stereotype.Service
-import org.slf4j.LoggerFactory
 
 @Service
 class CustomOAuth2UserService : OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-    private val log = LoggerFactory.getLogger(CustomOAuth2UserService::class.java)
     override fun loadUser(userRequest: OAuth2UserRequest): OAuth2User {
-        log.info("userInfoEndpointUri: ${userRequest.clientRegistration.providerDetails.userInfoEndpoint.uri}")
-        log.info("userNameAttributeName: ${userRequest.clientRegistration.providerDetails.userInfoEndpoint.userNameAttributeName}")
+        val token = userRequest.accessToken.tokenValue
+        val uri = userRequest.clientRegistration.providerDetails.userInfoEndpoint.uri
 
-        val delegate = DefaultOAuth2UserService()
-        val oauth2User = delegate.loadUser(userRequest)
+        val restTemplate = org.springframework.web.client.RestTemplate()
+        val headers = org.springframework.http.HttpHeaders()
+        headers.setBearerAuth(token)
+        val entity = org.springframework.http.HttpEntity<String>(headers)
+        val response = restTemplate.exchange(uri, org.springframework.http.HttpMethod.GET, entity, Map::class.java)
+
+        val body = response.body as Map<*, *>
+        val data = body["data"] as Map<*, *>
+
+        @Suppress("UNCHECKED_CAST")
+        val attributes = data as Map<String, Any>
 
         val userNameAttributeName = userRequest.clientRegistration
             .providerDetails.userInfoEndpoint.userNameAttributeName
-
-        val attributes = oauth2User.attributes
 
         return DefaultOAuth2User(
             setOf(SimpleGrantedAuthority("ROLE_USER")),
