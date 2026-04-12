@@ -24,7 +24,7 @@ class DAuthService(
     private val jwtProvider: JwtProvider,
 ) {
     fun login(request: LoginRequest): TokenResponse {
-        val token = getDAuthToken(request.code)
+        val token = getDAuthToken(request.code, request.codeVerifier)
         val dodamUser = getDAuthUser(token)
         val user = studentInfoService.getOrCreateUser(dodamUser)
 
@@ -36,7 +36,7 @@ class DAuthService(
         return jwtProvider.generateToken(user.publicId!!)
     }
 
-    private fun getDAuthToken(code: String): String {
+    private fun getDAuthToken(code: String, codeVerifier: String): String {
         val webClient: WebClient = WebClient.create("https://dodam-api.b1nd.com")
 
         val response = webClient.post()
@@ -47,7 +47,8 @@ class DAuthService(
                 "grant_type" to "authorization_code",
                 "redirect_uri" to "https://api.8beep.site/login/oauth2/code/dauth",
                 "client_id" to dAuthProperties.clientId,
-                "client_secret" to dAuthProperties.clientSecret
+                "client_secret" to dAuthProperties.clientSecret,
+                "code_verifier" to codeVerifier
             ))
             .retrieve()
             .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
