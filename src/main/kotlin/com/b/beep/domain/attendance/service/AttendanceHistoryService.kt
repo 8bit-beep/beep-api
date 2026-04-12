@@ -141,7 +141,7 @@ class AttendanceHistoryService(
                 grade = studentInfo.grade,
                 classNumber = studentInfo.classNumber,
                 num = studentInfo.num,
-                name = studentInfo.user.username,
+                name = studentInfo.user.name,
                 statuses = checkpoints.map { cp ->
                     attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME
                 }
@@ -261,7 +261,7 @@ class AttendanceHistoryService(
 
             RoomStudentData(
                 studentNumber = studentNumber,
-                name = user.username,
+                name = user.name,
                 statuses = checkpoints.map { cp ->
                     if (userScheduleByCheckpoint[cp.id] == null) {
                         "--"
@@ -297,7 +297,7 @@ class AttendanceHistoryService(
             val approval = approvalMap[room.id to cp.id]?.firstOrNull()
             val approvalText = if (approval != null) {
                 val time = approval.createdAt?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: ""
-                val teacher = approval.teacher?.username ?: "-"
+                val teacher = approval.teacher?.name ?: "-"
                 "승인 $time $teacher"
             } else "미승인"
             approvalHeaderRow.createCell(2 + cpIndex).setCellValue(approvalText)
