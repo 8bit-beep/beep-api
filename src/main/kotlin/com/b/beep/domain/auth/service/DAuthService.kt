@@ -45,7 +45,7 @@ class DAuthService(
             .bodyValue(mapOf(
                 "code" to code,
                 "grant_type" to "authorization_code",
-                "redirect_uri" to "https://api.8beep.site/login/oauth2/code/dauth",
+                "redirect_uri" to "https://beep.cher1shrxd.me/callback/dauth",
                 "client_id" to dAuthProperties.clientId,
                 "client_secret" to dAuthProperties.clientSecret,
                 "code_verifier" to codeVerifier
