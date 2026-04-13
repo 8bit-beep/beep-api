@@ -16,6 +16,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import org.slf4j.LoggerFactory
 
 @Service
 class DAuthService(
@@ -23,6 +24,8 @@ class DAuthService(
     private val studentInfoService: StudentInfoService,
     private val jwtProvider: JwtProvider,
 ) {
+    private val log = LoggerFactory.getLogger(DAuthService::class.java)
+
     fun login(request: LoginRequest): TokenResponse {
         val token = getDAuthToken(request.code, request.codeVerifier)
         val dodamUser = getDAuthUser(token)
@@ -51,9 +54,15 @@ class DAuthService(
                 "code_verifier" to codeVerifier
             ))
             .retrieve()
-            .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java)
-                    .flatMap { body -> Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED)) }
+            .onStatus({ it.isError }) { clientResponse ->
+                clientResponse.bodyToMono(String::class.java).flatMap { body ->
+                    log.error(
+                        "DAuth token exchange failed. status={}, responseBody={}",
+                        clientResponse.statusCode(),
+                        body
+                    )
+                    Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
+                }
             }
             .bodyToMono(DAuthTokenResponse::class.java)
             .block()
@@ -68,11 +77,15 @@ class DAuthService(
             .uri("/user/me")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
-            .onStatus({ status -> !status.is2xxSuccessful }) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java)
-                    .flatMap { body ->
-                        Mono.error(RuntimeException("Failed to fetch token: $body"))
-                    }
+            .onStatus({ it.isError }) { clientResponse ->
+                clientResponse.bodyToMono(String::class.java).flatMap { body ->
+                    log.error(
+                        "DAuth user info fetch failed. status={}, responseBody={}",
+                        clientResponse.statusCode(),
+                        body
+                    )
+                    Mono.error(CustomException(UserError.USER_NOT_FOUND))
+                }
             }
             .bodyToMono(DAuthUser::class.java)
             .block() ?: throw CustomException(UserError.USER_NOT_FOUND)
