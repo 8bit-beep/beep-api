@@ -1,5 +1,8 @@
 package com.b.beep.domain.auth.infrastructure
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class DAuthUser(
     val publicId: String,                    // sub (사용자 고유 ID)
     val username: String,         // 로그인 아이디
