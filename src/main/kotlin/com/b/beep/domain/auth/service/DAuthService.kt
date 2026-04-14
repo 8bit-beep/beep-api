@@ -42,17 +42,29 @@ class DAuthService(
     private fun getDAuthToken(code: String, codeVerifier: String): String {
         val webClient: WebClient = WebClient.create("https://dodam-api.b1nd.com")
 
+        val requestBody = mapOf(
+            "code" to code,
+            "grant_type" to "authorization_code",
+            "redirect_uri" to "https://beep.cher1shrxd.me/callback/dauth",
+            "client_id" to dAuthProperties.clientId,
+            "client_secret" to dAuthProperties.clientSecret,
+            "code_verifier" to codeVerifier
+        )
+
+        log.info("DAuth token exchange request body: {}", requestBody)
+
         val response = webClient.post()
             .uri("/oauth/token")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mapOf(
-                "code" to code,
-                "grant_type" to "authorization_code",
-                "redirect_uri" to "https://beep.cher1shrxd.me/callback/dauth",
-                "client_id" to dAuthProperties.clientId,
-                "client_secret" to dAuthProperties.clientSecret,
-                "code_verifier" to codeVerifier
-            ))
+            .bodyValue(requestBody)
+//            .bodyValue(mapOf(
+//                "code" to code,
+//                "grant_type" to "authorization_code",
+//                "redirect_uri" to "https://beep.cher1shrxd.me/callback/dauth",
+//                "client_id" to dAuthProperties.clientId,
+//                "client_secret" to dAuthProperties.clientSecret,
+//                "code_verifier" to codeVerifier
+//            ))
             .retrieve()
             .onStatus({ it.isError }) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java).flatMap { body ->
