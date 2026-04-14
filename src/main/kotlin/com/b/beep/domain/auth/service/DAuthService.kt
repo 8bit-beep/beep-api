@@ -7,6 +7,7 @@ import com.b.beep.domain.auth.infrastructure.DAuthTokenResponse
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.auth.infrastructure.DAuthUser
+import com.b.beep.domain.auth.infrastructure.DAuthUserMeResponse
 import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.jwt.JwtProvider
@@ -29,6 +30,8 @@ class DAuthService(
     private val jwtProvider: JwtProvider,
 ) {
     private val log = LoggerFactory.getLogger(DAuthService::class.java)
+    private val mapper = jacksonObjectMapper()
+
     private fun maskEdge(value: String, edge: Int = 4): String {
         if (value.length <= edge * 2) return "*".repeat(value.length)
         return value.take(edge) + "..." + value.takeLast(edge)
@@ -181,9 +184,7 @@ class DAuthService(
 //
 //        return response
         return try {
-            val webClient = WebClient.create("https://dodam-api.b1nd.com")
-
-            val raw = webClient.get()
+            val raw = WebClient.create("https://dodam-api.b1nd.com").get()
                 .uri("/user/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                 .retrieve()
@@ -198,7 +199,8 @@ class DAuthService(
 
             log.info("[DAUTH] /user/me raw={}", raw)
 
-            return jacksonObjectMapper().readValue(raw)
+            val wrapper: DAuthUserMeResponse = mapper.readValue(raw)
+            wrapper.data ?: throw CustomException(UserError.USER_NOT_FOUND)
         } catch (e: Exception) {
             log.error("DAuth user fetch exception. type={}, message={}", e.javaClass.name, e.message, e)
             throw e
