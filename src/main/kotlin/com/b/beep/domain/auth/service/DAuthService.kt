@@ -57,9 +57,15 @@ class DAuthService(
             .onStatus({ it.isError }) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java).flatMap { body ->
                     log.error(
-                        "DAuth token exchange failed. status={}, responseBody={}",
+                        "DAuth token exchange failed. status={}, responseBody={}, codePresent={}, codeLen={}, verifierPresent={}, verifierLen={}, redirectUri={}, grantType={}",
                         clientResponse.statusCode(),
-                        body
+                        body,
+                        code.isNotBlank(),
+                        code.length,
+                        codeVerifier.isNotBlank(),
+                        codeVerifier.length,
+                        "https://beep.cher1shrxd.me/callback/dauth",
+                        "authorization_code"
                     )
                     Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
                 }
