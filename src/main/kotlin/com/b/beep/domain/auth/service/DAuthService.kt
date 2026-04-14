@@ -25,6 +25,10 @@ class DAuthService(
     private val jwtProvider: JwtProvider,
 ) {
     private val log = LoggerFactory.getLogger(DAuthService::class.java)
+    private fun maskEdge(value: String, edge: Int = 4): String {
+        if (value.length <= edge * 2) return "*".repeat(value.length)
+        return value.take(edge) + "..." + value.takeLast(edge)
+    }
 
     fun login(request: LoginRequest): TokenResponse {
         val token = getDAuthToken(request.code, request.codeVerifier)
@@ -51,34 +55,30 @@ class DAuthService(
             "code_verifier" to codeVerifier
         )
 
-        log.info("DAuth token exchange request body: {}", requestBody)
+        log.info(
+            "DAuth token request check: hasCode={}, codeLen={}, codeEdge={}, hasVerifier={}, verifierLen={}, verifierEdge={}, redirectUri={}, hasClientId={}, clientIdEdge={}, hasClientSecret={}, clientSecretLen={}, clientSecretEdge={}",
+            code.isNotBlank(),
+            code.length,
+            maskEdge(code),
+            codeVerifier.isNotBlank(),
+            codeVerifier.length,
+            maskEdge(codeVerifier),
+            requestBody["redirect_uri"],
+            !dAuthProperties.clientId.isNullOrBlank(),
+            maskEdge(dAuthProperties.clientId),
+            !dAuthProperties.clientSecret.isNullOrBlank(),
+            dAuthProperties.clientSecret.length,
+            maskEdge(dAuthProperties.clientSecret, 4)
+        )
 
         val response = webClient.post()
             .uri("/oauth/token")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(requestBody)
-//            .bodyValue(mapOf(
-//                "code" to code,
-//                "grant_type" to "authorization_code",
-//                "redirect_uri" to "https://beep.cher1shrxd.me/callback/dauth",
-//                "client_id" to dAuthProperties.clientId,
-//                "client_secret" to dAuthProperties.clientSecret,
-//                "code_verifier" to codeVerifier
-//            ))
             .retrieve()
             .onStatus({ it.isError }) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java).flatMap { body ->
-                    log.error(
-                        "DAuth token exchange failed. status={}, responseBody={}, codePresent={}, codeLen={}, verifierPresent={}, verifierLen={}, redirectUri={}, grantType={}",
-                        clientResponse.statusCode(),
-                        body,
-                        code.isNotBlank(),
-                        code.length,
-                        codeVerifier.isNotBlank(),
-                        codeVerifier.length,
-                        "https://beep.cher1shrxd.me/callback/dauth",
-                        "authorization_code"
-                    )
+                    log.error("DAuth token exchange failed. status={}, responseBody={}", clientResponse.statusCode(), body)
                     Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
                 }
             }
