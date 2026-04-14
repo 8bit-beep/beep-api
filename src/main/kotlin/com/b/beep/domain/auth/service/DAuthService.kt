@@ -71,12 +71,20 @@ class DAuthService(
 //            .bodyToMono(DAuthTokenResponse::class.java)
 //            .block()
 
+        val clientId = dAuthProperties.clientId
+        val clientSecret = dAuthProperties.clientSecret
+
+        if (clientId.isBlank() || clientSecret.isBlank()) {
+            log.error("DAuth config invalid. clientIdBlank={}, clientSecretBlank={}", clientId.isBlank(), clientSecret.isBlank())
+            throw CustomException(AuthError.TOKEN_FETCH_FAILED)
+        }
+
         val formData = LinkedMultiValueMap<String, String>().apply {
             add("code", code)
             add("grant_type", "authorization_code")
             add("redirect_uri", "https://beep.cher1shrxd.me/callback/dauth")
-            add("client_id", dAuthProperties.clientId)
-            add("client_secret", dAuthProperties.clientSecret)
+            add("client_id", clientId)
+            add("client_secret", clientSecret)
             add("code_verifier", codeVerifier)
         }
 
@@ -88,7 +96,7 @@ class DAuthService(
             codeVerifier.isNotBlank(),
             codeVerifier.length,
             maskEdge(codeVerifier),
-            formData["redirect_uri"],
+            formData.getFirst("redirect_uri"),
             !dAuthProperties.clientId.isNullOrBlank(),
             maskEdge(dAuthProperties.clientId),
             !dAuthProperties.clientSecret.isNullOrBlank(),
@@ -96,21 +104,42 @@ class DAuthService(
             maskEdge(dAuthProperties.clientSecret, 4)
         )
 
-        val response = webClient.post()
-            .uri("/oauth/token")
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(BodyInserters.fromFormData(formData))
-            .retrieve()
-            .onStatus({ it.isError }) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).flatMap { body ->
-                    log.error("DAuth token exchange failed(FORM). status={}, responseBody={}", clientResponse.statusCode(), body)
-                    Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
-                }
-            }
-            .bodyToMono(DAuthTokenResponse::class.java)
-            .block()
+//        val response = webClient.post()
+//            .uri("/oauth/token")
+//            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//            .body(BodyInserters.fromFormData(formData))
+//            .retrieve()
+//            .onStatus({ it.isError }) { clientResponse ->
+//                clientResponse.bodyToMono(String::class.java).flatMap { body ->
+//                    log.error("DAuth token exchange failed(FORM). status={}, responseBody={}", clientResponse.statusCode(), body)
+//                    Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
+//                }
+//            }
+//            .bodyToMono(DAuthTokenResponse::class.java)
+//            .block()
 
-        return response?.accessToken ?: throw CustomException(AuthError.TOKEN_FETCH_FAILED)
+//        return response?.accessToken ?: throw CustomException(AuthError.TOKEN_FETCH_FAILED)
+        return try {
+            val response = webClient.post()
+                .uri("/oauth/token")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .onStatus({ it.isError }) { cr ->
+                    cr.bodyToMono(String::class.java).flatMap { body ->
+                        log.error("DAuth token exchange failed(FORM). status={}, body={}", cr.statusCode(), body)
+                        Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
+                    }
+                }
+                .bodyToMono(DAuthTokenResponse::class.java)
+                .block()
+
+            response?.accessToken ?: throw CustomException(AuthError.TOKEN_FETCH_FAILED)
+        } catch (e: Exception) {
+            log.error("DAuth token exchange exception(FORM). type={}, message={}", e.javaClass.name, e.message, e)
+            throw CustomException(AuthError.TOKEN_FETCH_FAILED)
+        }
     }
 
     private fun getDAuthUser(token: String): DAuthUser {
