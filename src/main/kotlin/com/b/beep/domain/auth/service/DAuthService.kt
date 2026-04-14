@@ -33,16 +33,30 @@ class DAuthService(
     }
 
     fun login(request: LoginRequest): TokenResponse {
-        val token = getDAuthToken(request.code, request.codeVerifier)
-        val dodamUser = getDAuthUser(token)
-        val user = studentInfoService.getOrCreateUser(dodamUser)
+        val rid = java.util.UUID.randomUUID().toString().take(8)
+        log.info("[DAUTH:{}] login start", rid)
+        try {
+            val token = getDAuthToken(request.code, request.codeVerifier)
+            log.info("[DAUTH:{}] token success", rid)
 
-        if (user.role == UserRole.STUDENT) {
-            studentInfoService.getOrCreateStudentInfo(user, dodamUser)
-            studentInfoService.updateStudentInfo(user, dodamUser)
+            val dodamUser = getDAuthUser(token)
+            log.info("[DAUTH:{}] user/me success publicId={}", rid, dodamUser.publicId)
+
+            val user = studentInfoService.getOrCreateUser(dodamUser)
+            log.info("[DAUTH:{}] getOrCreateUser success userId={}", rid, user.id)
+
+            if (user.role == UserRole.STUDENT) {
+                studentInfoService.getOrCreateStudentInfo(user, dodamUser)
+                studentInfoService.updateStudentInfo(user, dodamUser)
+                log.info("[DAUTH:{}] student info sync success", rid)
+            }
+            val jwt = jwtProvider.generateToken(user.publicId!!)
+            log.info("[DAUTH:{}] jwt success", rid)
+            return jwt
+        } catch (e: Exception) {
+            log.error("[DAUTH:{}] login failed type={}, message={}", rid, e.javaClass.name, e.message, e)
+            throw e
         }
-
-        return jwtProvider.generateToken(user.publicId!!)
     }
 
     private fun getDAuthToken(code: String, codeVerifier: String): String {
@@ -138,30 +152,48 @@ class DAuthService(
             response?.accessToken ?: throw CustomException(AuthError.TOKEN_FETCH_FAILED)
         } catch (e: Exception) {
             log.error("DAuth token exchange exception(FORM). type={}, message={}", e.javaClass.name, e.message, e)
-            throw CustomException(AuthError.TOKEN_FETCH_FAILED)
+//            throw CustomException(AuthError.TOKEN_FETCH_FAILED)
+            throw e
         }
     }
 
     private fun getDAuthUser(token: String): DAuthUser {
-        val webClient: WebClient = WebClient.create("https://dodam-api.b1nd.com")
-
-        val response = webClient.get()
-            .uri("/user/me")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-            .retrieve()
-            .onStatus({ it.isError }) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).flatMap { body ->
-                    log.error(
-                        "DAuth user info fetch failed. status={}, responseBody={}",
-                        clientResponse.statusCode(),
-                        body
-                    )
-                    Mono.error(CustomException(UserError.USER_NOT_FOUND))
+//        val webClient: WebClient = WebClient.create("https://dodam-api.b1nd.com")
+//
+//        val response = webClient.get()
+//            .uri("/user/me")
+//            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+//            .retrieve()
+//            .onStatus({ it.isError }) { clientResponse ->
+//                clientResponse.bodyToMono(String::class.java).flatMap { body ->
+//                    log.error(
+//                        "DAuth user info fetch failed. status={}, responseBody={}",
+//                        clientResponse.statusCode(),
+//                        body
+//                    )
+//                    Mono.error(CustomException(UserError.USER_NOT_FOUND))
+//                }
+//            }
+//            .bodyToMono(DAuthUser::class.java)
+//            .block() ?: throw CustomException(UserError.USER_NOT_FOUND)
+//
+//        return response
+        return try {
+            WebClient.create("https://dodam-api.b1nd.com").get()
+                .uri("/user/me")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .retrieve()
+                .onStatus({ it.isError }) { cr ->
+                    cr.bodyToMono(String::class.java).flatMap { body ->
+                        log.error("DAuth user info fetch failed. status={}, body={}", cr.statusCode(), body)
+                        Mono.error(CustomException(UserError.USER_NOT_FOUND))
+                    }
                 }
-            }
-            .bodyToMono(DAuthUser::class.java)
-            .block() ?: throw CustomException(UserError.USER_NOT_FOUND)
-
-        return response
+                .bodyToMono(DAuthUser::class.java)
+                .block() ?: throw CustomException(UserError.USER_NOT_FOUND)
+        } catch (e: Exception) {
+            log.error("DAuth user fetch exception. type={}, message={}", e.javaClass.name, e.message, e)
+            throw e
+        }
     }
 }
