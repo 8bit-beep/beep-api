@@ -19,6 +19,8 @@ import reactor.core.publisher.Mono
 import org.slf4j.LoggerFactory
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.reactive.function.BodyInserters
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 
 @Service
 class DAuthService(
@@ -179,7 +181,9 @@ class DAuthService(
 //
 //        return response
         return try {
-            WebClient.create("https://dodam-api.b1nd.com").get()
+            val webClient = WebClient.create("https://dodam-api.b1nd.com")
+
+            val raw = webClient.get()
                 .uri("/user/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                 .retrieve()
@@ -189,8 +193,12 @@ class DAuthService(
                         Mono.error(CustomException(UserError.USER_NOT_FOUND))
                     }
                 }
-                .bodyToMono(DAuthUser::class.java)
+                .bodyToMono(String::class.java)
                 .block() ?: throw CustomException(UserError.USER_NOT_FOUND)
+
+            log.info("[DAUTH] /user/me raw={}", raw)
+
+            return jacksonObjectMapper().readValue(raw)
         } catch (e: Exception) {
             log.error("DAuth user fetch exception. type={}, message={}", e.javaClass.name, e.message, e)
             throw e
