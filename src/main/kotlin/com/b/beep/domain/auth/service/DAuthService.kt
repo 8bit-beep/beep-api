@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import org.slf4j.LoggerFactory
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.web.reactive.function.BodyInserters
 
 @Service
 class DAuthService(
@@ -46,14 +48,37 @@ class DAuthService(
     private fun getDAuthToken(code: String, codeVerifier: String): String {
         val webClient: WebClient = WebClient.create("https://dodam-api.b1nd.com")
 
-        val requestBody = mapOf(
-            "code" to code,
-            "grant_type" to "authorization_code",
-            "redirect_uri" to "https://beep.cher1shrxd.me/callback/dauth",
-            "client_id" to dAuthProperties.clientId,
-            "client_secret" to dAuthProperties.clientSecret,
-            "code_verifier" to codeVerifier
-        )
+//        val requestBody = mapOf(
+//            "code" to code,
+//            "grant_type" to "authorization_code",
+//            "redirect_uri" to "https://beep.cher1shrxd.me/callback/dauth",
+//            "client_id" to dAuthProperties.clientId,
+//            "client_secret" to dAuthProperties.clientSecret,
+//            "code_verifier" to codeVerifier
+//        )
+//
+//        val response = webClient.post()
+//            .uri("/oauth/token")
+//            .contentType(MediaType.APPLICATION_JSON)
+//            .bodyValue(requestBody)
+//            .retrieve()
+//            .onStatus({ it.isError }) { clientResponse ->
+//                clientResponse.bodyToMono(String::class.java).flatMap { body ->
+//                    log.error("DAuth token exchange failed. status={}, responseBody={}", clientResponse.statusCode(), body)
+//                    Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
+//                }
+//            }
+//            .bodyToMono(DAuthTokenResponse::class.java)
+//            .block()
+
+        val formData = LinkedMultiValueMap<String, String>().apply {
+            add("code", code)
+            add("grant_type", "authorization_code")
+            add("redirect_uri", "https://beep.cher1shrxd.me/callback/dauth")
+            add("client_id", dAuthProperties.clientId)
+            add("client_secret", dAuthProperties.clientSecret)
+            add("code_verifier", codeVerifier)
+        }
 
         log.info(
             "DAuth token request check: hasCode={}, codeLen={}, codeEdge={}, hasVerifier={}, verifierLen={}, verifierEdge={}, redirectUri={}, hasClientId={}, clientIdEdge={}, hasClientSecret={}, clientSecretLen={}, clientSecretEdge={}",
@@ -63,7 +88,7 @@ class DAuthService(
             codeVerifier.isNotBlank(),
             codeVerifier.length,
             maskEdge(codeVerifier),
-            requestBody["redirect_uri"],
+            formData["redirect_uri"],
             !dAuthProperties.clientId.isNullOrBlank(),
             maskEdge(dAuthProperties.clientId),
             !dAuthProperties.clientSecret.isNullOrBlank(),
@@ -73,12 +98,12 @@ class DAuthService(
 
         val response = webClient.post()
             .uri("/oauth/token")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(requestBody)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .body(BodyInserters.fromFormData(formData))
             .retrieve()
             .onStatus({ it.isError }) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java).flatMap { body ->
-                    log.error("DAuth token exchange failed. status={}, responseBody={}", clientResponse.statusCode(), body)
+                    log.error("DAuth token exchange failed(FORM). status={}, responseBody={}", clientResponse.statusCode(), body)
                     Mono.error(CustomException(AuthError.TOKEN_FETCH_FAILED))
                 }
             }
