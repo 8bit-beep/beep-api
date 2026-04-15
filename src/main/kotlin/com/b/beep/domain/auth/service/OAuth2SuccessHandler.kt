@@ -69,7 +69,7 @@ class OAuth2SuccessHandler(
             studentInfoService.getOrCreateStudentInfo(user, dauthUser)
             studentInfoService.updateStudentInfo(user, dauthUser)
         }
-        val tokens = jwtProvider.generateToken(user.publicId!!)
+        val tokens = jwtProvider.generateToken(user.username)
         val refreshToken = tokens.refreshToken
         val accessToken = tokens.accessToken
 

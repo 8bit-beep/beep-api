@@ -23,35 +23,35 @@ class JwtProvider(
         return Keys.hmacShaKeyFor(keyBytes)
     }
 
-    fun generateToken(publicId: String): TokenResponse {
+    fun generateToken(username: String): TokenResponse {
         return TokenResponse(
-            accessToken = generateAccessToken(publicId),
-            refreshToken = generateRefreshToken(publicId)
+            accessToken = generateAccessToken(username),
+            refreshToken = generateRefreshToken(username)
         )
     }
 
-    fun generateAccessToken(publicId: String): String {
+    fun generateAccessToken(username: String): String {
         val now = Date()
 
         return Jwts.builder()
             .setHeaderParam(Header.JWT_TYPE, JwtType.ACCESS)
-            .setSubject(publicId)
+            .setSubject(username)
             .setIssuedAt(now)
             .setExpiration(Date(now.time + jwtProperties.accessExp))
             .signWith(getSigningKey())
             .compact()
     }
 
-    fun generateRefreshToken(publicId: String): String {
+    fun generateRefreshToken(username: String): String {
         val now = Date()
         val refreshToken = Jwts.builder()
             .setHeaderParam(Header.JWT_TYPE, JwtType.REFRESH)
-            .setSubject(publicId)
+            .setSubject(username)
             .setIssuedAt(now)
             .setExpiration(Date(now.time + jwtProperties.refreshExp))
             .signWith(getSigningKey())
             .compact()
-        refreshTokenRepository.save(publicId, refreshToken)
+        refreshTokenRepository.save(username, refreshToken)
 
         return refreshToken
     }
