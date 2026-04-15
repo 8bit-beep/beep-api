@@ -160,6 +160,7 @@ class TeacherAttendanceService(
         return AttendanceStudentResponse(
             userId = this.id!!,
             username = this.username,
+            name = this.name,
             studentId = generateStudentId(studentInfo),
             statuses = statuses
         )

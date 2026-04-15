@@ -107,6 +107,7 @@ class RoomApprovalService(
                 RoomApprovedTeacherResponse(
                     id = it.id!!,
                     username = it.username,
+                    name = it.name,
                 )
             },
             approvedAt = approval?.updatedAt
