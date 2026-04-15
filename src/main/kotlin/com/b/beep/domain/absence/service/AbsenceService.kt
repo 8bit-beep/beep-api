@@ -295,6 +295,7 @@ class AbsenceService(
             val studentInfo = studentInfoRepository.findByUser(absenceUser.user)
             AbsenceStudentResponse(
                 name = absenceUser.user.name,
+                username = absenceUser.user.username,
                 info = studentInfo?.let { StudentInfoResponse.of(it) }
             )
         }
