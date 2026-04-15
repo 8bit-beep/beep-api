@@ -5,7 +5,6 @@ import com.b.beep.domain.auth.error.AuthError
 import com.b.beep.domain.auth.infrastructure.DAuthProperties
 import com.b.beep.domain.auth.infrastructure.DAuthTokenResponse
 import com.b.beep.domain.user.domain.enums.UserRole
-import com.b.beep.domain.user.error.UserError
 import com.b.beep.domain.auth.infrastructure.DAuthUser
 import com.b.beep.domain.auth.infrastructure.DAuthUserMeResponse
 import com.b.beep.domain.user.service.StudentInfoService
@@ -82,13 +81,20 @@ class DAuthService(
             .uri("/user/me")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
-            .onStatus({ it.isError }) {
-                Mono.error(CustomException(UserError.USER_NOT_FOUND))
+            .onStatus({ it.is4xxClientError }) { cr ->
+                cr.bodyToMono(String::class.java).flatMap {
+                    Mono.error(CustomException(AuthError.INVALID_DAUTH_TOKEN))
+                }
+            }
+            .onStatus({ it.is5xxServerError }) { cr ->
+                cr.bodyToMono(String::class.java).flatMap {
+                    Mono.error(CustomException(AuthError.DAUTH_SERVER_ERROR))
+                }
             }
             .bodyToMono(String::class.java)
-            .block() ?: throw CustomException(UserError.USER_NOT_FOUND)
+            .block() ?: throw CustomException(AuthError.INVALID_DAUTH_TOKEN)
 
         val wrapper: DAuthUserMeResponse = mapper.readValue(raw)
-        return wrapper.data ?: throw CustomException(UserError.USER_NOT_FOUND)
+        return wrapper.data ?: throw CustomException(AuthError.INVALID_DAUTH_TOKEN)
     }
 }

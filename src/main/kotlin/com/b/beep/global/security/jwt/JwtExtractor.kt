@@ -6,7 +6,6 @@ import com.b.beep.global.security.jwt.config.JwtProperties
 import com.b.beep.global.security.jwt.enums.JwtType
 import com.b.beep.global.security.jwt.error.JwtError
 import com.b.beep.global.exception.CustomException
-import com.b.beep.domain.user.error.UserError
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
@@ -15,26 +14,29 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import javax.crypto.SecretKey
-
+import org.slf4j.LoggerFactory
 
 @Component
 class JwtExtractor(
     private val jwtProperties: JwtProperties,
     private val userRepository: UserRepository
 ) {
+    private val log = LoggerFactory.getLogger(JwtExtractor::class.java)
+
     private fun getSigningKey(): SecretKey {
         val keyBytes = Decoders.BASE64.decode(jwtProperties.secretKey)
         return Keys.hmacShaKeyFor(keyBytes)
     }
 
-    fun getUsername(token: String): String = getClaims(token).body.subject
+    fun getUsername(token: String): String = getClaims(token).body.subject.trim()
 
     fun getAuthentication(token: String): Authentication {
         val claims = getClaims(token).body
-        val user = userRepository.findByUsernameAndIsDeletedFalse(claims.subject) ?: throw CustomException(
-            UserError.USER_NOT_FOUND,
-            claims.subject
-        )
+        val subject = claims.subject.trim()
+        log.info("[JWT] subject='{}'", subject)
+        val user = userRepository.findByUsernameAndIsDeletedFalse(subject) ?:
+        userRepository.findByPublicIdAndIsDeletedFalse(subject) ?:
+        throw CustomException(JwtError.INVALID_TOKEN, subject)
         val details = AuthDetails(user)
 
         return UsernamePasswordAuthenticationToken(details, null, details.authorities)
