@@ -8,6 +8,6 @@ class LimitedUserEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "email", nullable = false, unique = true)
-    var email: String
+    @Column(name = "usrename", nullable = false, unique = true)
+    var username: String,
 )

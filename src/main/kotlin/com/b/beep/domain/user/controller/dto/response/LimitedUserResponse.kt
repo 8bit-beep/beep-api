@@ -4,13 +4,13 @@ import com.b.beep.domain.user.domain.entity.LimitedUserEntity
 
 data class LimitedUserResponse(
     val id: Long,
-    val email: String
+    val username: String,
 ) {
     companion object {
         fun of(entity: LimitedUserEntity): LimitedUserResponse {
             return LimitedUserResponse(
                 id = entity.id!!,
-                email = entity.email
+                username = entity.username,
             )
         }
     }

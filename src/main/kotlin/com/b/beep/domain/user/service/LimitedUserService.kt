@@ -17,9 +17,9 @@ class LimitedUserService(
     private val limitedUserRepository: LimitedUserRepository
 ) {
     fun createLimitedUser(request: CreateLimitedUserRequest) {
-        validateEmailNotExists(request.email)
+        validateUsernameNotExists(request.username)
         limitedUserRepository.save(
-            LimitedUserEntity(email = request.email)
+            LimitedUserEntity(username = request.username)
         )
     }
 
@@ -31,10 +31,10 @@ class LimitedUserService(
     fun updateLimitedUser(limitedUserId: Long, request: UpdateLimitedUserRequest) {
         val limitedUser = getLimitedUserEntityOrThrow(limitedUserId)
 
-        if (limitedUser.email != request.email) {
-            validateEmailNotExists(request.email)
+        if (limitedUser.username != request.username) {
+            validateUsernameNotExists(request.username)
         }
-        limitedUser.email = request.email
+        limitedUser.username = request.username
     }
 
     fun deleteLimitedUser(limitedUserId: Long) {
@@ -47,8 +47,8 @@ class LimitedUserService(
             ?: throw CustomException(LimitedUserError.LIMITED_USER_NOT_FOUND)
     }
 
-    private fun validateEmailNotExists(email: String) {
-        if (limitedUserRepository.existsByEmail(email)) {
+    private fun validateUsernameNotExists(username: String) {
+        if (limitedUserRepository.existsByUsername(username)) {
             throw CustomException(LimitedUserError.ALREADY_EXIST_LIMITED_USER)
         }
     }
