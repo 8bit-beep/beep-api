@@ -25,7 +25,7 @@ class NotificationService(
                 val message = fcmMessageFactory.createMessage(request, fcmToken.token)
                 FirebaseMessaging.getInstance().send(message)
             } catch (e: Exception) {
-                log.error("FCM 전송 실패 - user: ${fcmToken.user.publicId}", e)
+                log.error("FCM 전송 실패 - user: ${fcmToken.user.username}", e)
             }
         }
     }

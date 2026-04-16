@@ -16,7 +16,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
-import org.slf4j.LoggerFactory
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.reactive.function.BodyInserters
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -28,7 +27,6 @@ class DAuthService(
     private val studentInfoService: StudentInfoService,
     private val jwtProvider: JwtProvider,
 ) {
-    private val log = LoggerFactory.getLogger(DAuthService::class.java)
     private val mapper = jacksonObjectMapper()
 
     fun login(request: LoginRequest): TokenResponse {
@@ -39,7 +37,7 @@ class DAuthService(
                 studentInfoService.getOrCreateStudentInfo(user, dodamUser)
                 studentInfoService.updateStudentInfo(user, dodamUser)
             }
-            return jwtProvider.generateToken(user.publicId!!)
+            return jwtProvider.generateToken(user.username)
     }
 
     private fun getDAuthToken(code: String, codeVerifier: String): String {

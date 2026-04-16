@@ -14,6 +14,6 @@ class AuthDetails(private val user: UserEntity) : UserDetails {
     }
 
     override fun getUsername(): String {
-        return user.publicId ?: ""
+        return user.username
     }
 }
