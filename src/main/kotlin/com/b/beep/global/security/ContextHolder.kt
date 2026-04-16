@@ -13,7 +13,9 @@ class ContextHolder(
 ) {
     val user: UserEntity
         get() {
-            return userRepository.findByPublicIdAndIsDeletedFalse(SecurityContextHolder.getContext().authentication.name)
+            val subject = SecurityContextHolder.getContext().authentication.name
+            return userRepository.findByUsernameAndIsDeletedFalse(subject)
+                ?: userRepository.findByPublicIdAndIsDeletedFalse(subject)
                 ?: throw CustomException(UserError.USER_NOT_FOUND)
         }
 }
