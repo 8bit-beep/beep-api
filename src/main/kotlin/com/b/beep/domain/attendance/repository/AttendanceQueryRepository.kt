@@ -4,6 +4,7 @@ import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
 import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
@@ -22,6 +23,7 @@ class AttendanceQueryRepository(
     private val attendanceRepository: AttendanceRepository,
     private val checkpointResolver: CheckpointResolver,
     private val queryFactory: JPAQueryFactory,
+    private val checkpointRepository: AttendanceCheckpointRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     fun findCurrentStatus(user: UserEntity): AttendanceTypeEntity? {
@@ -87,7 +89,10 @@ class AttendanceQueryRepository(
             whereBuilder.and(scheduleEntity.room.id.eq(room.id))
             whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
             if (targetCheckpoint != null) {
-                whereBuilder.and(scheduleEntity.checkpoint.id.eq(targetCheckpoint.id))
+                val overlappingIds = checkpointRepository.findAllByIsDeletedFalse()
+                    .filter { it.startAt < targetCheckpoint.endAt && targetCheckpoint.startAt < it.endAt }
+                    .mapNotNull { it.id }
+                whereBuilder.and(scheduleEntity.checkpoint.id.`in`(overlappingIds))
             }
         }
 
@@ -105,6 +110,7 @@ class AttendanceQueryRepository(
         }
 
         return query
+            .distinct()
             .where(whereBuilder)
             .orderBy(
                 studentInfoEntity.grade.asc(),

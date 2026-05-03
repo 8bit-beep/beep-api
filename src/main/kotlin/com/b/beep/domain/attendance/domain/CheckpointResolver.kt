@@ -21,6 +21,7 @@ class CheckpointResolver(
     fun getCurrentCheckpointOrNull(): AttendanceCheckpointEntity? {
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
         val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
+            .filter { it.grade == null && it.dayOfWeek == null }
 
         for (checkpoint in checkpoints) {
             if (!now.isBefore(checkpoint.startAt) && now.isBefore(checkpoint.endAt)) {
@@ -35,6 +36,7 @@ class CheckpointResolver(
 
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
         val checkpoints = checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc()
+            .filter { it.grade == null && it.dayOfWeek == null }
         if (checkpoints.isEmpty()) throw CustomException(AttendanceError.TIME_UNAVAILABLE)
 
         val first = checkpoints.first()
