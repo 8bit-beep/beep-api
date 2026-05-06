@@ -12,6 +12,7 @@ import com.b.beep.domain.user.domain.entity.QUserEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
@@ -66,10 +67,6 @@ class AttendanceQueryRepository(
             .selectFrom(userEntity)
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(userEntity.id))
 
-        if (room != null) {
-            query.join(scheduleEntity).on(scheduleEntity.user.id.eq(userEntity.id))
-        }
-
         if (status != null && targetCheckpoint != null) {
             query.leftJoin(attendanceEntity).on(
                 attendanceEntity.user.id.eq(userEntity.id),
@@ -86,14 +83,24 @@ class AttendanceQueryRepository(
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
 
         if (room != null) {
-            whereBuilder.and(scheduleEntity.room.id.eq(room.id))
-            whereBuilder.and(scheduleEntity.dayOfWeek.eq(dayOfWeek))
-            if (targetCheckpoint != null) {
-                val overlappingIds = checkpointRepository.findAllByIsDeletedFalse()
+            val overlappingIds = if (targetCheckpoint != null) {
+                checkpointRepository.findAllByIsDeletedFalse()
                     .filter { it.startAt < targetCheckpoint.endAt && targetCheckpoint.startAt < it.endAt }
                     .mapNotNull { it.id }
-                whereBuilder.and(scheduleEntity.checkpoint.id.`in`(overlappingIds))
-            }
+            } else emptyList()
+
+            val subQuery = JPAExpressions
+                .selectOne()
+                .from(scheduleEntity)
+                .where(
+                    scheduleEntity.user.id.eq(userEntity.id),
+                    scheduleEntity.room.id.eq(room.id),
+                    scheduleEntity.dayOfWeek.eq(dayOfWeek),
+                    if (targetCheckpoint != null && overlappingIds.isNotEmpty())
+                        scheduleEntity.checkpoint.id.`in`(overlappingIds)
+                    else null
+                )
+            whereBuilder.and(subQuery.exists())
         }
 
         if (status != null && targetCheckpoint != null) {
@@ -110,7 +117,6 @@ class AttendanceQueryRepository(
         }
 
         return query
-            .distinct()
             .where(whereBuilder)
             .orderBy(
                 studentInfoEntity.grade.asc(),
