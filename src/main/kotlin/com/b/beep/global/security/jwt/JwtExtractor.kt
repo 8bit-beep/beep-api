@@ -14,15 +14,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import javax.crypto.SecretKey
-import org.slf4j.LoggerFactory
 
 @Component
 class JwtExtractor(
     private val jwtProperties: JwtProperties,
     private val userRepository: UserRepository
 ) {
-    private val log = LoggerFactory.getLogger(JwtExtractor::class.java)
-
     private fun getSigningKey(): SecretKey {
         val keyBytes = Decoders.BASE64.decode(jwtProperties.secretKey)
         return Keys.hmacShaKeyFor(keyBytes)
@@ -33,7 +30,6 @@ class JwtExtractor(
     fun getAuthentication(token: String): Authentication {
         val claims = getClaims(token).body
         val subject = claims.subject.trim()
-        log.info("[JWT] subject='{}'", subject)
         val user = userRepository.findByUsernameAndIsDeletedFalse(subject) ?:
         userRepository.findByPublicIdAndIsDeletedFalse(subject) ?:
         throw CustomException(JwtError.INVALID_TOKEN, subject)

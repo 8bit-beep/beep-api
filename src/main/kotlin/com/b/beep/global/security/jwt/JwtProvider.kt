@@ -11,22 +11,18 @@ import io.jsonwebtoken.security.Keys
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.crypto.SecretKey
-import org.slf4j.LoggerFactory
 
 @Component
 class JwtProvider(
     private val jwtProperties: JwtProperties,
     private val refreshTokenRepository: RefreshTokenRepository,
 ) {
-    private val log = LoggerFactory.getLogger(JwtProvider::class.java)
-
     private fun getSigningKey(): SecretKey {
         val keyBytes = Decoders.BASE64.decode(jwtProperties.secretKey)
         return Keys.hmacShaKeyFor(keyBytes)
     }
 
     fun generateToken(username: String): TokenResponse {
-        log.info("JWT-ISSUE] subject='{}'", username)
         return TokenResponse(
             accessToken = generateAccessToken(username),
             refreshToken = generateRefreshToken(username)
