@@ -13,7 +13,6 @@ import com.b.beep.domain.absence.repository.AbsenceExceptionRepository
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.absence.repository.AbsenceUserRepository
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
-import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.error.CheckpointError
@@ -127,7 +126,7 @@ class AbsenceService(
         if (exceptions.isNullOrEmpty()) {
             return emptyList()
         }
-        val checkpointIds = exceptions.map { it.checkpointId }
+        val checkpointIds = exceptions.map { it.checkpointId }.distinct()
         val checkpoints = checkpointRepository.findAllByIdInAndIsDeletedFalse(checkpointIds)
         if (checkpoints.size != checkpointIds.size) {
             throw CustomException(CheckpointError.CHECKPOINT_NOT_FOUND)
