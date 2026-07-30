@@ -15,5 +15,10 @@ interface StudentActivityRoomRepository : JpaRepository<StudentActivityRoomEntit
         type: AttendanceTypeEntity
     ): StudentActivityRoomEntity?
 
+    fun findAllByUserInAndDayOfWeek(
+        users: List<UserEntity>,
+        dayOfWeek: DayOfWeek
+    ): List<StudentActivityRoomEntity>
+
     fun deleteAllByUser(user: UserEntity)
 }

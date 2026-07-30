@@ -37,7 +37,8 @@ class TeacherAttendanceService(
     private val attendanceQueryRepository: AttendanceQueryRepository,
     private val roomRepository: RoomRepository,
     private val attendanceTypeService: AttendanceTypeService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val attendancePlacementService: AttendancePlacementService
 ) {
     fun updateStudentStatus(request: UpdateStatusRequest) {
         val user = userRepository.findByIdAndIsDeletedFalse(request.userId)
@@ -98,17 +99,24 @@ class TeacherAttendanceService(
             roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         }
         val status = statusId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
+        val useRoomPlacementFilter = room != null && checkpoint != null
         val users = attendanceQueryRepository.findAllByFilters(
             date = date,
             checkpoint = checkpoint,
-            room = room,
+            room = if (useRoomPlacementFilter) null else room,
             status = status,
             grade = grade,
             classNumber = classNumber,
             isCurrentCheckpoint = isCurrentCheckpoint
         )
+        val filteredUsers = if (useRoomPlacementFilter) {
+            val placementRoomByUserId = attendancePlacementService.resolveRooms(users, targetDate, checkpoint!!)
+            users.filter { placementRoomByUserId[it.id]?.id == room!!.id }
+        } else {
+            users
+        }
 
-        return users.map { it.toResponse(targetDate, checkpoint) }
+        return filteredUsers.map { it.toResponse(targetDate, checkpoint) }
     }
 
     fun getAllCheckpointAttendances(
