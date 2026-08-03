@@ -5,6 +5,7 @@ import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentRes
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
 import com.b.beep.domain.attendance.domain.CheckpointResolver
+import com.b.beep.domain.attendance.domain.RoomCheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
@@ -38,7 +39,8 @@ class TeacherAttendanceService(
     private val roomRepository: RoomRepository,
     private val attendanceTypeService: AttendanceTypeService,
     private val userRepository: UserRepository,
-    private val attendancePlacementService: AttendancePlacementService
+    private val attendancePlacementService: AttendancePlacementService,
+    private val roomCheckpointResolver: RoomCheckpointResolver
 ) {
     fun updateStudentStatus(request: UpdateStatusRequest) {
         val user = userRepository.findByIdAndIsDeletedFalse(request.userId)
@@ -85,9 +87,16 @@ class TeacherAttendanceService(
         isCurrentCheckpoint: Boolean = true
     ): List<AttendanceStudentResponse> {
         val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val room = roomId?.let {
+            roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        }
 
         val checkpoint = if (isCurrentCheckpoint) {
-            checkpointResolver.getCurrentCheckpointOrNearest()
+            roomCheckpointResolver.getCurrentCheckpointOrNearest(
+                date = targetDate,
+                room = room,
+                requestedGrade = grade
+            )
         } else {
             checkpointId?.let {
                 checkpointRepository.findByIdAndIsDeletedFalse(it)
@@ -95,13 +104,10 @@ class TeacherAttendanceService(
             }
         }
 
-        val room = roomId?.let {
-            roomRepository.findByIdAndIsDeletedFalse(it) ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
-        }
         val status = statusId?.let { attendanceTypeService.getAttendanceTypeEntityById(it) }
         val useRoomPlacementFilter = room != null && checkpoint != null
         val users = attendanceQueryRepository.findAllByFilters(
-            date = date,
+            date = targetDate,
             checkpoint = checkpoint,
             room = if (useRoomPlacementFilter) null else room,
             status = status,

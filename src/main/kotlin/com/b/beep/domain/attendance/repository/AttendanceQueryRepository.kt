@@ -16,6 +16,7 @@ import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -124,5 +125,29 @@ class AttendanceQueryRepository(
                 studentInfoEntity.num.asc()
             )
             .fetch()
+    }
+
+    fun findScheduledRoomIdsByGradeAndCheckpoint(
+        grade: Int,
+        dayOfWeek: DayOfWeek,
+        checkpoint: AttendanceCheckpointEntity
+    ): Set<Long> {
+        val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
+        val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
+
+        return queryFactory
+            .select(scheduleEntity.room.id)
+            .from(scheduleEntity)
+            .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(scheduleEntity.user.id))
+            .where(
+                scheduleEntity.user.isDeleted.eq(false),
+                scheduleEntity.dayOfWeek.eq(dayOfWeek),
+                scheduleEntity.checkpoint.id.eq(checkpoint.id),
+                studentInfoEntity.grade.eq(grade)
+            )
+            .distinct()
+            .fetch()
+            .filterNotNull()
+            .toSet()
     }
 }
