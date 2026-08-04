@@ -1,6 +1,6 @@
 package com.b.beep.domain.room.service
 
-import com.b.beep.domain.attendance.domain.CheckpointResolver
+import com.b.beep.domain.attendance.domain.RoomCheckpointResolver
 import com.b.beep.domain.room.controller.dto.response.RoomApprovalResponse
 import com.b.beep.domain.room.controller.dto.response.RoomApprovedTeacherResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
@@ -25,13 +25,13 @@ class RoomApprovalService(
     private val roomApprovalRepository: RoomApprovalRepository,
     private val roomRepository: RoomRepository,
     private val contextHolder: ContextHolder,
-    private val checkpointResolver: CheckpointResolver
+    private val roomCheckpointResolver: RoomCheckpointResolver
 ) {
     fun createApproval(roomId: Long) {
-        val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val room = getRoomEntity(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val checkpoint = roomCheckpointResolver.getCurrentCheckpoint(today, room)
 
         if (roomApprovalRepository.existsByCheckpointAndRoomAndDate(checkpoint, room, today)) {
             throw CustomException(RoomApprovalError.ALREADY_APPROVED)
@@ -53,14 +53,15 @@ class RoomApprovalService(
 
     @Transactional(readOnly = true)
     fun getApprovals(approved: Boolean?): List<RoomApprovalResponse> {
-        val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val approvalMap = roomApprovalRepository
-            .findAllByCheckpointAndDate(checkpoint, today)
-            .associateBy { it.room.id }
+        val rooms = roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc()
+        val checkpointByRoomId = roomCheckpointResolver.getCurrentCheckpoints(today, rooms)
+        val approvalMap = roomApprovalRepository.findAllByDate(today)
+            .associateBy { it.room.id to it.checkpoint.id }
 
-        val responses = roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc().map { room ->
-            room.toResponse(approvalMap[room.id])
+        val responses = rooms.map { room ->
+            val checkpointId = checkpointByRoomId[room.id]?.id
+            room.toResponse(approvalMap[room.id to checkpointId])
         }
 
         return when (approved) {
@@ -72,22 +73,23 @@ class RoomApprovalService(
 
     @Transactional(readOnly = true)
     fun getApproval(roomId: Long): RoomApprovalResponse {
-        val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val room = getRoomEntity(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val checkpoint = roomCheckpointResolver.getCurrentCheckpoint(today, room)
         val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(
             checkpoint,
             room,
-            LocalDate.now(ZoneId.of("Asia/Seoul"))
+            today
         )
         return room.toResponse(approval)
     }
 
     fun deleteApproval(roomId: Long) {
-        val checkpoint = checkpointResolver.getCurrentCheckpoint()
         val room = getRoomEntity(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val checkpoint = roomCheckpointResolver.getCurrentCheckpoint(today, room)
 
         val approval = roomApprovalRepository.findByCheckpointAndRoomAndDate(checkpoint, room, today)
             ?: throw CustomException(RoomApprovalError.APPROVAL_NOT_FOUND)

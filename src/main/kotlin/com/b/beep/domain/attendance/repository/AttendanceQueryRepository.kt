@@ -7,6 +7,7 @@ import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
+import com.b.beep.domain.user.domain.entity.QStudentActivityRoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.QUserEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -16,6 +17,7 @@ import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -124,5 +126,53 @@ class AttendanceQueryRepository(
                 studentInfoEntity.num.asc()
             )
             .fetch()
+    }
+
+    fun findScheduledRoomIdsByGradeAndCheckpoint(
+        grade: Int,
+        dayOfWeek: DayOfWeek,
+        checkpoint: AttendanceCheckpointEntity
+    ): Set<Long> {
+        val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
+        val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
+
+        return queryFactory
+            .select(scheduleEntity.room.id)
+            .from(scheduleEntity)
+            .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(scheduleEntity.user.id))
+            .where(
+                scheduleEntity.user.isDeleted.eq(false),
+                scheduleEntity.dayOfWeek.eq(dayOfWeek),
+                scheduleEntity.checkpoint.id.eq(checkpoint.id),
+                studentInfoEntity.grade.eq(grade)
+            )
+            .distinct()
+            .fetch()
+            .filterNotNull()
+            .toSet()
+    }
+
+    fun findActivityRoomIdsByGradeDayAndType(
+        grade: Int,
+        dayOfWeek: DayOfWeek,
+        type: AttendanceTypeEntity
+    ): Set<Long> {
+        val activityRoomEntity = QStudentActivityRoomEntity.studentActivityRoomEntity
+        val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
+
+        return queryFactory
+            .select(activityRoomEntity.room.id)
+            .from(activityRoomEntity)
+            .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(activityRoomEntity.user.id))
+            .where(
+                activityRoomEntity.user.isDeleted.eq(false),
+                activityRoomEntity.dayOfWeek.eq(dayOfWeek),
+                activityRoomEntity.type.id.eq(type.id),
+                studentInfoEntity.grade.eq(grade)
+            )
+            .distinct()
+            .fetch()
+            .filterNotNull()
+            .toSet()
     }
 }

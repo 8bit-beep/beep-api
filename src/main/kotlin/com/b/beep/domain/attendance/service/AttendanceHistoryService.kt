@@ -12,9 +12,7 @@ import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.repository.RoomApprovalRepository
 import com.b.beep.domain.room.repository.RoomRepository
 import com.b.beep.domain.user.domain.entity.StudentInfoEntity
-import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.repository.StudentInfoRepository
-import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.util.CellRangeAddress
@@ -44,10 +42,10 @@ class AttendanceHistoryService(
     private val attendanceRepository: AttendanceRepository,
     private val attendanceTypeRepository: AttendanceTypeRepository,
     private val studentInfoRepository: StudentInfoRepository,
-    private val studentScheduleRepository: StudentScheduleRepository,
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val roomRepository: RoomRepository,
     private val roomApprovalRepository: RoomApprovalRepository,
+    private val attendancePlacementService: AttendancePlacementService,
     @Value("\${cloud.aws.s3.bucket}") private val bucket: String
 ) {
     fun listFiles(): List<String> {
@@ -65,18 +63,16 @@ class AttendanceHistoryService(
             throw CustomException(AttendanceError.FUTURE_DATE_NOT_ALLOWED)
         }
 
-        val dayOfWeek = date.dayOfWeek
         val checkpoints = checkpointRepository.findAllByIsDeletedFalse().sortedBy { it.startAt }
         val attendanceTypes = attendanceTypeRepository.findAllByIsDeletedFalse().map { it.name }
         val allStudents = studentInfoRepository.findAllByUserIsDeletedFalse()
         val attendances = attendanceRepository.findAllByDate(date)
-        val schedules = studentScheduleRepository.findAllByDayOfWeek(dayOfWeek)
         val rooms = roomRepository.findAllByIsDeletedFalse()
         val roomApprovals = checkpoints.flatMap { cp ->
             roomApprovalRepository.findAllByCheckpointAndDate(cp, date)
         }
 
-        val bytes = createExcel(checkpoints, attendanceTypes, allStudents, attendances, schedules, rooms, roomApprovals)
+        val bytes = createExcel(date, checkpoints, attendanceTypes, allStudents, attendances, rooms, roomApprovals)
         val key = "uploads/출석기록_$date.xlsx"
 
         uploadToS3(key, bytes)
@@ -99,11 +95,11 @@ class AttendanceHistoryService(
     }
 
     private fun createExcel(
+        date: LocalDate,
         checkpoints: List<AttendanceCheckpointEntity>,
         attendanceTypes: List<String>,
         allStudents: List<StudentInfoEntity>,
         attendances: List<AttendanceEntity>,
-        schedules: List<StudentScheduleEntity>,
         rooms: List<RoomEntity>,
         roomApprovals: List<RoomApprovalEntity>
     ): ByteArray {
@@ -112,7 +108,7 @@ class AttendanceHistoryService(
         val headerStyle = createCenteredStyle(workbook)
 
         createGradeSheets(workbook, allStudents, attendances, checkpoints, checkpointNames, attendanceTypes, headerStyle)
-        createFloorSheets(workbook, attendances, schedules, allStudents, rooms, roomApprovals, checkpoints, checkpointNames, attendanceTypes, headerStyle)
+        createFloorSheets(workbook, date, attendances, allStudents, rooms, roomApprovals, checkpoints, checkpointNames, attendanceTypes, headerStyle)
 
         return ByteArrayOutputStream().use { out ->
             workbook.write(out)
@@ -204,8 +200,8 @@ class AttendanceHistoryService(
 
     private fun createFloorSheets(
         workbook: XSSFWorkbook,
+        date: LocalDate,
         attendances: List<AttendanceEntity>,
-        schedules: List<StudentScheduleEntity>,
         allStudents: List<StudentInfoEntity>,
         rooms: List<RoomEntity>,
         roomApprovals: List<RoomApprovalEntity>,
@@ -217,8 +213,11 @@ class AttendanceHistoryService(
         val colsPerRoom = 2 + checkpointNames.size
         val approvalMap = roomApprovals.groupBy { it.room.id to it.checkpoint.id }
         val attendanceByUser = attendances.groupBy { it.user.id }
-        val schedulesByRoom = schedules.groupBy { it.room.id }
         val studentInfoByUser = allStudents.associateBy { it.user.id }
+        val users = allStudents.map { it.user }
+        val placementRoomByCheckpoint = checkpoints.associate { checkpoint ->
+            checkpoint.id to attendancePlacementService.resolveRooms(users, date, checkpoint)
+        }
 
         (1..3).forEach { floor ->
             val sheet = workbook.createSheet("${floor}층")
@@ -228,7 +227,7 @@ class AttendanceHistoryService(
 
             var rowOffset = 0
             floorRooms.forEach { room ->
-                val students = buildRoomStudents(room, schedulesByRoom, attendanceByUser, studentInfoByUser, checkpoints)
+                val students = buildRoomStudents(room, placementRoomByCheckpoint, attendanceByUser, studentInfoByUser, checkpoints)
                 createRoomHeader(sheet, room, checkpoints, checkpointNames, colsPerRoom, approvalMap, headerStyle, rowOffset)
                 fillRoomStudents(sheet, students, rowOffset)
                 addRoomDropdownValidation(sheet, students.size, checkpointNames, attendanceTypes, rowOffset)
@@ -240,30 +239,34 @@ class AttendanceHistoryService(
 
     private fun buildRoomStudents(
         room: RoomEntity,
-        schedulesByRoom: Map<Long?, List<StudentScheduleEntity>>,
+        placementRoomByCheckpoint: Map<Long?, Map<Long, RoomEntity>>,
         attendanceByUser: Map<Long?, List<AttendanceEntity>>,
         studentInfoByUser: Map<Long?, StudentInfoEntity>,
         checkpoints: List<AttendanceCheckpointEntity>
     ): List<RoomStudentData> {
-        val roomSchedules = schedulesByRoom[room.id] ?: emptyList()
-        val userIds = roomSchedules.map { it.user.id }.distinct()
+        val userIds = checkpoints
+            .flatMap { cp ->
+                placementRoomByCheckpoint[cp.id]
+                    ?.filterValues { placementRoom -> placementRoom.id == room.id }
+                    ?.keys
+                    ?: emptySet()
+            }
+            .distinct()
 
         return userIds.mapNotNull { userId ->
-            val userSchedules = roomSchedules.filter { it.user.id == userId }
-            val user = userSchedules.firstOrNull()?.user ?: return@mapNotNull null
             val studentInfo = studentInfoByUser[userId] ?: return@mapNotNull null
             val userAttendances = attendanceByUser[userId] ?: emptyList()
             val attendanceByCheckpoint = userAttendances.associateBy { it.checkpoint.id }
-            val userScheduleByCheckpoint = userSchedules.associateBy { it.checkpoint.id }
 
             val studentNumber =
                 "${studentInfo.grade}${studentInfo.classNumber}${String.format("%02d", studentInfo.num)}"
 
             RoomStudentData(
                 studentNumber = studentNumber,
-                name = user.name,
+                name = studentInfo.user.name,
                 statuses = checkpoints.map { cp ->
-                    if (userScheduleByCheckpoint[cp.id] == null) {
+                    val placementRoom = placementRoomByCheckpoint[cp.id]?.get(userId)
+                    if (placementRoom?.id != room.id) {
                         "--"
                     } else {
                         attendanceByCheckpoint[cp.id]?.type?.name ?: AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME

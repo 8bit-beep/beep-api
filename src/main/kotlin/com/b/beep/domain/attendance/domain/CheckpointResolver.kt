@@ -23,12 +23,20 @@ class CheckpointResolver(
         val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
             .filter { it.grade == null && it.dayOfWeek == null }
 
-        for (checkpoint in checkpoints) {
-            if (!now.isBefore(checkpoint.startAt) && now.isBefore(checkpoint.endAt)) {
-                return checkpoint
-            }
-        }
-        return null
+        return findCurrentCheckpoint(checkpoints, now)
+    }
+
+    fun getCurrentCheckpointOrNull(
+        grade: Int,
+        dayOfWeek: DayOfWeek
+    ): AttendanceCheckpointEntity? {
+        val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        return resolveCurrentCheckpoint(
+            checkpoints = checkpointRepository.findAllByIsDeletedFalse(),
+            grade = grade,
+            dayOfWeek = dayOfWeek,
+            now = now
+        )
     }
 
     fun getCurrentCheckpointOrNearest(): AttendanceCheckpointEntity {
@@ -37,6 +45,76 @@ class CheckpointResolver(
         val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
         val checkpoints = checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc()
             .filter { it.grade == null && it.dayOfWeek == null }
+
+        return findNearestCheckpoint(checkpoints, now)
+    }
+
+    fun getCurrentCheckpointOrNearest(
+        grade: Int,
+        dayOfWeek: DayOfWeek
+    ): AttendanceCheckpointEntity {
+        val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        return resolveCurrentCheckpointOrNearest(
+            checkpoints = checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc(),
+            grade = grade,
+            dayOfWeek = dayOfWeek,
+            now = now
+        )
+    }
+
+    fun getCurrentCheckpointsOrNearest(
+        grades: Collection<Int>,
+        dayOfWeek: DayOfWeek
+    ): Map<Int, AttendanceCheckpointEntity> {
+        if (grades.isEmpty()) return emptyMap()
+
+        val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc()
+        return grades.associateWith { grade ->
+            resolveCurrentCheckpointOrNearest(
+                checkpoints = checkpoints,
+                grade = grade,
+                dayOfWeek = dayOfWeek,
+                now = now
+            )
+        }
+    }
+
+    internal fun resolveCurrentCheckpoint(
+        checkpoints: List<AttendanceCheckpointEntity>,
+        grade: Int,
+        dayOfWeek: DayOfWeek,
+        now: LocalTime
+    ): AttendanceCheckpointEntity? {
+        val studentCheckpoints = filterForStudent(checkpoints, grade, dayOfWeek)
+        return findCurrentCheckpoint(studentCheckpoints, now)
+    }
+
+    internal fun resolveCurrentCheckpointOrNearest(
+        checkpoints: List<AttendanceCheckpointEntity>,
+        grade: Int,
+        dayOfWeek: DayOfWeek,
+        now: LocalTime
+    ): AttendanceCheckpointEntity {
+        val studentCheckpoints = filterForStudent(checkpoints, grade, dayOfWeek)
+            .sortedBy { it.startAt }
+        return findCurrentCheckpoint(studentCheckpoints, now)
+            ?: findNearestCheckpoint(studentCheckpoints, now)
+    }
+
+    private fun findCurrentCheckpoint(
+        checkpoints: List<AttendanceCheckpointEntity>,
+        now: LocalTime
+    ): AttendanceCheckpointEntity? {
+        return checkpoints.firstOrNull { checkpoint ->
+            !now.isBefore(checkpoint.startAt) && now.isBefore(checkpoint.endAt)
+        }
+    }
+
+    private fun findNearestCheckpoint(
+        checkpoints: List<AttendanceCheckpointEntity>,
+        now: LocalTime
+    ): AttendanceCheckpointEntity {
         if (checkpoints.isEmpty()) throw CustomException(AttendanceError.TIME_UNAVAILABLE)
 
         val first = checkpoints.first()

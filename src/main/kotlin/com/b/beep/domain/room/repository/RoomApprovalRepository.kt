@@ -20,6 +20,8 @@ interface RoomApprovalRepository : JpaRepository<RoomApprovalEntity, Long> {
         date: LocalDate
     ): List<RoomApprovalEntity>
 
+    fun findAllByDate(date: LocalDate): List<RoomApprovalEntity>
+
     fun existsByCheckpointAndRoomAndDate(
         checkpoint: AttendanceCheckpointEntity,
         room: RoomEntity,
