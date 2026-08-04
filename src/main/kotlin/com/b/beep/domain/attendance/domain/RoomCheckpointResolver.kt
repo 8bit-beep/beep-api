@@ -2,17 +2,18 @@ package com.b.beep.domain.attendance.domain
 
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
+import com.b.beep.domain.attendance.repository.AttendanceSortModeRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Component
-import java.time.DayOfWeek
 import java.time.LocalDate
 
 @Component
 class RoomCheckpointResolver(
     private val checkpointResolver: CheckpointResolver,
-    private val attendanceQueryRepository: AttendanceQueryRepository
+    private val attendanceQueryRepository: AttendanceQueryRepository,
+    private val attendanceSortModeRepository: AttendanceSortModeRepository
 ) {
     fun getCurrentCheckpointOrNearest(
         date: LocalDate,
@@ -32,7 +33,7 @@ class RoomCheckpointResolver(
             val roomId = room.id
             if (roomId != null &&
                 firstGradeCheckpoint.id != generalCheckpoint.id &&
-                roomId in findFirstGradeRoomIds(dayOfWeek, firstGradeCheckpoint)
+                roomId in findFirstGradeRoomIds(date, firstGradeCheckpoint)
             ) {
                 return firstGradeCheckpoint
             }
@@ -59,7 +60,7 @@ class RoomCheckpointResolver(
         val generalCheckpoint = checkpointResolver.getCurrentCheckpointOrNull()
         val firstGradeCheckpoint = checkpointResolver.getCurrentCheckpointOrNull(FIRST_GRADE, dayOfWeek)
         val firstGradeRoomIds = if (firstGradeCheckpoint?.isFirstGradeSpecific() == true) {
-            findFirstGradeRoomIds(dayOfWeek, firstGradeCheckpoint)
+            findFirstGradeRoomIds(date, firstGradeCheckpoint)
         } else {
             emptySet()
         }
@@ -76,14 +77,26 @@ class RoomCheckpointResolver(
     }
 
     private fun findFirstGradeRoomIds(
-        dayOfWeek: DayOfWeek,
+        date: LocalDate,
         checkpoint: AttendanceCheckpointEntity
     ): Set<Long> {
-        return attendanceQueryRepository.findScheduledRoomIdsByGradeAndCheckpoint(
+        val scheduledRoomIds = attendanceQueryRepository.findScheduledRoomIdsByGradeAndCheckpoint(
             grade = FIRST_GRADE,
-            dayOfWeek = dayOfWeek,
+            dayOfWeek = date.dayOfWeek,
             checkpoint = checkpoint
         )
+        val sortMode = attendanceSortModeRepository.findByDateAndCheckpointAndGrade(
+            date = date,
+            checkpoint = checkpoint,
+            grade = FIRST_GRADE
+        ) ?: return scheduledRoomIds
+        val activityRoomIds = attendanceQueryRepository.findActivityRoomIdsByGradeDayAndType(
+            grade = FIRST_GRADE,
+            dayOfWeek = date.dayOfWeek,
+            type = sortMode.type
+        )
+
+        return scheduledRoomIds + activityRoomIds
     }
 
     private fun AttendanceCheckpointEntity.isFirstGradeSpecific(): Boolean {

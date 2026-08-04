@@ -1,6 +1,6 @@
 package com.b.beep.domain.room.service
 
-import com.b.beep.domain.attendance.domain.CheckpointResolver
+import com.b.beep.domain.attendance.domain.RoomCheckpointResolver
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomApprovalEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
@@ -41,7 +41,7 @@ class RoomApprovalServiceTest {
     private lateinit var contextHolder: ContextHolder
 
     @Mock
-    private lateinit var checkpointResolver: CheckpointResolver
+    private lateinit var roomCheckpointResolver: RoomCheckpointResolver
 
     @InjectMocks
     private lateinit var roomApprovalService: RoomApprovalService
@@ -61,7 +61,7 @@ class RoomApprovalServiceTest {
             attendanceEndAt = LocalTime.of(9, 20)
         )
         room = RoomEntity(id = 1L, name = "Room A", grade = 1, classNumber = 1, floor = 1)
-        teacher = UserEntity(id = 1L, email = "teacher@test.com", username = "Teacher", role = UserRole.TEACHER)
+        teacher = UserEntity(id = 1L, username = "Teacher", name = "Teacher", role = UserRole.TEACHER)
     }
 
     @Nested
@@ -71,8 +71,8 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("성공")
         fun success() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoint(any(), eq(room))).thenReturn(checkpoint)
             `when`(roomApprovalRepository.existsByCheckpointAndRoomAndDate(eq(checkpoint), eq(room), any()))
                 .thenReturn(false)
             `when`(contextHolder.user).thenReturn(teacher)
@@ -86,7 +86,6 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("방 없음 시 예외")
         fun roomNotFound_throwsException() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.empty())
 
             val exception = assertThrows(CustomException::class.java) {
@@ -100,8 +99,8 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("이미 승인됨 시 예외")
         fun alreadyApproved_throwsException() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoint(any(), eq(room))).thenReturn(checkpoint)
             `when`(roomApprovalRepository.existsByCheckpointAndRoomAndDate(eq(checkpoint), eq(room), any()))
                 .thenReturn(true)
 
@@ -116,8 +115,8 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("동시성 예외 처리")
         fun concurrentRequest_throwsException() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoint(any(), eq(room))).thenReturn(checkpoint)
             `when`(roomApprovalRepository.existsByCheckpointAndRoomAndDate(eq(checkpoint), eq(room), any()))
                 .thenReturn(false)
             `when`(contextHolder.user).thenReturn(teacher)
@@ -144,10 +143,10 @@ class RoomApprovalServiceTest {
                 id = 1L, checkpoint = checkpoint, room = room, teacher = teacher, date = LocalDate.now()
             )
 
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
-            `when`(roomApprovalRepository.findAllByCheckpointAndDate(eq(checkpoint), any()))
-                .thenReturn(listOf(approval))
             `when`(roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc()).thenReturn(listOf(room, room2))
+            `when`(roomCheckpointResolver.getCurrentCheckpoints(any(), eq(listOf(room, room2))))
+                .thenReturn(mapOf(room.id!! to checkpoint, room2.id!! to checkpoint))
+            `when`(roomApprovalRepository.findAllByDate(any())).thenReturn(listOf(approval))
 
             val result = roomApprovalService.getApprovals(null)
 
@@ -162,10 +161,10 @@ class RoomApprovalServiceTest {
                 id = 1L, checkpoint = checkpoint, room = room, teacher = teacher, date = LocalDate.now()
             )
 
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
-            `when`(roomApprovalRepository.findAllByCheckpointAndDate(eq(checkpoint), any()))
-                .thenReturn(listOf(approval))
             `when`(roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc()).thenReturn(listOf(room, room2))
+            `when`(roomCheckpointResolver.getCurrentCheckpoints(any(), eq(listOf(room, room2))))
+                .thenReturn(mapOf(room.id!! to checkpoint, room2.id!! to checkpoint))
+            `when`(roomApprovalRepository.findAllByDate(any())).thenReturn(listOf(approval))
 
             val result = roomApprovalService.getApprovals(true)
 
@@ -181,10 +180,10 @@ class RoomApprovalServiceTest {
                 id = 1L, checkpoint = checkpoint, room = room, teacher = teacher, date = LocalDate.now()
             )
 
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
-            `when`(roomApprovalRepository.findAllByCheckpointAndDate(eq(checkpoint), any()))
-                .thenReturn(listOf(approval))
             `when`(roomRepository.findAllByIsDeletedFalseOrderByFloorAscNameAsc()).thenReturn(listOf(room, room2))
+            `when`(roomCheckpointResolver.getCurrentCheckpoints(any(), eq(listOf(room, room2))))
+                .thenReturn(mapOf(room.id!! to checkpoint, room2.id!! to checkpoint))
+            `when`(roomApprovalRepository.findAllByDate(any())).thenReturn(listOf(approval))
 
             val result = roomApprovalService.getApprovals(false)
 
@@ -204,8 +203,8 @@ class RoomApprovalServiceTest {
                 id = 1L, checkpoint = checkpoint, room = room, teacher = teacher, date = LocalDate.now()
             )
 
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoint(any(), eq(room))).thenReturn(checkpoint)
             `when`(roomApprovalRepository.findByCheckpointAndRoomAndDate(eq(checkpoint), eq(room), any()))
                 .thenReturn(approval)
 
@@ -218,8 +217,8 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("미승인")
         fun notApproved() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoint(any(), eq(room))).thenReturn(checkpoint)
             `when`(roomApprovalRepository.findByCheckpointAndRoomAndDate(eq(checkpoint), eq(room), any()))
                 .thenReturn(null)
 
@@ -232,7 +231,6 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("방 없음 시 예외")
         fun roomNotFound_throwsException() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.empty())
 
             val exception = assertThrows(CustomException::class.java) {
@@ -254,8 +252,8 @@ class RoomApprovalServiceTest {
                 id = 1L, checkpoint = checkpoint, room = room, teacher = teacher, date = LocalDate.now()
             )
 
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoint(any(), eq(room))).thenReturn(checkpoint)
             `when`(roomApprovalRepository.findByCheckpointAndRoomAndDate(eq(checkpoint), eq(room), any()))
                 .thenReturn(approval)
 
@@ -267,7 +265,6 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("방 없음 시 예외")
         fun roomNotFound_throwsException() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.empty())
 
             val exception = assertThrows(CustomException::class.java) {
@@ -281,8 +278,8 @@ class RoomApprovalServiceTest {
         @Test
         @DisplayName("승인 없음 시 예외")
         fun approvalNotFound_throwsException() {
-            `when`(checkpointResolver.getCurrentCheckpoint()).thenReturn(checkpoint)
             `when`(roomRepository.findById(1L)).thenReturn(Optional.of(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoint(any(), eq(room))).thenReturn(checkpoint)
             `when`(roomApprovalRepository.findByCheckpointAndRoomAndDate(eq(checkpoint), eq(room), any()))
                 .thenReturn(null)
 

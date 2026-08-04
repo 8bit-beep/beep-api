@@ -7,6 +7,7 @@ import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
+import com.b.beep.domain.user.domain.entity.QStudentActivityRoomEntity
 import com.b.beep.domain.user.domain.entity.QStudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.QUserEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
@@ -143,6 +144,30 @@ class AttendanceQueryRepository(
                 scheduleEntity.user.isDeleted.eq(false),
                 scheduleEntity.dayOfWeek.eq(dayOfWeek),
                 scheduleEntity.checkpoint.id.eq(checkpoint.id),
+                studentInfoEntity.grade.eq(grade)
+            )
+            .distinct()
+            .fetch()
+            .filterNotNull()
+            .toSet()
+    }
+
+    fun findActivityRoomIdsByGradeDayAndType(
+        grade: Int,
+        dayOfWeek: DayOfWeek,
+        type: AttendanceTypeEntity
+    ): Set<Long> {
+        val activityRoomEntity = QStudentActivityRoomEntity.studentActivityRoomEntity
+        val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
+
+        return queryFactory
+            .select(activityRoomEntity.room.id)
+            .from(activityRoomEntity)
+            .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(activityRoomEntity.user.id))
+            .where(
+                activityRoomEntity.user.isDeleted.eq(false),
+                activityRoomEntity.dayOfWeek.eq(dayOfWeek),
+                activityRoomEntity.type.id.eq(type.id),
                 studentInfoEntity.grade.eq(grade)
             )
             .distinct()

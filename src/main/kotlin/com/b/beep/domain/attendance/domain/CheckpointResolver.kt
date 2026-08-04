@@ -62,6 +62,24 @@ class CheckpointResolver(
         )
     }
 
+    fun getCurrentCheckpointsOrNearest(
+        grades: Collection<Int>,
+        dayOfWeek: DayOfWeek
+    ): Map<Int, AttendanceCheckpointEntity> {
+        if (grades.isEmpty()) return emptyMap()
+
+        val now = LocalTime.now(ZoneId.of("Asia/Seoul"))
+        val checkpoints = checkpointRepository.findAllByIsDeletedFalseOrderByStartAtAsc()
+        return grades.associateWith { grade ->
+            resolveCurrentCheckpointOrNearest(
+                checkpoints = checkpoints,
+                grade = grade,
+                dayOfWeek = dayOfWeek,
+                now = now
+            )
+        }
+    }
+
     internal fun resolveCurrentCheckpoint(
         checkpoints: List<AttendanceCheckpointEntity>,
         grade: Int,

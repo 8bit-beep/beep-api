@@ -11,6 +11,11 @@ interface AttendanceSortModeRepository : JpaRepository<AttendanceSortModeEntity,
         checkpoint: AttendanceCheckpointEntity
     ): List<AttendanceSortModeEntity>
 
+    fun findAllByDateAndCheckpointIn(
+        date: LocalDate,
+        checkpoints: Collection<AttendanceCheckpointEntity>
+    ): List<AttendanceSortModeEntity>
+
     fun findByDateAndCheckpointAndGrade(
         date: LocalDate,
         checkpoint: AttendanceCheckpointEntity,

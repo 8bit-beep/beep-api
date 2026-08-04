@@ -22,7 +22,14 @@ class AttendanceSortModeService(
 ) {
     fun updateSortMode(request: UpdateAttendanceSortModeRequest): AttendanceSortModesResponse {
         val date = getToday()
-        val checkpoint = checkpointResolver.getCurrentCheckpointOrNearest()
+        return updateSortMode(request, date)
+    }
+
+    internal fun updateSortMode(
+        request: UpdateAttendanceSortModeRequest,
+        date: LocalDate
+    ): AttendanceSortModesResponse {
+        val checkpoint = checkpointResolver.getCurrentCheckpointOrNearest(request.grade, date.dayOfWeek)
 
         if (request.typeId == null) {
             attendanceSortModeRepository.deleteByDateAndCheckpointAndGrade(date, checkpoint, request.grade)
@@ -56,18 +63,22 @@ class AttendanceSortModeService(
         return getSortModes(getToday())
     }
 
-    private fun getSortModes(date: LocalDate): AttendanceSortModesResponse {
-        val checkpoint = checkpointResolver.getCurrentCheckpointOrNearest()
-        val modesByGrade = attendanceSortModeRepository.findAllByDateAndCheckpoint(date, checkpoint)
-            .associateBy { it.grade }
+    internal fun getSortModes(date: LocalDate): AttendanceSortModesResponse {
+        val checkpointByGrade = checkpointResolver.getCurrentCheckpointsOrNearest(GRADES, date.dayOfWeek)
+        val modesByGradeAndCheckpoint = attendanceSortModeRepository.findAllByDateAndCheckpointIn(
+            date = date,
+            checkpoints = checkpointByGrade.values.distinctBy { it.id }
+        ).associateBy { it.grade to it.checkpoint.id }
 
         return AttendanceSortModesResponse(
             date = date,
-            checkpoint = CheckpointSimpleResponse.of(checkpoint),
             modes = GRADES.map { grade ->
+                val checkpoint = checkpointByGrade.getValue(grade)
                 AttendanceSortModeResponse(
                     grade = grade,
-                    type = modesByGrade[grade]?.type?.let { AttendanceTypeResponse.of(it) }
+                    checkpoint = CheckpointSimpleResponse.of(checkpoint),
+                    type = modesByGradeAndCheckpoint[grade to checkpoint.id]?.type
+                        ?.let { AttendanceTypeResponse.of(it) }
                 )
             }
         )

@@ -64,10 +64,9 @@ class StudentScheduleServiceTest {
 
     private fun createUserEntity(
         id: Long = 1L,
-        email: String = "test@test.com",
         username: String = "테스트유저",
         role: UserRole = UserRole.STUDENT
-    ) = UserEntity(id = id, email = email, username = username, role = role)
+    ) = UserEntity(id = id, username = username, name = username, role = role)
 
     private fun createRoomEntity(
         id: Long = 1L,
