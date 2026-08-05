@@ -12,19 +12,15 @@ class RedisRefreshTokenRepository(
 ) : RefreshTokenRepository {
     private val prefix = "refresh:"
 
-    override fun save(email: String, refreshToken: String) {
+    override fun save(refreshToken: String, username: String) {
         redisTemplate.opsForValue().set(
-            prefix + email,
-            refreshToken,
+            prefix + refreshToken,
+            username,
             Duration.ofMillis(jwtProperties.refreshExp)
         )
     }
 
-    override fun findByUserId(email: String): String? {
-        return redisTemplate.opsForValue().get(prefix + email)
-    }
-
-    override fun delete(email: String) {
-        redisTemplate.delete(prefix + email)
+    override fun consume(refreshToken: String): String? {
+        return redisTemplate.opsForValue().getAndDelete(prefix + refreshToken)
     }
 }

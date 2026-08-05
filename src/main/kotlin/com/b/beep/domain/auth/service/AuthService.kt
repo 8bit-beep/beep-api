@@ -23,25 +23,12 @@ class AuthService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder
 ) {
-//    fun refresh(refreshToken: String): TokenResponse {
-//        val username = jwtExtractor.getUsername(refreshToken)
-//
-//        val savedToken = refreshTokenRepository.findByUserId(username)
-//            ?: throw CustomException(JwtError.REFRESH_TOKEN_NOT_FOUND)
-//        if (savedToken != refreshToken) {
-//            throw CustomException(JwtError.INVALID_REFRESH_TOKEN)
-//        }
-//
-//        val newTokens = jwtProvider.generateToken(username)
-//
-//        return newTokens
-//    }
     fun refresh(refreshToken: String): TokenResponse {
         val subject = jwtExtractor.getUsername(refreshToken)
 
-        val savedToken = refreshTokenRepository.findByUserId(subject)
+        val savedUsername = refreshTokenRepository.consume(refreshToken)
             ?: throw CustomException(JwtError.REFRESH_TOKEN_NOT_FOUND)
-        if (savedToken != refreshToken) {
+        if (savedUsername != subject) {
             throw CustomException(JwtError.INVALID_REFRESH_TOKEN)
         }
 
@@ -50,10 +37,6 @@ class AuthService(
             ?: throw CustomException(UserError.USER_NOT_FOUND)
 
         val newTokens = jwtProvider.generateToken(user.username)
-
-        if (subject != user.username) {
-            refreshTokenRepository.delete(subject)
-        }
 
         return newTokens
     }

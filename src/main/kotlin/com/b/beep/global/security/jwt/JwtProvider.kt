@@ -23,9 +23,13 @@ class JwtProvider(
     }
 
     fun generateToken(username: String): TokenResponse {
+        val accessToken = generateAccessToken(username)
+        val refreshToken = generateRefreshToken(username)
+        refreshTokenRepository.save(refreshToken, username)
+
         return TokenResponse(
-            accessToken = generateAccessToken(username),
-            refreshToken = generateRefreshToken(username)
+            accessToken = accessToken,
+            refreshToken = refreshToken
         )
     }
 
@@ -43,15 +47,12 @@ class JwtProvider(
 
     fun generateRefreshToken(username: String): String {
         val now = Date()
-        val refreshToken = Jwts.builder()
+        return Jwts.builder()
             .setHeaderParam(Header.JWT_TYPE, JwtType.REFRESH)
             .setSubject(username)
             .setIssuedAt(now)
             .setExpiration(Date(now.time + jwtProperties.refreshExp))
             .signWith(getSigningKey())
             .compact()
-        refreshTokenRepository.save(username, refreshToken)
-
-        return refreshToken
     }
 }
