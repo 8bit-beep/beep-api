@@ -11,10 +11,10 @@ data class RoomResponse(
     val clubName: String?
 ) {
     companion object {
-        fun of(entity: RoomEntity): RoomResponse {
+        fun of(entity: RoomEntity, name: String = entity.name): RoomResponse {
             return RoomResponse(
                 id = entity.id!!,
-                name = entity.name,
+                name = name,
                 grade = entity.grade,
                 classNumber = entity.classNumber,
                 floor = entity.floor,
