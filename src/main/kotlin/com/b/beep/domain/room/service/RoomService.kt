@@ -24,7 +24,8 @@ class RoomService(
                 name = request.name,
                 grade = request.grade,
                 classNumber = request.classNumber,
-                floor = request.floor
+                floor = request.floor,
+                clubName = request.clubName
             )
         )
         return RoomResponse.of(room)
@@ -67,6 +68,7 @@ class RoomService(
         room.grade = request.grade
         room.classNumber = request.classNumber
         room.floor = request.floor
+        room.clubName = request.clubName
         return RoomResponse.of(room)
     }
 
