@@ -8,5 +8,8 @@ data class UpdateRoomRequest(
 
     val grade: Int? = null,
     val classNumber: Int? = null,
-    val floor: Int? = null
+    val floor: Int? = null,
+
+    @field:Size(max = 100, message = "동아리명은 100자 이하여야 합니다")
+    val clubName: String? = null
 )
