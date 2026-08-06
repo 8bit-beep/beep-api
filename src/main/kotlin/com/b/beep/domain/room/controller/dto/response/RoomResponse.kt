@@ -7,16 +7,18 @@ data class RoomResponse(
     val name: String,
     val grade: Int?,
     val classNumber: Int?,
-    val floor: Int?
+    val floor: Int?,
+    val currentStudentCount: Int? = null
 ) {
     companion object {
-        fun of(entity: RoomEntity): RoomResponse {
+        fun of(entity: RoomEntity, currentStudentCount: Int? = null): RoomResponse {
             return RoomResponse(
                 id = entity.id!!,
                 name = entity.name,
                 grade = entity.grade,
                 classNumber = entity.classNumber,
-                floor = entity.floor
+                floor = entity.floor,
+                currentStudentCount = currentStudentCount
             )
         }
     }

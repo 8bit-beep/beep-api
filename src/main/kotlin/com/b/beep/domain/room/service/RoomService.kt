@@ -1,19 +1,29 @@
 package com.b.beep.domain.room.service
 
+import com.b.beep.domain.attendance.domain.RoomCheckpointResolver
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
+import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.ZoneId
 
 @Service
 @Transactional
 class RoomService(
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository,
+    private val roomCheckpointResolver: RoomCheckpointResolver,
+    private val studentScheduleRepository: StudentScheduleRepository,
+    private val attendanceRepository: AttendanceRepository
 ) {
     fun createRoom(request: CreateRoomRequest): RoomResponse {
         if (roomRepository.existsByNameAndIsDeletedFalse(request.name)) {
@@ -32,7 +42,7 @@ class RoomService(
 
     @Transactional(readOnly = true)
     fun getRooms(): List<RoomResponse> {
-        return roomRepository.findAllByIsDeletedFalse()
+        val rooms = roomRepository.findAllByIsDeletedFalse()
             .sortedWith(compareBy(
                 { it.floor ?: Int.MAX_VALUE },
                 { getRoomSortPriority(it) },
@@ -40,7 +50,13 @@ class RoomService(
                 { it.classNumber ?: Int.MAX_VALUE },
                 { it.name }
             ))
-            .map { RoomResponse.of(it) }
+
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val checkpointByRoomId = roomCheckpointResolver.getCurrentCheckpoints(today, rooms)
+
+        return rooms.map { room ->
+            RoomResponse.of(room, computeCurrentStudentCount(room, checkpointByRoomId[room.id], today))
+        }
     }
 
     private fun getRoomSortPriority(room: RoomEntity): Int {
@@ -55,7 +71,9 @@ class RoomService(
     @Transactional(readOnly = true)
     fun getRoom(roomId: Long): RoomResponse {
         val room = getRoomEntityById(roomId)
-        return RoomResponse.of(room)
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val checkpoint = roomCheckpointResolver.getCurrentCheckpoints(today, listOf(room))[room.id]
+        return RoomResponse.of(room, computeCurrentStudentCount(room, checkpoint, today))
     }
 
     fun updateRoom(roomId: Long, request: UpdateRoomRequest): RoomResponse {
@@ -79,5 +97,30 @@ class RoomService(
     fun getRoomEntityById(roomId: Long): RoomEntity {
         return roomRepository.findByIdAndIsDeletedFalse(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+    }
+
+    // 현재 반 안에 있는 학생 수 = 이 실에 스케줄된 학생 수 - (교실자습이 아닌 다른 타입으로 출석한 학생 수)
+    // 아직 출석 기록이 없는 학생(미출석)은 실에 있는 것으로 간주한다.
+    private fun computeCurrentStudentCount(
+        room: RoomEntity,
+        checkpoint: AttendanceCheckpointEntity?,
+        today: LocalDate
+    ): Int {
+        if (checkpoint == null) return 0
+
+        val schedules = studentScheduleRepository.findAllByRoomAndDayOfWeekAndCheckpoint(
+            room, today.dayOfWeek, checkpoint
+        )
+        if (schedules.isEmpty()) return 0
+
+        val users = schedules.map { it.user }
+        val typeNameByUserId = attendanceRepository
+            .findAllByUsersAndCheckpointIdAndDate(users, checkpoint.id!!, today)
+            .associate { it.user.id to it.type.name }
+
+        return users.count { user ->
+            val typeName = typeNameByUserId[user.id]
+            typeName == null || typeName == AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME
+        }
     }
 }
