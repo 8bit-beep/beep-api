@@ -57,6 +57,13 @@ springdoc:
 dauth:
   client_id: ${DAUTH_CLIENT_ID}
   client_secret: ${DAUTH_CLIENT_SECRET}
+dodam:
+  mini-app:
+    base-url: https://dodam.b1nd.com
+    client-id: "${DODAM_MINI_APP_CLIENT_ID:}"
+    client-secret: "${DODAM_MINI_APP_CLIENT_SECRET:}"
+    redirect-uri: "${DODAM_MINI_APP_REDIRECT_URI:}"
+    scope: "profile:read notification:write"
 cloud:
   aws:
     s3:
