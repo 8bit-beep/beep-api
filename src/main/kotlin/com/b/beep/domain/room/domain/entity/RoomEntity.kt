@@ -22,6 +22,9 @@ class RoomEntity(
     @Column
     var floor: Int? = null,
 
+    @Column(name = "club_name")
+    var clubName: String? = null,
+
     @Column(nullable = false)
     var isDeleted: Boolean = false
 ) : BaseEntity()

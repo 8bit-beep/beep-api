@@ -152,6 +152,28 @@ class AttendanceQueryRepository(
             .toSet()
     }
 
+    fun findScheduledRoomIdsByDayCheckpointAndType(
+        dayOfWeek: DayOfWeek,
+        checkpoint: AttendanceCheckpointEntity,
+        type: AttendanceTypeEntity
+    ): Set<Long> {
+        val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
+
+        return queryFactory
+            .select(scheduleEntity.room.id)
+            .from(scheduleEntity)
+            .where(
+                scheduleEntity.user.isDeleted.eq(false),
+                scheduleEntity.dayOfWeek.eq(dayOfWeek),
+                scheduleEntity.checkpoint.id.eq(checkpoint.id),
+                scheduleEntity.type.id.eq(type.id)
+            )
+            .distinct()
+            .fetch()
+            .filterNotNull()
+            .toSet()
+    }
+
     fun findActivityRoomIdsByGradeDayAndType(
         grade: Int,
         dayOfWeek: DayOfWeek,

@@ -7,6 +7,7 @@ import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
+import com.b.beep.domain.room.domain.RoomClubNameResolver
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
@@ -23,7 +24,8 @@ class RoomService(
     private val roomRepository: RoomRepository,
     private val roomCheckpointResolver: RoomCheckpointResolver,
     private val studentScheduleRepository: StudentScheduleRepository,
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepository: AttendanceRepository,
+    private val roomClubNameResolver: RoomClubNameResolver
 ) {
     fun createRoom(request: CreateRoomRequest): RoomResponse {
         if (roomRepository.existsByNameAndIsDeletedFalse(request.name)) {
@@ -34,7 +36,8 @@ class RoomService(
                 name = request.name,
                 grade = request.grade,
                 classNumber = request.classNumber,
-                floor = request.floor
+                floor = request.floor,
+                clubName = request.clubName
             )
         )
         return RoomResponse.of(room)
@@ -51,11 +54,16 @@ class RoomService(
                 { it.name }
             ))
 
-        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val today = getToday()
         val checkpointByRoomId = roomCheckpointResolver.getCurrentCheckpoints(today, rooms)
+        val displayNameByRoomId = roomClubNameResolver.resolveDisplayNames(rooms, today)
 
         return rooms.map { room ->
-            RoomResponse.of(room, computeCurrentStudentCount(room, checkpointByRoomId[room.id], today))
+            RoomResponse.of(
+                room,
+                name = displayNameByRoomId[room.id] ?: room.name,
+                currentStudentCount = computeCurrentStudentCount(room, checkpointByRoomId[room.id], today)
+            )
         }
     }
 
@@ -71,9 +79,14 @@ class RoomService(
     @Transactional(readOnly = true)
     fun getRoom(roomId: Long): RoomResponse {
         val room = getRoomEntityById(roomId)
-        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val today = getToday()
         val checkpoint = roomCheckpointResolver.getCurrentCheckpoints(today, listOf(room))[room.id]
-        return RoomResponse.of(room, computeCurrentStudentCount(room, checkpoint, today))
+        val displayName = roomClubNameResolver.resolveDisplayNames(listOf(room), today)[room.id] ?: room.name
+        return RoomResponse.of(
+            room,
+            name = displayName,
+            currentStudentCount = computeCurrentStudentCount(room, checkpoint, today)
+        )
     }
 
     fun updateRoom(roomId: Long, request: UpdateRoomRequest): RoomResponse {
@@ -85,6 +98,7 @@ class RoomService(
         room.grade = request.grade
         room.classNumber = request.classNumber
         room.floor = request.floor
+        room.clubName = request.clubName
         return RoomResponse.of(room)
     }
 
@@ -97,6 +111,10 @@ class RoomService(
     fun getRoomEntityById(roomId: Long): RoomEntity {
         return roomRepository.findByIdAndIsDeletedFalse(roomId)
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
+    }
+
+    private fun getToday(): LocalDate {
+        return LocalDate.now(ZoneId.of("Asia/Seoul"))
     }
 
     // 현재 반 안에 있는 학생 수 = 이 실에 스케줄된 학생 중 현재 체크포인트 출석 타입이 "교실자습"인 학생 수
