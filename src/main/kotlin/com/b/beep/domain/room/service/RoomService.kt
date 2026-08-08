@@ -99,8 +99,8 @@ class RoomService(
             ?: throw CustomException(RoomError.ROOM_NOT_FOUND)
     }
 
-    // 현재 반 안에 있는 학생 수 = 이 실에 스케줄된 학생 수 - (교실자습이 아닌 다른 타입으로 출석한 학생 수)
-    // 아직 출석 기록이 없는 학생(미출석)은 실에 있는 것으로 간주한다.
+    // 현재 반 안에 있는 학생 수 = 이 실에 스케줄된 학생 중 현재 체크포인트 출석 타입이 "교실자습"인 학생 수
+    // 미출석(출석 기록 없음)을 포함해 교실자습이 아닌 학생은 전부 제외한다.
     private fun computeCurrentStudentCount(
         room: RoomEntity,
         checkpoint: AttendanceCheckpointEntity?,
@@ -119,8 +119,7 @@ class RoomService(
             .associate { it.user.id to it.type.name }
 
         return users.count { user ->
-            val typeName = typeNameByUserId[user.id]
-            typeName == null || typeName == AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME
+            typeNameByUserId[user.id] == AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME
         }
     }
 }

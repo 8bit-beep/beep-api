@@ -198,8 +198,8 @@ class RoomServiceTest {
         }
 
         @Test
-        @DisplayName("현재 학생 수 - 출석 기록 없는 학생(미출석)은 포함")
-        fun currentStudentCount_noAttendanceRecordCountedAsPresent() {
+        @DisplayName("현재 학생 수 - 출석 기록 없는 학생(미출석)은 제외")
+        fun currentStudentCount_noAttendanceRecordExcluded() {
             val room = createRoomEntity()
             val checkpoint = createCheckpoint()
             val classroomStudyType = AttendanceTypeEntity(id = 1L, name = AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME)
@@ -215,7 +215,7 @@ class RoomServiceTest {
 
             val result = roomService.getRoom(1L)
 
-            assertEquals(1, result.currentStudentCount)
+            assertEquals(0, result.currentStudentCount)
         }
 
         @Test
