@@ -48,3 +48,5 @@ out/
 src/main/resources/firebase/service-account-key.json
 
 beep-web/
+
+.DS_Store
