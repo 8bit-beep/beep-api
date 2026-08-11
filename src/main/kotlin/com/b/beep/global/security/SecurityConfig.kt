@@ -1,6 +1,7 @@
 package com.b.beep.global.security
 
 import com.b.beep.domain.auth.service.CustomOAuth2UserService
+import com.b.beep.domain.auth.service.OAuth2FailureHandler
 import com.b.beep.domain.auth.service.OAuth2SuccessHandler
 import com.b.beep.global.security.jwt.filter.JwtAuthenticationFilter
 import com.b.beep.global.security.jwt.filter.JwtExceptionFilter
@@ -28,7 +29,8 @@ class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val jwtExceptionFilter: JwtExceptionFilter,
     private val customOAuth2UserService: CustomOAuth2UserService,
-    private val oAuth2SuccessHandler: OAuth2SuccessHandler
+    private val oAuth2SuccessHandler: OAuth2SuccessHandler,
+    private val oAuth2FailureHandler: OAuth2FailureHandler
 ) {
     @Bean
     fun passwordEncoder() = BCryptPasswordEncoder()
@@ -106,6 +108,7 @@ class SecurityConfig(
                     userInfo.userService(customOAuth2UserService)
                 }
                 .successHandler(oAuth2SuccessHandler)
+                .failureHandler(oAuth2FailureHandler)
         }
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
         .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter::class.java)

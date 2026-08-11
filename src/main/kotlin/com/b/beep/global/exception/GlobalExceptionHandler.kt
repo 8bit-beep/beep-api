@@ -1,6 +1,7 @@
 package com.b.beep.global.exception
 
 import jakarta.validation.ConstraintViolationException
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpRequestMethodNotSupportedException
@@ -12,6 +13,8 @@ import org.springframework.web.server.MethodNotAllowedException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @ExceptionHandler(CustomException::class)
     fun handleCustomException(e: CustomException) = ErrorResponse.of(e)
 
@@ -59,6 +62,7 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<ErrorResponse> {
-        return ErrorResponse.of(CustomException(GlobalError.INTERNAL_SERVER_ERROR, e.message.toString()))
+        logger.error("Unhandled server exception", e)
+        return ErrorResponse.of(CustomException(GlobalError.INTERNAL_SERVER_ERROR))
     }
 }
