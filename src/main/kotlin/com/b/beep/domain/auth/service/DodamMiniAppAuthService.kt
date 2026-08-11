@@ -6,6 +6,7 @@ import com.b.beep.domain.user.service.StudentInfoService
 import com.b.beep.global.exception.CustomException
 import com.b.beep.global.security.jwt.JwtProvider
 import com.b.beep.global.security.jwt.dto.response.TokenResponse
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
@@ -19,6 +20,7 @@ class DodamMiniAppAuthService(
     private val studentInfoService: StudentInfoService,
     private val jwtProvider: JwtProvider,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val secureRandom = SecureRandom()
 
     fun login(dodamToken: String): TokenResponse {
@@ -37,11 +39,18 @@ class DodamMiniAppAuthService(
     }
 
     private fun validateConfiguration() {
-        if (
-            properties.clientId.isBlank() ||
-            properties.clientSecret.isBlank() ||
-            properties.redirectUri.isBlank()
-        ) {
+        val clientIdConfigured = properties.clientId.isNotBlank()
+        val clientSecretConfigured = properties.clientSecret.isNotBlank()
+        val redirectUriConfigured = properties.redirectUri.isNotBlank()
+
+        if (!clientIdConfigured || !clientSecretConfigured || !redirectUriConfigured) {
+            logger.error(
+                "Dodam mini-app OAuth configuration is incomplete: " +
+                    "clientIdConfigured={}, clientSecretConfigured={}, redirectUriConfigured={}",
+                clientIdConfigured,
+                clientSecretConfigured,
+                redirectUriConfigured
+            )
             throw CustomException(AuthError.DODAM_OAUTH_SERVER_ERROR)
         }
     }

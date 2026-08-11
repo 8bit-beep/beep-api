@@ -47,7 +47,7 @@ dauth:
   client_secret: test-client-secret
 dodam:
   mini-app:
-    base-url: https://dodam.b1nd.com
+    base-url: https://dodam-api.b1nd.com
     client-id: test-mini-app-client-id
     client-secret: test-mini-app-client-secret
     redirect-uri: https://api.8beep.site/auth/dodam/callback

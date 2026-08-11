@@ -9,6 +9,7 @@ import com.b.beep.domain.auth.infrastructure.DodamConsentResponse
 import com.b.beep.domain.auth.infrastructure.DodamMiniAppProperties
 import com.b.beep.global.exception.CustomException
 import io.netty.channel.ChannelOption
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
@@ -24,6 +25,7 @@ import java.time.Duration
 class DodamMiniAppOAuthClient(
     private val properties: DodamMiniAppProperties,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val webClient = WebClient.builder()
         .baseUrl(properties.baseUrl)
         .clientConnector(
@@ -36,7 +38,7 @@ class DodamMiniAppOAuthClient(
         .build()
 
     fun authorize(dodamToken: String, state: String) {
-        execute {
+        execute(AUTHORIZE_STAGE) {
             webClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
@@ -50,13 +52,13 @@ class DodamMiniAppOAuthClient(
                 }
                 .headers { it.setBearerAuth(dodamToken) }
                 .retrieve()
-                .mapDodamTokenErrors()
+                .mapDodamTokenErrors(AUTHORIZE_STAGE)
                 .toBodilessEntity()
         }
     }
 
     fun consent(dodamToken: String, state: String): String {
-        val response = execute {
+        val response = execute(CONSENT_STAGE) {
             webClient.post()
                 .uri("/oauth/authorize/consent")
                 .headers { it.setBearerAuth(dodamToken) }
@@ -71,7 +73,7 @@ class DodamMiniAppOAuthClient(
                     )
                 )
                 .retrieve()
-                .mapDodamTokenErrors()
+                .mapDodamTokenErrors(CONSENT_STAGE)
                 .bodyToMono(DodamConsentResponse::class.java)
         }
 
@@ -89,14 +91,14 @@ class DodamMiniAppOAuthClient(
             add("client_secret", properties.clientSecret)
         }
 
-        val response = execute {
+        val response = execute(TOKEN_STAGE) {
             webClient.post()
                 .uri("/oauth/token")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
-                .mapServerErrors()
+                .mapServerErrors(TOKEN_STAGE)
                 .bodyToMono(DAuthTokenResponse::class.java)
         }
 
@@ -105,41 +107,64 @@ class DodamMiniAppOAuthClient(
     }
 
     fun getUser(oAuthAccessToken: String): DAuthUser {
-        val response = execute {
+        val response = execute(USER_STAGE) {
             webClient.get()
                 .uri("/user/me")
                 .headers { it.setBearerAuth(oAuthAccessToken) }
                 .retrieve()
-                .mapServerErrors()
+                .mapServerErrors(USER_STAGE)
                 .bodyToMono(DAuthUserMeResponse::class.java)
         }
 
         return response.data ?: throw CustomException(AuthError.DODAM_OAUTH_SERVER_ERROR)
     }
 
-    private fun WebClient.ResponseSpec.mapDodamTokenErrors(): WebClient.ResponseSpec =
+    private fun WebClient.ResponseSpec.mapDodamTokenErrors(stage: String): WebClient.ResponseSpec =
         onStatus(
             { it == HttpStatus.UNAUTHORIZED || it == HttpStatus.FORBIDDEN },
-            { Mono.error(CustomException(AuthError.INVALID_DODAM_TOKEN)) }
-        ).mapServerErrors()
+            {
+                logger.warn(
+                    "Dodam OAuth rejected the WebView token: stage={}, status={}",
+                    stage,
+                    it.statusCode().value()
+                )
+                Mono.error(CustomException(AuthError.INVALID_DODAM_TOKEN))
+            }
+        ).mapServerErrors(stage)
 
-    private fun WebClient.ResponseSpec.mapServerErrors(): WebClient.ResponseSpec =
+    private fun WebClient.ResponseSpec.mapServerErrors(stage: String): WebClient.ResponseSpec =
         onStatus(
             { !it.is2xxSuccessful },
-            { Mono.error(CustomException(AuthError.DODAM_OAUTH_SERVER_ERROR)) }
+            {
+                logger.error(
+                    "Dodam OAuth returned an unexpected response: stage={}, status={}",
+                    stage,
+                    it.statusCode().value()
+                )
+                Mono.error(CustomException(AuthError.DODAM_OAUTH_SERVER_ERROR))
+            }
         )
 
-    private fun <T : Any> execute(request: () -> Mono<T>): T {
+    private fun <T : Any> execute(stage: String, request: () -> Mono<T>): T {
         return try {
             request().block() ?: throw CustomException(AuthError.DODAM_OAUTH_SERVER_ERROR)
         } catch (exception: CustomException) {
             throw exception
         } catch (exception: Exception) {
+            logger.error(
+                "Dodam OAuth request failed: stage={}, exceptionType={}",
+                stage,
+                exception.javaClass.simpleName
+            )
             throw CustomException(AuthError.DODAM_OAUTH_SERVER_ERROR)
         }
     }
 
     companion object {
+        private const val AUTHORIZE_STAGE = "authorize"
+        private const val CONSENT_STAGE = "consent"
+        private const val TOKEN_STAGE = "token"
+        private const val USER_STAGE = "user_me"
         private const val CONNECT_TIMEOUT_MILLIS = 3_000
         private const val RESPONSE_TIMEOUT_SECONDS = 10L
     }
