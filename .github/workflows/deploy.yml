@@ -55,9 +55,8 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}  # 서버의 private key
           envs: GITHUB_SHA
           script: |
-            sudo docker rm -f $(docker ps -qa)
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
-            sudo docker compose up -d
+            sudo docker compose pull beep-server
+            sudo docker compose up -d --no-deps --force-recreate beep-server
             sudo docker image prune -f
 
       - name: Deploy to dev Server
@@ -67,7 +66,6 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY_DEV }}
           script: |
-            sudo docker rm -f $(docker ps -qa)
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
-            sudo docker compose up -d
+            sudo docker compose pull beep-server
+            sudo docker compose up -d --no-deps --force-recreate beep-server
             sudo docker image prune -f

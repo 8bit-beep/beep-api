@@ -9,6 +9,7 @@ import com.b.beep.global.exception.CustomException
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
+import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -38,8 +39,21 @@ class JwtExtractor(
         return UsernamePasswordAuthenticationToken(details, null, details.authorities)
     }
 
-    fun extractToken(request: HttpServletRequest) =
-        request.getHeader(jwtProperties.header)?.removePrefix(jwtProperties.prefix)
+    fun extractToken(request: HttpServletRequest): String? {
+        val authorization = request.getHeader(jwtProperties.header)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?: return null
+        val prefix = jwtProperties.prefix.trim()
+        val bearerPrefix = "$prefix "
+
+        return when {
+            authorization.equals(prefix, ignoreCase = true) -> null
+            authorization.startsWith(bearerPrefix, ignoreCase = true) ->
+                authorization.substring(bearerPrefix.length).trim().takeIf { it.isNotEmpty() }
+            else -> authorization
+        }
+    }
 
     private fun getClaims(token: String): Jws<Claims> {
         try {
@@ -52,6 +66,8 @@ class JwtExtractor(
             throw CustomException(JwtError.INVALID_TOKEN)
         } catch (e: MalformedJwtException) {
             throw CustomException(JwtError.MALFORMED_TOKEN)
+        } catch (e: SignatureException) {
+            throw CustomException(JwtError.INVALID_TOKEN)
         }
     }
 

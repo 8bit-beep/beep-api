@@ -9,3 +9,8 @@ spring:
       password: ${REDIS_PW}
   cache:
     type: redis
+  session:
+    timeout: 30m
+    redis:
+      namespace: beep:session
+      flush-mode: immediate
