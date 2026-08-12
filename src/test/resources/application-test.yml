@@ -51,5 +51,5 @@ dodam:
     client-id: test-mini-app-client-id
     client-secret: test-mini-app-client-secret
     redirect-uri: https://api.8beep.site/auth/dodam/callback
-    app-public-id: 019fea4d-53cf-7313-b23c-addbbbe1bef2
+    app-public-id: test-app-public-id
     scope: "profile:read notification:write"

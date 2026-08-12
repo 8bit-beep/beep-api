@@ -80,6 +80,6 @@ class DodamNotificationClientTest {
     )
 
     companion object {
-        private const val APP_PUBLIC_ID = "019fea4d-53cf-7313-b23c-addbbbe1bef2"
+        private const val APP_PUBLIC_ID = "test-app-public-id"
     }
 }

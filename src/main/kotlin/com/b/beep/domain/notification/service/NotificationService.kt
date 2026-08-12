@@ -16,7 +16,7 @@ class NotificationService(
     fun sendPushMessage(request: SendNotificationRequest, isAll: Boolean) {
         val targetUserPublicIds = findTargetUserPublicIds(isAll)
         if (targetUserPublicIds.isEmpty()) {
-            log.info("Dodam notification skipped: no eligible targets")
+            log.info("도담 알림 발송을 건너뜁니다: 발송 대상자가 없습니다.")
             return
         }
 
@@ -29,21 +29,21 @@ class NotificationService(
 
             if (result.failureCount > 0) {
                 log.warn(
-                    "Dodam notification completed with failures: targets={}, success={}, failure={}",
+                    "도담 알림 발송이 일부 실패했습니다: 대상자 수={}, 성공={}, 실패={}",
                     targetUserPublicIds.size,
                     result.successCount,
                     result.failureCount,
                 )
             } else {
                 log.info(
-                    "Dodam notification sent: targets={}, success={}",
+                    "도담 알림을 발송했습니다: 대상자 수={}, 성공={}",
                     targetUserPublicIds.size,
                     result.successCount,
                 )
             }
         } catch (exception: Exception) {
             log.error(
-                "Dodam notification request failed: targets={}, exceptionType={}, message={}",
+                "도담 알림 발송 요청에 실패했습니다: 대상자 수={}, 예외 유형={}, 오류 메시지={}",
                 targetUserPublicIds.size,
                 exception.javaClass.simpleName,
                 exception.message,
