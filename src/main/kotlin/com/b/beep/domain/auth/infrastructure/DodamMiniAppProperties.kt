@@ -7,6 +7,7 @@ data class DodamMiniAppProperties(
     val clientId: String = "",
     val clientSecret: String = "",
     val redirectUri: String = "",
+    val appPublicId: String = "",
     val baseUrl: String = "https://dodam-api.b1nd.com",
     val scope: String = "profile:read notification:write",
 )
