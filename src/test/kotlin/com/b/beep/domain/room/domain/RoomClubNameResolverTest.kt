@@ -117,7 +117,11 @@ class RoomClubNameResolverTest {
         whenever(attendanceSortModeRepository.findByDateAndCheckpointAndGrade(WEDNESDAY, checkpoint, 3))
             .thenReturn(null)
         whenever(
-            attendanceQueryRepository.findActivityRoomIdsByGradeDayAndType(1, DayOfWeek.WEDNESDAY, clubType)
+            attendanceQueryRepository.findActivityRoomIdsByGradeDayOrCommonAndType(
+                1,
+                DayOfWeek.WEDNESDAY,
+                clubType
+            )
         ).thenReturn(setOf(room.id!!))
 
         val result = resolver.resolveDisplayNames(listOf(room), WEDNESDAY)

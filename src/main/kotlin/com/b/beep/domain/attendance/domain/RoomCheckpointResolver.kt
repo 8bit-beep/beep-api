@@ -90,7 +90,7 @@ class RoomCheckpointResolver(
             checkpoint = checkpoint,
             grade = FIRST_GRADE
         ) ?: return scheduledRoomIds
-        val activityRoomIds = attendanceQueryRepository.findActivityRoomIdsByGradeDayAndType(
+        val activityRoomIds = attendanceQueryRepository.findActivityRoomIdsByGradeDayOrCommonAndType(
             grade = FIRST_GRADE,
             dayOfWeek = date.dayOfWeek,
             type = sortMode.type
