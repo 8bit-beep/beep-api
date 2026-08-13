@@ -36,8 +36,8 @@ class StudentActivityRoomEntity(
     val user: UserEntity,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "day_of_week", nullable = false)
-    var dayOfWeek: DayOfWeek,
+    @Column(name = "day_of_week")
+    var dayOfWeek: DayOfWeek?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id", nullable = false)

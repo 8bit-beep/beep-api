@@ -74,6 +74,7 @@ class SecurityConfig(
                 .requestMatchers("/approvals/**").hasRole("TEACHER")
                 .requestMatchers("/memos/**").hasRole("TEACHER")
                 .requestMatchers("/attendance-sort-modes", "/attendance-sort-modes/**").hasAnyRole("TEACHER")
+                .requestMatchers("/students/*/activity-rooms").hasRole("ADMIN")
                 .requestMatchers("/schedules/**").hasAnyRole("TEACHER", "ADMIN")
                 .requestMatchers("/schedules").hasAnyRole("TEACHER", "ADMIN")
                 .requestMatchers("/students/**").hasAnyRole("TEACHER", "ADMIN")

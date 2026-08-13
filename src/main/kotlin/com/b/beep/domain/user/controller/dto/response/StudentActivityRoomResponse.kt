@@ -7,7 +7,7 @@ import java.time.DayOfWeek
 
 data class StudentActivityRoomResponse(
     val id: Long,
-    val dayOfWeek: DayOfWeek,
+    val dayOfWeek: DayOfWeek?,
     val type: AttendanceTypeResponse,
     val room: RoomResponse
 ) {
