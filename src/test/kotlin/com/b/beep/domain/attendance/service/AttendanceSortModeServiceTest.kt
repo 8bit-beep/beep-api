@@ -4,11 +4,14 @@ import com.b.beep.domain.attendance.controller.dto.request.UpdateAttendanceSortM
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceSortModeEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.attendance.error.AttendanceTypeError
 import com.b.beep.domain.attendance.repository.AttendanceSortModeRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.global.exception.CustomException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -86,6 +89,21 @@ class AttendanceSortModeServiceTest {
             firstGradeCheckpoint,
             1
         )
+    }
+
+    @Test
+    fun `POTC는 재정렬 모드로 선택할 수 없다`() {
+        val potc = AttendanceTypeEntity(id = 9L, name = "POTC")
+        val request = UpdateAttendanceSortModeRequest(grade = 1, typeId = potc.id)
+        whenever(checkpointResolver.getCurrentCheckpointOrNearest(1, DayOfWeek.MONDAY))
+            .thenReturn(firstGradeCheckpoint)
+        whenever(attendanceTypeService.getAttendanceTypeEntityById(potc.id!!)).thenReturn(potc)
+
+        val exception = assertThrows<CustomException> {
+            attendanceSortModeService.updateSortMode(request, MONDAY)
+        }
+
+        assertEquals(AttendanceTypeError.UNSUPPORTED_SORT_MODE_TYPE, exception.error)
     }
 
     @Test

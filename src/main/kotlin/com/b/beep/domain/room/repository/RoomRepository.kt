@@ -9,6 +9,7 @@ interface RoomRepository : JpaRepository<RoomEntity, Long> {
     fun findByName(name: String): RoomEntity?
     fun findAllByIsDeletedFalseOrderByFloorAscNameAsc(): List<RoomEntity>
     fun findAllByIsDeletedFalse(): List<RoomEntity>
+    fun findAllByGradeIsNotNullAndClassNumberIsNotNullAndIsDeletedFalse(): List<RoomEntity>
     fun findByIdAndIsDeletedFalse(id: Long): RoomEntity?
     fun existsByNameAndIsDeletedFalse(name: String): Boolean
 
