@@ -54,7 +54,7 @@ class RoomClubNameResolver(
                     ?.type?.id == clubType.id
             }
             .flatMap { grade ->
-                attendanceQueryRepository.findActivityRoomIdsByGradeDayAndType(grade, dayOfWeek, clubType)
+                attendanceQueryRepository.findActivityRoomIdsByGradeDayOrCommonAndType(grade, dayOfWeek, clubType)
             }
 
         return scheduledClubRoomIds + forcedClubRoomIds

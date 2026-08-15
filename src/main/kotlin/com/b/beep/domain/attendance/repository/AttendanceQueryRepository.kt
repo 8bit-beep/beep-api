@@ -174,7 +174,7 @@ class AttendanceQueryRepository(
             .toSet()
     }
 
-    fun findActivityRoomIdsByGradeDayAndType(
+    fun findActivityRoomIdsByGradeDayOrCommonAndType(
         grade: Int,
         dayOfWeek: DayOfWeek,
         type: AttendanceTypeEntity
@@ -188,7 +188,8 @@ class AttendanceQueryRepository(
             .join(studentInfoEntity).on(studentInfoEntity.user.id.eq(activityRoomEntity.user.id))
             .where(
                 activityRoomEntity.user.isDeleted.eq(false),
-                activityRoomEntity.dayOfWeek.eq(dayOfWeek),
+                activityRoomEntity.dayOfWeek.eq(dayOfWeek)
+                    .or(activityRoomEntity.dayOfWeek.isNull),
                 activityRoomEntity.type.id.eq(type.id),
                 studentInfoEntity.grade.eq(grade)
             )

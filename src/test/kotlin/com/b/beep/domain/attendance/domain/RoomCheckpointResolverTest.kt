@@ -73,7 +73,7 @@ class RoomCheckpointResolverTest {
             )
         ).thenReturn(sortMode)
         whenever(
-            attendanceQueryRepository.findActivityRoomIdsByGradeDayAndType(
+            attendanceQueryRepository.findActivityRoomIdsByGradeDayOrCommonAndType(
                 eq(1),
                 eq(DayOfWeek.MONDAY),
                 eq(activityType)
@@ -139,7 +139,7 @@ class RoomCheckpointResolverTest {
             )
         ).thenReturn(sortMode)
         whenever(
-            attendanceQueryRepository.findActivityRoomIdsByGradeDayAndType(
+            attendanceQueryRepository.findActivityRoomIdsByGradeDayOrCommonAndType(
                 1,
                 DayOfWeek.MONDAY,
                 activityType

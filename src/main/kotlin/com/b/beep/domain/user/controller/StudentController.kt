@@ -34,7 +34,7 @@ class StudentController(
         return studentService.findStudents(grade, classNumber, keyword)
     }
 
-    @Operation(summary = "학생 활동 실 조회", description = "특정 학생의 요일별 활동 실 배정을 조회합니다.")
+    @Operation(summary = "학생 활동 실 조회", description = "특정 학생의 공통·요일별 활동 실 배정을 조회합니다.")
     @GetMapping("/{studentId}/activity-rooms")
     @ResponseStatus(HttpStatus.OK)
     fun getActivityRooms(
@@ -43,7 +43,7 @@ class StudentController(
         return studentActivityRoomService.getActivityRooms(studentId)
     }
 
-    @Operation(summary = "학생 활동 실 저장", description = "특정 학생의 요일별 활동 실 배정을 전체 교체합니다.")
+    @Operation(summary = "학생 활동 실 저장", description = "특정 학생의 공통·요일별 활동 실 배정을 전체 교체합니다.")
     @PutMapping("/{studentId}/activity-rooms")
     @ResponseStatus(HttpStatus.OK)
     fun replaceActivityRooms(

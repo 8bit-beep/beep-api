@@ -6,8 +6,11 @@ import com.b.beep.domain.attendance.controller.dto.response.AttendanceSortModesR
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceSortModeEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.attendance.error.AttendanceTypeError
 import com.b.beep.domain.attendance.repository.AttendanceSortModeRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
+import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -35,6 +38,9 @@ class AttendanceSortModeService(
             attendanceSortModeRepository.deleteByDateAndCheckpointAndGrade(date, checkpoint, request.grade)
         } else {
             val type = attendanceTypeService.getAttendanceTypeEntityById(request.typeId)
+            if (type.name !in AttendanceTypeEntity.SORT_MODE_TYPE_NAMES) {
+                throw CustomException(AttendanceTypeError.UNSUPPORTED_SORT_MODE_TYPE)
+            }
             val sortMode = attendanceSortModeRepository.findByDateAndCheckpointAndGrade(
                 date = date,
                 checkpoint = checkpoint,
