@@ -36,9 +36,11 @@ class UserService(
 
     private fun UserEntity.toResponse(): UserResponse {
         val studentInfo = if (role == UserRole.STUDENT) {
-            StudentInfoResponse.of(getStudentInfo(this))
+            getStudentInfo(this)
         } else null
-        val currentStatus = attendanceQueryRepository.findCurrentStatus(this)
+        val currentStatus = studentInfo?.let {
+            attendanceQueryRepository.findCurrentStatus(this, it.grade)
+        }
 
         return UserResponse(
             id = id,
@@ -46,7 +48,7 @@ class UserService(
             name = name,
             role = role,
             profileImage = profileImage,
-            studentInfo = studentInfo,
+            studentInfo = studentInfo?.let { StudentInfoResponse.of(it) },
             currentStatus = currentStatus?.let { AttendanceTypeResponse.of(it) }
         )
     }
