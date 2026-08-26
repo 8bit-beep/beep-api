@@ -110,8 +110,6 @@ class AttendanceHelpService(
         } catch (e: OptimisticLockingFailureException) {
             throw CustomException(AttendanceError.CONCURRENT_MODIFICATION)
         }
-
-        helpQrTokenRepository.delete(request.token)
     }
 
     private fun getOrCreateSchedule(

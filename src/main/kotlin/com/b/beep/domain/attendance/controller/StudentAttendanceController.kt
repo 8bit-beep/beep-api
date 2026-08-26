@@ -34,14 +34,14 @@ class StudentAttendanceController(
         studentAttendanceService.cancelAttendance()
     }
 
-    @Operation(summary = "출석 도움 QR 생성", description = "다른 학생의 출석을 도와주기 위한 QR 토큰을 생성합니다.")
+    @Operation(summary = "출석 도움 QR 생성", description = "다른 학생의 출석을 도와주기 위한 QR 토큰을 생성합니다. 토큰은 발급 후 60초 동안 유효합니다.")
     @PostMapping("/help/qr")
     @ResponseStatus(HttpStatus.CREATED)
     fun generateHelpQr(): HelpQrResponse {
         return attendanceHelpService.generateHelpQr()
     }
 
-    @Operation(summary = "출석 도움 QR 스캔", description = "QR을 스캔하여 출석합니다.")
+    @Operation(summary = "출석 도움 QR 스캔", description = "QR을 스캔하여 출석합니다. 유효 시간 내에는 여러 명이 동일한 QR로 스캔할 수 있으며, 이미 출석한 학생은 다시 스캔할 수 없습니다.")
     @PostMapping("/help/scan")
     @ResponseStatus(HttpStatus.CREATED)
     fun scanHelpQr(@Valid @RequestBody request: ScanHelpQrRequest) {
