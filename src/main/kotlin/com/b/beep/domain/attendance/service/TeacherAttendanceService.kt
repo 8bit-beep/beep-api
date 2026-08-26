@@ -54,7 +54,7 @@ class TeacherAttendanceService(
 
         if (status.name == AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {
             attendance?.let {
-                if (it.absence == null) {
+                if (!it.isSystemDerived()) {
                     attendanceRepository.delete(it)
                 }
             }
