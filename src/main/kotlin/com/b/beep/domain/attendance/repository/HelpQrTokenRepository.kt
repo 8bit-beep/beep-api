@@ -38,11 +38,6 @@ class HelpQrTokenRepository(
         )
     }
 
-    fun delete(token: String) {
-        val tokenData = findByToken(token) ?: return
-        redisTemplate.delete(tokenPrefix + token)
-        redisTemplate.delete("$userPrefix${tokenData.helperId}:${tokenData.checkpointId}")
-    }
 }
 
 data class HelpQrTokenData(
