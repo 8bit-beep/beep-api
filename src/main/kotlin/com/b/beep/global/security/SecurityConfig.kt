@@ -71,6 +71,7 @@ class SecurityConfig(
                 .requestMatchers(HttpMethod.GET, "/attendances").hasRole("TEACHER")
                 .requestMatchers(HttpMethod.PATCH, "/attendances/**").hasRole("TEACHER")
                 .requestMatchers("/absences/**").hasRole("TEACHER")
+                .requestMatchers("/events", "/events/**").hasRole("TEACHER")
                 .requestMatchers("/approvals/**").hasRole("TEACHER")
                 .requestMatchers("/memos/**").hasRole("TEACHER")
                 .requestMatchers("/attendance-sort-modes", "/attendance-sort-modes/**").hasAnyRole("TEACHER")
