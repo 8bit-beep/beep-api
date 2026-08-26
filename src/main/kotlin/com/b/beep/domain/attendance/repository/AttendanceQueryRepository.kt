@@ -13,6 +13,7 @@ import com.b.beep.domain.user.domain.entity.QUserEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.slf4j.LoggerFactory
@@ -153,25 +154,34 @@ class AttendanceQueryRepository(
             .toSet()
     }
 
-    fun findScheduledRoomIdsByDayCheckpointAndType(
+    fun findClubMajorityRoomIdsByDayCheckpoint(
         dayOfWeek: DayOfWeek,
         checkpoint: AttendanceCheckpointEntity,
-        type: AttendanceTypeEntity
+        clubType: AttendanceTypeEntity
     ): Set<Long> {
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
+        val roomIdPath = scheduleEntity.room.id
+        val totalCountExpression = roomIdPath.count()
+        val clubCountExpression = CaseBuilder()
+            .`when`(scheduleEntity.type.id.eq(clubType.id)).then(1L).otherwise(0L)
+            .sum()
 
         return queryFactory
-            .select(scheduleEntity.room.id)
+            .select(roomIdPath, totalCountExpression, clubCountExpression)
             .from(scheduleEntity)
             .where(
                 scheduleEntity.user.isDeleted.eq(false),
                 scheduleEntity.dayOfWeek.eq(dayOfWeek),
-                scheduleEntity.checkpoint.id.eq(checkpoint.id),
-                scheduleEntity.type.id.eq(type.id)
+                scheduleEntity.checkpoint.id.eq(checkpoint.id)
             )
-            .distinct()
+            .groupBy(roomIdPath)
             .fetch()
-            .filterNotNull()
+            .mapNotNull { tuple ->
+                val roomId = tuple.get(roomIdPath) ?: return@mapNotNull null
+                val totalCount = tuple.get(totalCountExpression) ?: 0L
+                val clubCount = tuple.get(clubCountExpression) ?: 0L
+                if (clubCount * 2 > totalCount) roomId else null
+            }
             .toSet()
     }
 
