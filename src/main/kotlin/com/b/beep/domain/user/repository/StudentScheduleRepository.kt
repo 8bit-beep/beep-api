@@ -2,6 +2,7 @@ package com.b.beep.domain.user.repository
 
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.StudentScheduleEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
@@ -34,4 +35,10 @@ interface StudentScheduleRepository : JpaRepository<StudentScheduleEntity, Long>
 
     fun findAllByDayOfWeek(dayOfWeek: DayOfWeek): List<StudentScheduleEntity>
     fun findAllByUserInAndDayOfWeekIn(users: List<UserEntity>, dayOfWeeks: List<DayOfWeek>): List<StudentScheduleEntity>
+
+    fun findAllByRoomAndDayOfWeekAndCheckpoint(
+        room: RoomEntity,
+        dayOfWeek: DayOfWeek,
+        checkpoint: AttendanceCheckpointEntity
+    ): List<StudentScheduleEntity>
 }

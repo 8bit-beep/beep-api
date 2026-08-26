@@ -1,5 +1,9 @@
 package com.b.beep.domain.room.service
 
+import com.b.beep.domain.attendance.domain.RoomCheckpointResolver
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
+import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
@@ -7,6 +11,7 @@ import com.b.beep.domain.room.domain.RoomClubNameResolver
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.error.RoomError
 import com.b.beep.domain.room.repository.RoomRepository
+import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,6 +22,9 @@ import java.time.ZoneId
 @Transactional
 class RoomService(
     private val roomRepository: RoomRepository,
+    private val roomCheckpointResolver: RoomCheckpointResolver,
+    private val studentScheduleRepository: StudentScheduleRepository,
+    private val attendanceRepository: AttendanceRepository,
     private val roomClubNameResolver: RoomClubNameResolver
 ) {
     fun createRoom(request: CreateRoomRequest): RoomResponse {
@@ -45,8 +53,18 @@ class RoomService(
                 { it.classNumber ?: Int.MAX_VALUE },
                 { it.name }
             ))
-        val displayNameByRoomId = roomClubNameResolver.resolveDisplayNames(rooms, getToday())
-        return rooms.map { RoomResponse.of(it, displayNameByRoomId[it.id] ?: it.name) }
+
+        val today = getToday()
+        val checkpointByRoomId = roomCheckpointResolver.getCurrentCheckpoints(today, rooms)
+        val displayNameByRoomId = roomClubNameResolver.resolveDisplayNames(rooms, today)
+
+        return rooms.map { room ->
+            RoomResponse.of(
+                room,
+                name = displayNameByRoomId[room.id] ?: room.name,
+                currentStudentCount = computeCurrentStudentCount(room, checkpointByRoomId[room.id], today)
+            )
+        }
     }
 
     private fun getRoomSortPriority(room: RoomEntity): Int {
@@ -61,8 +79,14 @@ class RoomService(
     @Transactional(readOnly = true)
     fun getRoom(roomId: Long): RoomResponse {
         val room = getRoomEntityById(roomId)
-        val displayName = roomClubNameResolver.resolveDisplayNames(listOf(room), getToday())[room.id] ?: room.name
-        return RoomResponse.of(room, displayName)
+        val today = getToday()
+        val checkpoint = roomCheckpointResolver.getCurrentCheckpoints(today, listOf(room))[room.id]
+        val displayName = roomClubNameResolver.resolveDisplayNames(listOf(room), today)[room.id] ?: room.name
+        return RoomResponse.of(
+            room,
+            name = displayName,
+            currentStudentCount = computeCurrentStudentCount(room, checkpoint, today)
+        )
     }
 
     fun updateRoom(roomId: Long, request: UpdateRoomRequest): RoomResponse {
@@ -91,5 +115,29 @@ class RoomService(
 
     private fun getToday(): LocalDate {
         return LocalDate.now(ZoneId.of("Asia/Seoul"))
+    }
+
+    // 현재 반 안에 있는 학생 수 = 이 실에 스케줄된 학생 중 현재 체크포인트 출석 타입이 "교실자습"인 학생 수
+    // 미출석(출석 기록 없음)을 포함해 교실자습이 아닌 학생은 전부 제외한다.
+    private fun computeCurrentStudentCount(
+        room: RoomEntity,
+        checkpoint: AttendanceCheckpointEntity?,
+        today: LocalDate
+    ): Int {
+        if (checkpoint == null) return 0
+
+        val schedules = studentScheduleRepository.findAllByRoomAndDayOfWeekAndCheckpoint(
+            room, today.dayOfWeek, checkpoint
+        )
+        if (schedules.isEmpty()) return 0
+
+        val users = schedules.map { it.user }
+        val typeNameByUserId = attendanceRepository
+            .findAllByUsersAndCheckpointIdAndDate(users, checkpoint.id!!, today)
+            .associate { it.user.id to it.type.name }
+
+        return users.count { user ->
+            typeNameByUserId[user.id] == AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME
+        }
     }
 }
