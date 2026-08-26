@@ -46,7 +46,7 @@ class RoomClubNameResolver(
     ): Set<Long> {
         val dayOfWeek = date.dayOfWeek
         val scheduledClubRoomIds = attendanceQueryRepository
-            .findScheduledRoomIdsByDayCheckpointAndType(dayOfWeek, checkpoint, clubType)
+            .findClubMajorityRoomIdsByDayCheckpoint(dayOfWeek, checkpoint, clubType)
 
         val forcedClubRoomIds = GRADES
             .filter { grade ->

@@ -71,7 +71,7 @@ class RoomClubNameResolverTest {
         whenever(roomCheckpointResolver.getCurrentCheckpointOrNearest(WEDNESDAY, room, null))
             .thenReturn(checkpoint)
         whenever(
-            attendanceQueryRepository.findScheduledRoomIdsByDayCheckpointAndType(
+            attendanceQueryRepository.findClubMajorityRoomIdsByDayCheckpoint(
                 DayOfWeek.WEDNESDAY,
                 checkpoint,
                 clubType
@@ -104,7 +104,7 @@ class RoomClubNameResolverTest {
         whenever(roomCheckpointResolver.getCurrentCheckpointOrNearest(WEDNESDAY, room, null))
             .thenReturn(checkpoint)
         whenever(
-            attendanceQueryRepository.findScheduledRoomIdsByDayCheckpointAndType(
+            attendanceQueryRepository.findClubMajorityRoomIdsByDayCheckpoint(
                 DayOfWeek.WEDNESDAY,
                 checkpoint,
                 clubType
@@ -137,7 +137,7 @@ class RoomClubNameResolverTest {
         whenever(roomCheckpointResolver.getCurrentCheckpointOrNearest(WEDNESDAY, room, 3))
             .thenReturn(checkpoint)
         whenever(
-            attendanceQueryRepository.findScheduledRoomIdsByDayCheckpointAndType(
+            attendanceQueryRepository.findClubMajorityRoomIdsByDayCheckpoint(
                 DayOfWeek.WEDNESDAY,
                 checkpoint,
                 clubType
