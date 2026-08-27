@@ -4,6 +4,7 @@ import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.event.domain.entity.EventEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
@@ -46,6 +47,8 @@ interface AttendanceRepository : JpaRepository<AttendanceEntity, Long> {
     fun deleteAllByAbsenceAndDateGreaterThanEqual(absence: AbsenceEntity, date: LocalDate)
 
     fun deleteAllByAbsence(absence: AbsenceEntity)
+
+    fun deleteAllByEvent(event: EventEntity)
 
     fun findAllByDate(date: LocalDate): List<AttendanceEntity>
 

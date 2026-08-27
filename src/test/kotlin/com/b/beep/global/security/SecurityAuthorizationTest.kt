@@ -5,6 +5,8 @@ import com.b.beep.domain.attendance.controller.dto.request.UpdateAttendanceSortM
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceSortModesResponse
 import com.b.beep.domain.attendance.service.AttendanceSortModeService
 import com.b.beep.domain.auth.service.CustomOAuth2UserService
+import com.b.beep.domain.event.controller.EventController
+import com.b.beep.domain.event.service.EventService
 import com.b.beep.domain.auth.service.OAuth2FailureHandler
 import com.b.beep.domain.auth.service.OAuth2SuccessHandler
 import com.b.beep.domain.user.controller.StudentController
@@ -26,12 +28,13 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.put
 import java.time.LocalDate
 
-@WebMvcTest(controllers = [StudentController::class, AttendanceSortModeController::class])
+@WebMvcTest(controllers = [StudentController::class, AttendanceSortModeController::class, EventController::class])
 @Import(
     SecurityConfig::class,
     JwtAuthenticationFilter::class,
@@ -52,6 +55,9 @@ class SecurityAuthorizationTest {
 
     @MockBean
     private lateinit var attendanceSortModeService: AttendanceSortModeService
+
+    @MockBean
+    private lateinit var eventService: EventService
 
     @MockBean
     private lateinit var clientRegistrationRepository: ClientRegistrationRepository
@@ -127,6 +133,33 @@ class SecurityAuthorizationTest {
     @WithMockUser(roles = ["STUDENT"])
     fun `학생은 재정렬 모드에 접근할 수 없다`() {
         mockMvc.get("/attendance-sort-modes")
+            .andExpect { status { isForbidden() } }
+    }
+
+    @Test
+    @WithMockUser(roles = ["TEACHER"])
+    fun `교사는 행사를 조회하고 삭제할 수 있다`() {
+        whenever(eventService.getEvents(null)).thenReturn(emptyList())
+
+        mockMvc.get("/events")
+            .andExpect { status { isOk() } }
+        mockMvc.delete("/events/1")
+            .andExpect { status { isNoContent() } }
+    }
+
+    @Test
+    @WithMockUser(roles = ["STUDENT"])
+    fun `학생은 행사를 조회하거나 삭제할 수 없다`() {
+        mockMvc.get("/events")
+            .andExpect { status { isForbidden() } }
+        mockMvc.delete("/events/1")
+            .andExpect { status { isForbidden() } }
+    }
+
+    @Test
+    @WithMockUser(roles = ["ADMIN"])
+    fun `관리자는 행사에 접근할 수 없다`() {
+        mockMvc.get("/events")
             .andExpect { status { isForbidden() } }
     }
 }

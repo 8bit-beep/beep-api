@@ -17,6 +17,7 @@ class AttendanceTypeEntity(
     companion object {
         const val DEFAULT_ABSENCE_TYPE_NAME = "결석"
         const val NOT_ATTENDED_TYPE_NAME = "미출석"
+        const val SCHOOL_EVENT_TYPE_NAME = "교내 행사"
         const val SHIFT_ATTEND_TYPE_NAME = "실이동"
         const val CLUB_TYPE_NAME = "동아리"
         const val CLASSROOM_STUDY_TYPE_NAME = "교실자습"

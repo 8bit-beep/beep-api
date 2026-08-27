@@ -24,6 +24,7 @@ Authorization: Bearer {accessToken}
 10. [장기결석 (Absence)](#10-장기결석-absence)
 11. [메모 (Memo)](#11-메모-memo)
 12. [알림 (Notification)](#12-알림-notification)
+13. [교내 행사 (Event)](#13-교내-행사-event)
 
 ---
 
@@ -745,37 +746,58 @@ Authorization: Bearer {accessToken}
 
 ## 11. 메모 (Memo)
 
-> 교사용 공지/메모 (단일 메모)
+> 학년별 교사 메모. 학년당 하나만 존재한다.
 
 ### 11.1 API 목록
 
-| URL | Method | 설명 |
-|-----|--------|------|
-| `/memos` | `POST` | 메모 생성 |
-| `/memos` | `GET` | 메모 조회 |
-| `/memos` | `PATCH` | 메모 수정 |
+| URL | Method | 설명 | 권한 |
+|-----|--------|------|------|
+| `/memos/{grade}` | `POST` | 메모 생성 (이미 있으면 내용 갱신) | TEACHER |
+| `/memos/{grade}` | `GET` | 메모 조회 | TEACHER |
+| `/memos/{grade}` | `PATCH` | 메모 수정 | TEACHER |
 
-### 11.2 메모 생성/수정
+`grade`는 1~3.
 
-**Request Body**
+### 11.2 자동 영역과 수기 영역
+
+`content`는 두 부분이 합쳐진 값이다.
+
+```
+8월 26일                                    ← 자동 영역 시작
+8~9교시 체육대회 (3명 참여) - 천준범
+1101 김철수 / 1102 이영희 / 1103 박민수
+                                            ← 빈 줄로 구분
+내일 시험이니 조용히 시키기                 ← 수기 영역
+```
+
+- **자동 영역**은 [교내 행사](#13-교내-행사-event) 등록·수정·삭제 때마다 서버가 통째로 다시 만든다. 여기를 직접 고쳐 보내도 다음 행사 변경 때 덮어써진다.
+- **수기 영역**은 교사가 쓴 내용이며 행사 변경에 영향받지 않는다.
+- `PATCH`로 보낸 전체 텍스트에서 서버가 자동 영역을 떼어내고 나머지를 수기 영역으로 저장한다. **조회로 받은 `content`를 그대로 편집해서 보내면 된다.**
+
+### 11.3 메모 생성/수정
+
+**Request Body** (`POST`는 `content`, `PATCH`는 `newContent`)
 ```json
 {
-  "content": "오늘 자습 시간 변경 안내..."
+  "content": "내일 시험이니 조용히 시키기"
 }
 ```
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
-| `content` | String | O | 메모 내용 (최대 1000자) |
+| `content` / `newContent` | String | O | 메모 내용 (최대 30000자) |
 
-### 11.3 메모 조회 Response
+### 11.4 메모 조회 Response
 
 ```json
 {
-  "id": 1,
-  "content": "오늘 자습 시간 변경 안내..."
+  "grade": 1,
+  "content": "8월 26일\n8~9교시 체육대회 (3명 참여) - 천준범\n1101 김철수\n\n내일 시험이니 조용히 시키기",
+  "isRead": true
 }
 ```
+
+조회하면 `isRead`가 `true`로 바뀐다. 수정하면 다시 `false`가 된다.
 
 ---
 
@@ -813,6 +835,108 @@ Authorization: Bearer {accessToken}
 | **인증** | 필요 |
 
 **Response** `200 OK` (응답 본문 없음)
+
+---
+
+## 13. 교내 행사 (Event)
+
+> 교내 행사로 자습에서 빠지는 학생을 지정한다. 등록하면 해당 학생 × 교시의 출석이 `교내 행사` 타입으로 미리 생성되고, 참여 학년의 [메모](#11-메모-memo) 자동 영역이 갱신된다.
+
+**권한**: 전 엔드포인트 `TEACHER`
+
+### 13.1 API 목록
+
+| URL | Method | 설명 |
+|-----|--------|------|
+| `/events` | `POST` | 행사 등록 |
+| `/events?date=` | `GET` | 날짜별 행사 목록 |
+| `/events/{eventId}` | `GET` | 행사 상세 |
+| `/events/{eventId}` | `PATCH` | 행사 수정 |
+| `/events/{eventId}` | `DELETE` | 행사 삭제 |
+
+### 13.2 행사 등록 / 수정
+
+**Request Body** (`POST /events`, `PATCH /events/{eventId}` 동일)
+```json
+{
+  "name": "체육대회",
+  "date": "2026-08-26",
+  "checkpointIds": [1, 2],
+  "userIds": [11, 12, 13]
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `name` | String | O | 행사명 (최대 100자) |
+| `date` | String | O | 행사 날짜 `yyyy-MM-dd` |
+| `checkpointIds` | Long[] | O | 교시 ID 목록 (1개 이상). `GET /checkpoints`에서 조회 |
+| `userIds` | Long[] | O | 참여 학생 ID 목록 (1개 이상). `GET /students`에서 조회 |
+
+담당 교사는 **요청 토큰에서 자동으로 채워진다.** 요청 본문에 넣지 않는다.
+
+수정은 기존 출석·참여자·교시를 모두 지우고 새 내용으로 다시 만든다. 이번 수정으로 빠지는 학년의 메모도 함께 갱신된다.
+
+### 13.3 행사 목록 Response
+
+`GET /events?date=2026-08-26` — `date`를 생략하면 오늘 날짜로 조회한다.
+
+```json
+[
+  {
+    "id": 3,
+    "name": "체육대회",
+    "date": "2026-08-26",
+    "checkpointNames": ["8~9교시", "10~11교시"],
+    "studentCount": 10,
+    "createdByName": "천준범"
+  }
+]
+```
+
+`checkpointNames`는 교시 시작 시각 순으로 정렬된다.
+
+### 13.4 행사 상세 Response
+
+`GET /events/{eventId}` — 수정 화면을 채울 때 쓴다.
+
+```json
+{
+  "id": 3,
+  "name": "체육대회",
+  "date": "2026-08-26",
+  "checkpoints": [
+    { "id": 1, "name": "8~9교시" },
+    { "id": 2, "name": "10~11교시" }
+  ],
+  "students": [
+    { "userId": 11, "studentId": "1101", "name": "김철수" },
+    { "userId": 21, "studentId": "2101", "name": "이영희" }
+  ],
+  "createdByName": "천준범"
+}
+```
+
+`students`는 학번 순으로 정렬된다.
+
+### 13.5 에러
+
+| 코드 | 상태 | 설명 |
+|------|------|------|
+| `EVENT_NOT_FOUND` | 404 | 행사를 찾을 수 없음 |
+| `EMPTY_CHECKPOINTS` | 400 | 교시를 하나도 선택하지 않음 |
+| `EMPTY_USERS` | 400 | 학생을 하나도 선택하지 않음 |
+| `USER_NOT_FOUND` | 404 | 없는 학생 ID가 섞임 |
+| `CHECKPOINT_NOT_FOUND` | 404 | 없는 교시 ID가 섞임 |
+
+### 13.6 다른 기능에 미치는 영향
+
+- 참여 학생의 출석 상태가 해당 교시에 `교내 행사`로 표시된다
+- 출석 독촉 푸시 알림 대상에서 제외된다
+- 실의 `currentStudentCount`에 포함되지 않는다
+- 교사가 상태를 `미출석`으로 되돌려도 행사 출석 기록은 **삭제되지 않는다** (행사 목록과 어긋나지 않게 하기 위함)
+
+---
 
 ---
 
