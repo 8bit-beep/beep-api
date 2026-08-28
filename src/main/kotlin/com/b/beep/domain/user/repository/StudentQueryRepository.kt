@@ -24,7 +24,18 @@ class StudentQueryRepository(
 
         grade?.let { whereBuilder.and(studentInfo.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfo.classNumber.eq(it)) }
-        keyword?.let { whereBuilder.and(user.username.containsIgnoreCase(it)) }
+        keyword?.trim()?.takeIf { it.isNotEmpty() }?.let { searchKeyword ->
+            val keywordBuilder = BooleanBuilder(user.name.containsIgnoreCase(searchKeyword))
+
+            if (searchKeyword.length == STUDENT_NUMBER_LENGTH && searchKeyword.all { it in '0'..'9' }) {
+                val studentNumberPredicate = studentInfo.grade.eq(searchKeyword[0].digitToInt())
+                    .and(studentInfo.classNumber.eq(searchKeyword[1].digitToInt()))
+                    .and(studentInfo.num.eq(searchKeyword.substring(2).toInt()))
+                keywordBuilder.or(studentNumberPredicate)
+            }
+
+            whereBuilder.and(keywordBuilder)
+        }
 
         return queryFactory
             .selectFrom(studentInfo)
@@ -36,5 +47,9 @@ class StudentQueryRepository(
                 studentInfo.num.asc()
             )
             .fetch()
+    }
+
+    companion object {
+        private const val STUDENT_NUMBER_LENGTH = 4
     }
 }
