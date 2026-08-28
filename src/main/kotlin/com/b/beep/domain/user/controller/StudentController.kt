@@ -23,13 +23,13 @@ class StudentController(
     private val studentActivityRoomService: StudentActivityRoomService
 ) {
 
-    @Operation(summary = "학생 검색", description = "학년, 반, 이름으로 학생을 검색합니다.")
+    @Operation(summary = "학생 검색", description = "학년, 반, 이름 또는 학번으로 학생을 검색합니다.")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun getStudents(
         @Parameter(description = "학년") @RequestParam(required = false) grade: Int?,
         @Parameter(description = "반") @RequestParam(required = false) classNumber: Int?,
-        @Parameter(description = "이름 검색 키워드") @RequestParam(required = false) keyword: String?
+        @Parameter(description = "이름 또는 4자리 학번 검색 키워드") @RequestParam(required = false) keyword: String?
     ): List<StudentResponse> {
         return studentService.findStudents(grade, classNumber, keyword)
     }
