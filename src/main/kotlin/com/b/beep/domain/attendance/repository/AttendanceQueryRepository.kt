@@ -30,19 +30,50 @@ class AttendanceQueryRepository(
     private val checkpointRepository: AttendanceCheckpointRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
     fun findCurrentStatus(user: UserEntity, grade: Int): AttendanceTypeEntity? {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val checkpoint = try {
-            checkpointResolver.getCurrentAttendableCheckpointOrNull(grade)
-                ?: checkpointResolver.getCurrentCheckpointOrNearest(grade, today.dayOfWeek)
-        } catch (e: Exception) {
-            return null
-        }
+        val checkpoint = resolveCurrentCheckpoint(grade, today) ?: return null
 
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(checkpoint, user, today)
             ?: return null
 
         return attendance.type
+    }
+
+    fun findCurrentTypeIds(usersByGrade: Map<Int, List<UserEntity>>): Map<Long, Long> {
+        if (usersByGrade.isEmpty()) return emptyMap()
+
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val usersByCheckpointId = mutableMapOf<Long, MutableList<UserEntity>>()
+
+        usersByGrade.forEach { (grade, users) ->
+            val checkpointId = resolveCurrentCheckpoint(grade, today)?.id ?: return@forEach
+            usersByCheckpointId.getOrPut(checkpointId) { mutableListOf() }.addAll(users)
+        }
+
+        return usersByCheckpointId
+            .flatMap { (checkpointId, users) ->
+                attendanceRepository.findAllByUsersAndCheckpointIdAndDate(users, checkpointId, today)
+            }
+            .mapNotNull { attendance ->
+                val userId = attendance.user.id ?: return@mapNotNull null
+                val typeId = attendance.type.id ?: return@mapNotNull null
+                userId to typeId
+            }
+            .toMap()
+    }
+
+    private fun resolveCurrentCheckpoint(
+        grade: Int,
+        today: LocalDate
+    ): AttendanceCheckpointEntity? {
+        return try {
+            checkpointResolver.getCurrentAttendableCheckpointOrNull(grade)
+                ?: checkpointResolver.getCurrentCheckpointOrNearest(grade, today.dayOfWeek)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun findAllByFilters(
