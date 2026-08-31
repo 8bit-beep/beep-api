@@ -65,6 +65,9 @@ dodam:
     redirect-uri: "${DODAM_MINI_APP_REDIRECT_URI:}"
     app-public-id: "${DODAM_MINI_APP_PUBLIC_ID:}"
     scope: "profile:read notification:write"
+qvik:
+  openapi:
+    api-key: "${QVIK_API_KEY}"
 cloud:
   aws:
     s3:

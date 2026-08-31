@@ -52,6 +52,10 @@ dodam:
     app-public-id: test-app-public-id
     scope: "profile:read notification:write"
 
+qvik:
+  openapi:
+    api-key: test-qvik-api-key
+
 cloud:
   aws:
     s3:
