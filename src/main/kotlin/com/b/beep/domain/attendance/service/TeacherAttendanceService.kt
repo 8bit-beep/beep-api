@@ -49,7 +49,14 @@ class TeacherAttendanceService(
         val status = attendanceTypeService.getAttendanceTypeEntityById(request.statusId)
         val targetDate = request.date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
         val targetCheckpoint = request.checkpointId?.let { checkpointRepository.findByIdOrNull(it) }
-            ?: checkpointResolver.getCurrentCheckpointOrNearest()
+            ?: run {
+                val grade = studentInfoRepository.findByUser(user)?.grade
+                roomCheckpointResolver.getCurrentCheckpointOrNearest(
+                    date = targetDate,
+                    room = null,
+                    requestedGrade = grade
+                )
+            }
         val attendance = attendanceRepository.findByCheckpointAndUserAndDate(targetCheckpoint, user, targetDate)
 
         if (status.name == AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME) {

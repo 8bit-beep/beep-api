@@ -12,6 +12,7 @@ import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
 import com.b.beep.domain.event.domain.entity.EventEntity
 import com.b.beep.domain.room.repository.RoomRepository
+import com.b.beep.domain.user.domain.entity.StudentInfoEntity
 import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.repository.StudentInfoRepository
@@ -51,6 +52,14 @@ class TeacherAttendanceServiceTest {
     private val teacher = UserEntity(id = 500L, username = "t", name = "천준범", role = UserRole.TEACHER)
     private val notAttended =
         AttendanceTypeEntity(id = 3L, name = AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME)
+    private val attended = AttendanceTypeEntity(id = 1L, name = "출석")
+    private val studentInfo = StudentInfoEntity(
+        id = 1L,
+        user = student,
+        grade = 1,
+        classNumber = 2,
+        num = 3
+    )
     private val checkpoint = AttendanceCheckpointEntity(
         id = 1L, name = "8~9교시",
         startAt = LocalTime.of(16, 30), endAt = LocalTime.of(18, 59),
@@ -80,6 +89,23 @@ class TeacherAttendanceServiceTest {
         service.updateStudentStatus(
             UpdateStatusRequest(userId = 11L, statusId = 3L, date = date, checkpointId = 1L)
         )
+    }
+
+    @Test
+    @DisplayName("체크포인트가 없으면 학생 학년에 맞는 현재 교시에 저장한다")
+    fun usesStudentGradeToResolveCurrentCheckpoint() {
+        `when`(userRepository.findByIdAndIsDeletedFalse(11L)).thenReturn(student)
+        `when`(attendanceTypeService.getAttendanceTypeEntityById(1L)).thenReturn(attended)
+        `when`(studentInfoRepository.findByUser(student)).thenReturn(studentInfo)
+        `when`(roomCheckpointResolver.getCurrentCheckpointOrNearest(date, null, 1)).thenReturn(checkpoint)
+
+        service.updateStudentStatus(
+            UpdateStatusRequest(userId = 11L, statusId = 1L, date = date)
+        )
+
+        verify(roomCheckpointResolver).getCurrentCheckpointOrNearest(date, null, 1)
+        verify(checkpointResolver, never()).getCurrentCheckpointOrNearest()
+        verify(attendanceRepository).findByCheckpointAndUserAndDate(checkpoint, student, date)
     }
 
     @Nested
