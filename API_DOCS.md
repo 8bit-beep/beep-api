@@ -977,10 +977,15 @@ X-Qvik-Api-Key: {qvikApiKey}
   "content": [
     {
       "publicId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "name": "홍길동",
-      "grade": 2,
-      "room": 3,
-      "number": 15
+      "reason": "가정 사유",
+      "student": {
+        "name": "홍길동",
+        "grade": 2,
+        "room": 3,
+        "number": 15
+      },
+      "startAt": "2026-05-19",
+      "endAt": "2026-05-21"
     }
   ]
 }
@@ -990,10 +995,15 @@ X-Qvik-Api-Key: {qvikApiKey}
 |------|------|------|
 | `content` | Object[] | 외박 학생 목록. 결과가 없으면 빈 배열 |
 | `publicId` | String? | 학생 DAuth 공개 식별자. 기존 데이터에 없으면 `null` |
-| `name` | String | 학생 이름 |
-| `grade` | Int | 학년 |
-| `room` | Int | 반 |
-| `number` | Int | 번호 |
+| `reason` | String | 외박 사유 |
+| `student.name` | String | 학생 이름 |
+| `student.grade` | Int | 학년 |
+| `student.room` | Int | 반 |
+| `student.number` | Int | 번호 |
+| `startAt` | String | 외박 시작 날짜 (`yyyy-MM-dd`) |
+| `endAt` | String | 외박 종료 날짜 (`yyyy-MM-dd`) |
+
+외박자 관리에 등록된 학생은 `absence`, `absence_users`, `users`를 연결해 학생의 `publicId`와 등록된 사유·기간을 반환한다. 출석 타입만 `외박`으로 변경한 학생은 `reason`을 `일반 외박`으로, `startAt`과 `endAt`을 조회한 날짜로 반환한다. 두 조건에 모두 해당하면 외박자 관리의 등록 정보를 우선하고 한 건만 반환한다.
 
 ### 14.2 에러
 
