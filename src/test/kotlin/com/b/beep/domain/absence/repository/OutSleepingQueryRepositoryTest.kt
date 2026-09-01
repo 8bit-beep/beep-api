@@ -46,17 +46,41 @@ class OutSleepingQueryRepositoryTest(
 
         saveAttendance(manualStudent, firstCheckpoint, outSleepingType, date)
         saveAttendance(manualStudent, secondCheckpoint, outSleepingType, date)
-        saveAbsence(managedStudent, outSleepingType, date.minusDays(1), date.plusDays(1))
-        saveAbsence(duplicatedStudent, outSleepingType, date, date)
+        saveAbsence(
+            managedStudent,
+            outSleepingType,
+            date.minusDays(1),
+            date.plusDays(1),
+            reason = "가정 사유",
+        )
+        saveAbsence(duplicatedStudent, outSleepingType, date, date, reason = "개인 사유")
         saveAttendance(duplicatedStudent, firstCheckpoint, outSleepingType, date)
         entityManager.flush()
 
-        val result = repository.findAllStudents(date)
+        val result = repository.findAll(date)
 
         assertThat(result).containsExactly(
-            OutSleepingStudentQueryResult(null, "수동 학생", 1, 2, 3),
-            OutSleepingStudentQueryResult("managed-public-id", "등록 학생", 2, 1, 4),
-            OutSleepingStudentQueryResult("duplicated-public-id", "중복 학생", 3, 1, 1),
+            OutSleepingQueryResult(null, "일반 외박", "수동 학생", 1, 2, 3, date, date),
+            OutSleepingQueryResult(
+                "managed-public-id",
+                "가정 사유",
+                "등록 학생",
+                2,
+                1,
+                4,
+                date.minusDays(1),
+                date.plusDays(1),
+            ),
+            OutSleepingQueryResult(
+                "duplicated-public-id",
+                "개인 사유",
+                "중복 학생",
+                3,
+                1,
+                1,
+                date,
+                date,
+            ),
         )
     }
 
@@ -111,7 +135,7 @@ class OutSleepingQueryRepositoryTest(
         saveAttendance(teacher, checkpoint, outSleepingType, date)
         entityManager.flush()
 
-        assertThat(repository.findAllStudents(date)).isEmpty()
+        assertThat(repository.findAll(date)).isEmpty()
     }
 
     private fun saveStudent(
@@ -176,13 +200,14 @@ class OutSleepingQueryRepositoryTest(
         startDate: LocalDate,
         endDate: LocalDate,
         isDeleted: Boolean = false,
+        reason: String = "테스트",
     ) {
         val absence = persist(
             withAudit(
                 AbsenceEntity(
                     startDate = startDate,
                     endDate = endDate,
-                    reason = "테스트",
+                    reason = reason,
                     type = type,
                     isDeleted = isDeleted,
                 )

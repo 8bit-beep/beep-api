@@ -1,5 +1,6 @@
 package com.b.beep.domain.absence.controller
 
+import com.b.beep.domain.absence.controller.dto.response.OutSleepingContentResponse
 import com.b.beep.domain.absence.controller.dto.response.OutSleepingResponse
 import com.b.beep.domain.absence.controller.dto.response.OutSleepingStudentResponse
 import com.b.beep.domain.absence.service.OutSleepingOpenApiService
@@ -75,7 +76,15 @@ class OutSleepingOpenApiControllerTest {
         val date = LocalDate.of(2026, 5, 20)
         whenever(service.search(date)).thenReturn(
             OutSleepingResponse(
-                listOf(OutSleepingStudentResponse(null, "홍길동", 2, 3, 15))
+                listOf(
+                    OutSleepingContentResponse(
+                        publicId = null,
+                        reason = "일반 외박",
+                        student = OutSleepingStudentResponse("홍길동", 2, 3, 15),
+                        startAt = date,
+                        endAt = date,
+                    )
+                )
             )
         )
 
@@ -86,10 +95,13 @@ class OutSleepingOpenApiControllerTest {
             status { isOk() }
             jsonPath("$.content.length()") { value(1) }
             jsonPath("$.content[0].publicId") { value(null) }
-            jsonPath("$.content[0].name") { value("홍길동") }
-            jsonPath("$.content[0].grade") { value(2) }
-            jsonPath("$.content[0].room") { value(3) }
-            jsonPath("$.content[0].number") { value(15) }
+            jsonPath("$.content[0].reason") { value("일반 외박") }
+            jsonPath("$.content[0].student.name") { value("홍길동") }
+            jsonPath("$.content[0].student.grade") { value(2) }
+            jsonPath("$.content[0].student.room") { value(3) }
+            jsonPath("$.content[0].student.number") { value(15) }
+            jsonPath("$.content[0].startAt") { value("2026-05-20") }
+            jsonPath("$.content[0].endAt") { value("2026-05-20") }
         }
     }
 
