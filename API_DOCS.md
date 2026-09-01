@@ -25,6 +25,7 @@ Authorization: Bearer {accessToken}
 11. [메모 (Memo)](#11-메모-memo)
 12. [알림 (Notification)](#12-알림-notification)
 13. [교내 행사 (Event)](#13-교내-행사-event)
+14. [큐빅 외박자 OpenAPI](#14-큐빅-외박자-openapi)
 
 ---
 
@@ -937,6 +938,72 @@ Authorization: Bearer {accessToken}
 - 교사가 상태를 `미출석`으로 되돌려도 행사 출석 기록은 **삭제되지 않는다** (행사 목록과 어긋나지 않게 하기 위함)
 
 ---
+
+## 14. 큐빅 외박자 OpenAPI
+
+> 입력한 날짜에 외박 중인 학생 명단을 큐빅에 제공한다. 일반 사용자 JWT 대신 큐빅 전용 API 키를 사용한다.
+
+### 14.1 외박자 명단 조회
+
+| 항목 | 내용 |
+|------|------|
+| **Method** | `GET` |
+| **URL** | `/out-sleeping/openapi/search` |
+| **인증** | `X-Qvik-Api-Key` 헤더 |
+
+**Request Header**
+
+```http
+X-Qvik-Api-Key: {qvikApiKey}
+```
+
+**Query Parameters**
+
+| 이름 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `date` | String | O | 검색할 날짜 (`yyyy-MM-dd`) |
+
+다음 조건 중 하나를 만족하는 학생을 포함한다.
+
+- 조회일이 외박자 관리에 등록된 `외박` 기간에 포함되는 학생
+- 조회일의 체크포인트 중 하나라도 출석 상태가 `외박`인 학생
+
+같은 학생이 두 조건이나 여러 체크포인트에 중복되면 한 번만 반환한다. 결과는 학년, 반, 번호, 이름 순으로 정렬된다.
+
+**Response** `200 OK`
+
+```json
+{
+  "content": [
+    {
+      "publicId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "홍길동",
+      "grade": 2,
+      "room": 3,
+      "number": 15
+    }
+  ]
+}
+```
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `content` | Object[] | 외박 학생 목록. 결과가 없으면 빈 배열 |
+| `publicId` | String? | 학생 DAuth 공개 식별자. 기존 데이터에 없으면 `null` |
+| `name` | String | 학생 이름 |
+| `grade` | Int | 학년 |
+| `room` | Int | 반 |
+| `number` | Int | 번호 |
+
+### 14.2 에러
+
+| 코드 | 상태 | 설명 |
+|------|------|------|
+| `DATE_REQUIRED` | 400 | `date` 파라미터 누락 |
+| `METHOD_ARGUMENT_TYPE_MISMATCH` | 400 | 날짜 형식 오류 |
+| `INVALID_QVIK_API_KEY` | 401 | API 키 누락 또는 불일치 |
+
+운영 환경에는 `QVIK_API_KEY` 환경변수를 반드시 설정해야 한다. 누락하거나 공백으로 설정하면 애플리케이션이 시작되지 않는다.
 
 ---
 
