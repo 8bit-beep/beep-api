@@ -1,10 +1,10 @@
 package com.b.beep.domain.absence.controller.dto.response
 
-import com.b.beep.domain.absence.domain.enums.AbsenceReason
 import java.time.LocalDate
 
 data class AbsenceResponse(
-    val absenceId: Long,
+    val absenceId: Long?,
+    val source: AbsenceSource,
     val isGrouped: Boolean,
     val targetStudents: List<AbsenceStudentResponse>,
     val startDate: LocalDate,

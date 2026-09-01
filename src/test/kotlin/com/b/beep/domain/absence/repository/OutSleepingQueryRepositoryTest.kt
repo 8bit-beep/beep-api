@@ -58,6 +58,7 @@ class OutSleepingQueryRepositoryTest(
         entityManager.flush()
 
         val result = repository.findAll(date)
+        val manuallyChangedUsers = repository.findAllManuallyChangedUsers(date)
 
         assertThat(result).containsExactly(
             OutSleepingQueryResult(null, "일반 외박", "수동 학생", 1, 2, 3, date, date),
@@ -82,6 +83,7 @@ class OutSleepingQueryRepositoryTest(
                 date,
             ),
         )
+        assertThat(manuallyChangedUsers.map { it.id }).containsExactly(manualStudent.id)
     }
 
     @Test
@@ -136,6 +138,22 @@ class OutSleepingQueryRepositoryTest(
         entityManager.flush()
 
         assertThat(repository.findAll(date)).isEmpty()
+        assertThat(repository.findAllManuallyChangedUsers(date)).isEmpty()
+    }
+
+    @Test
+    fun `외박자 관리 등록이 있으면 수동 외박 대상에서 제외한다`() {
+        val date = LocalDate.of(2026, 5, 20)
+        val outSleepingType = saveType(AttendanceTypeEntity.OUT_SLEEPING_TYPE_NAME)
+        val otherType = saveType("외출")
+        val checkpoint = saveCheckpoint("저녁")
+        val student = saveStudent("registered", "등록 학생", 1, 1, 1)
+
+        saveAbsence(student, otherType, date, date)
+        saveAttendance(student, checkpoint, outSleepingType, date)
+        entityManager.flush()
+
+        assertThat(repository.findAllManuallyChangedUsers(date)).isEmpty()
     }
 
     private fun saveStudent(

@@ -6,6 +6,7 @@ import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.domain.entity.QAttendanceEntity
 import com.b.beep.domain.user.domain.entity.QStudentInfoEntity
 import com.b.beep.domain.user.domain.entity.QUserEntity
+import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -123,6 +124,54 @@ class OutSleepingQueryRepository(
                 { it.endAt },
             )
         )
+    }
+
+    fun findAllManuallyChangedUsers(date: LocalDate): List<UserEntity> {
+        val user = QUserEntity.userEntity
+        val studentInfo = QStudentInfoEntity.studentInfoEntity
+        val absenceUser = QAbsenceUserEntity.absenceUserEntity
+        val absence = QAbsenceEntity.absenceEntity
+        val attendance = QAttendanceEntity.attendanceEntity
+
+        val hasManagedAbsence = JPAExpressions
+            .selectOne()
+            .from(absenceUser)
+            .join(absenceUser.absence, absence)
+            .where(
+                absenceUser.user.id.eq(user.id),
+                absence.isDeleted.isFalse,
+                absence.startDate.loe(date),
+                absence.endDate.goe(date),
+            )
+            .exists()
+
+        val hasOutSleepingAttendance = JPAExpressions
+            .selectOne()
+            .from(attendance)
+            .where(
+                attendance.user.id.eq(user.id),
+                attendance.date.eq(date),
+                attendance.type.name.eq(AttendanceTypeEntity.OUT_SLEEPING_TYPE_NAME),
+            )
+            .exists()
+
+        return queryFactory
+            .selectFrom(user)
+            .join(studentInfo).on(studentInfo.user.id.eq(user.id))
+            .where(
+                user.role.eq(UserRole.STUDENT),
+                user.isDeleted.isFalse,
+                hasOutSleepingAttendance,
+                hasManagedAbsence.not(),
+            )
+            .orderBy(
+                studentInfo.grade.asc(),
+                studentInfo.classNumber.asc(),
+                studentInfo.num.asc(),
+                user.name.asc(),
+                user.id.asc(),
+            )
+            .fetch()
     }
 
     companion object {
