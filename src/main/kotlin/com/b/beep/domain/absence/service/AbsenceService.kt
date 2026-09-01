@@ -12,7 +12,9 @@ import com.b.beep.domain.absence.error.AbsenceError
 import com.b.beep.domain.absence.repository.AbsenceExceptionRepository
 import com.b.beep.domain.absence.repository.AbsenceRepository
 import com.b.beep.domain.absence.repository.AbsenceUserRepository
+import com.b.beep.domain.absence.repository.OutSleepingQueryRepository
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
+import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.attendance.service.AttendanceTypeService
 import com.b.beep.domain.checkpoint.error.CheckpointError
@@ -45,6 +47,7 @@ class AbsenceService(
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val absenceValidator: AbsenceValidator,
     private val attendanceTypeService: AttendanceTypeService,
+    private val outSleepingQueryRepository: OutSleepingQueryRepository,
 ) {
     fun createAbsence(request: CreateAbsenceRequest): CreateAbsenceResponse {
         absenceValidator.validateDateRange(request.startDate, request.endDate)
@@ -158,14 +161,26 @@ class AbsenceService(
     @Transactional(readOnly = true)
     fun getAbsencesToday(pageable: Pageable): Page<AbsenceResponse> {
         val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
-        val page = absenceRepository.findAllByDateAndIsDeletedFalse(today, pageable)
-
-        val sorted = page.content.map { it.toResponse() }
+        val registeredAbsences = absenceRepository
+            .findAllByDateAndIsDeletedFalse(today, Pageable.unpaged())
+            .content
+            .map { it.toResponse() }
             .map { it.copy(targetStudents = it.targetStudents.sortedWith(compareBy(
                 { it.info?.grade ?: Int.MAX_VALUE },
                 { it.info?.classNumber ?: Int.MAX_VALUE },
                 { it.info?.num ?: Int.MAX_VALUE }
             ))) }
+
+        val manuallyChangedUsers = outSleepingQueryRepository.findAllManuallyChangedUsers(today)
+        val manuallyChangedAbsences = if (manuallyChangedUsers.isEmpty()) {
+            emptyList()
+        } else {
+            val outSleepingType = attendanceTypeService
+                .getAttendanceTypeEntityByName(AttendanceTypeEntity.OUT_SLEEPING_TYPE_NAME)
+            manuallyChangedUsers.map { user -> user.toManualOutSleepingResponse(today, outSleepingType) }
+        }
+
+        val sorted = (registeredAbsences + manuallyChangedAbsences)
             .sortedWith(compareBy(
                 { it.startDate },
                 { it.endDate },
@@ -174,7 +189,11 @@ class AbsenceService(
                 { it.targetStudents.firstOrNull()?.info?.num ?: Int.MAX_VALUE }
             ))
 
-        return PageImpl(sorted, pageable, page.totalElements)
+        if (pageable.isUnpaged) return PageImpl(sorted)
+
+        val start = pageable.offset.coerceAtMost(sorted.size.toLong()).toInt()
+        val end = (start + pageable.pageSize).coerceAtMost(sorted.size)
+        return PageImpl(sorted.subList(start, end), pageable, sorted.size.toLong())
     }
 
     fun updateAbsence(absenceId: Long, request: UpdateAbsenceRequest): UpdateAbsenceResponse {
@@ -305,6 +324,7 @@ class AbsenceService(
 
         return AbsenceResponse(
             absenceId = id,
+            source = AbsenceSource.ABSENCE,
             isGrouped = absenceUsers.size > 1,
             targetStudents = studentResponses,
             startDate = this.startDate,
@@ -314,5 +334,34 @@ class AbsenceService(
             typeId = this.type.id!!,
             typeName = this.type.name
         )
+    }
+
+    private fun UserEntity.toManualOutSleepingResponse(
+        date: LocalDate,
+        type: AttendanceTypeEntity,
+    ): AbsenceResponse {
+        val studentInfo = studentInfoRepository.findByUser(this)
+        return AbsenceResponse(
+            absenceId = null,
+            source = AbsenceSource.ATTENDANCE,
+            isGrouped = false,
+            targetStudents = listOf(
+                AbsenceStudentResponse(
+                    username = username,
+                    name = name,
+                    info = studentInfo?.let { StudentInfoResponse.of(it) },
+                )
+            ),
+            startDate = date,
+            endDate = date,
+            checkpoints = emptyList(),
+            reason = MANUAL_OUT_SLEEPING_REASON,
+            typeId = requireNotNull(type.id),
+            typeName = type.name,
+        )
+    }
+
+    companion object {
+        const val MANUAL_OUT_SLEEPING_REASON = "외박"
     }
 }
