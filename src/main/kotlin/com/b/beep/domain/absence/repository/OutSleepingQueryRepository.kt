@@ -61,7 +61,6 @@ class OutSleepingQueryRepository(
                 user.isDeleted.isFalse,
                 hasManagedOutSleeping.or(hasOutSleepingAttendance),
             )
-            .distinct()
             .orderBy(
                 studentInfo.grade.asc(),
                 studentInfo.classNumber.asc(),
