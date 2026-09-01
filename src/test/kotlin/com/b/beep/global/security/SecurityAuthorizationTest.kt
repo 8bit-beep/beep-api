@@ -12,6 +12,7 @@ import com.b.beep.domain.auth.service.OAuth2SuccessHandler
 import com.b.beep.domain.user.controller.StudentController
 import com.b.beep.domain.user.service.StudentActivityRoomService
 import com.b.beep.domain.user.service.StudentService
+import com.b.beep.global.security.apikey.QvikOpenApiProperties
 import com.b.beep.global.security.jwt.JwtExtractor
 import com.b.beep.global.security.jwt.filter.JwtAuthenticationFilter
 import com.b.beep.global.security.jwt.filter.JwtExceptionFilter
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
@@ -35,6 +37,7 @@ import org.springframework.test.web.servlet.put
 import java.time.LocalDate
 
 @WebMvcTest(controllers = [StudentController::class, AttendanceSortModeController::class, EventController::class])
+@EnableConfigurationProperties(QvikOpenApiProperties::class)
 @Import(
     SecurityConfig::class,
     JwtAuthenticationFilter::class,
