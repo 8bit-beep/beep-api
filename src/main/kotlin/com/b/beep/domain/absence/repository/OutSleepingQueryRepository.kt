@@ -16,7 +16,7 @@ import java.time.LocalDate
 class OutSleepingQueryRepository(
     private val queryFactory: JPAQueryFactory,
 ) {
-    fun findAllStudents(date: LocalDate): List<OutSleepingStudentQueryResult> {
+    fun findAll(date: LocalDate): List<OutSleepingQueryResult> {
         val user = QUserEntity.userEntity
         val studentInfo = QStudentInfoEntity.studentInfoEntity
         val absenceUser = QAbsenceUserEntity.absenceUserEntity
@@ -46,7 +46,44 @@ class OutSleepingQueryRepository(
             )
             .exists()
 
-        return queryFactory
+        val managedOutSleeping = queryFactory
+            .select(
+                user.publicId,
+                absence.reason,
+                user.name,
+                studentInfo.grade,
+                studentInfo.classNumber,
+                studentInfo.num,
+                absence.startDate,
+                absence.endDate,
+            )
+            .from(absenceUser)
+            .join(absenceUser.absence, absence)
+            .join(absenceUser.user, user)
+            .join(studentInfo).on(studentInfo.user.id.eq(user.id))
+            .where(
+                user.role.eq(UserRole.STUDENT),
+                user.isDeleted.isFalse,
+                absence.isDeleted.isFalse,
+                absence.startDate.loe(date),
+                absence.endDate.goe(date),
+                absence.type.name.eq(AttendanceTypeEntity.OUT_SLEEPING_TYPE_NAME),
+            )
+            .fetch()
+            .map { row ->
+                OutSleepingQueryResult(
+                    publicId = row.get(user.publicId),
+                    reason = requireNotNull(row.get(absence.reason)),
+                    studentName = requireNotNull(row.get(user.name)),
+                    grade = requireNotNull(row.get(studentInfo.grade)),
+                    room = requireNotNull(row.get(studentInfo.classNumber)),
+                    number = requireNotNull(row.get(studentInfo.num)),
+                    startAt = requireNotNull(row.get(absence.startDate)),
+                    endAt = requireNotNull(row.get(absence.endDate)),
+                )
+            }
+
+        val manuallyChangedOutSleeping = queryFactory
             .select(
                 user.publicId,
                 user.name,
@@ -59,32 +96,47 @@ class OutSleepingQueryRepository(
             .where(
                 user.role.eq(UserRole.STUDENT),
                 user.isDeleted.isFalse,
-                hasManagedOutSleeping.or(hasOutSleepingAttendance),
-            )
-            .orderBy(
-                studentInfo.grade.asc(),
-                studentInfo.classNumber.asc(),
-                studentInfo.num.asc(),
-                user.name.asc(),
-                user.id.asc(),
+                hasOutSleepingAttendance,
+                hasManagedOutSleeping.not(),
             )
             .fetch()
             .map { row ->
-                OutSleepingStudentQueryResult(
+                OutSleepingQueryResult(
                     publicId = row.get(user.publicId),
-                    name = requireNotNull(row.get(user.name)),
+                    reason = MANUAL_OUT_SLEEPING_REASON,
+                    studentName = requireNotNull(row.get(user.name)),
                     grade = requireNotNull(row.get(studentInfo.grade)),
                     room = requireNotNull(row.get(studentInfo.classNumber)),
                     number = requireNotNull(row.get(studentInfo.num)),
+                    startAt = date,
+                    endAt = date,
                 )
             }
+
+        return (managedOutSleeping + manuallyChangedOutSleeping).sortedWith(
+            compareBy(
+                { it.grade },
+                { it.room },
+                { it.number },
+                { it.studentName },
+                { it.startAt },
+                { it.endAt },
+            )
+        )
+    }
+
+    companion object {
+        const val MANUAL_OUT_SLEEPING_REASON = "일반 외박"
     }
 }
 
-data class OutSleepingStudentQueryResult(
+data class OutSleepingQueryResult(
     val publicId: String?,
-    val name: String,
+    val reason: String,
+    val studentName: String,
     val grade: Int,
     val room: Int,
     val number: Int,
+    val startAt: LocalDate,
+    val endAt: LocalDate,
 )

@@ -1,6 +1,7 @@
 package com.b.beep.domain.absence.service
 
 import com.b.beep.domain.absence.controller.dto.response.OutSleepingResponse
+import com.b.beep.domain.absence.controller.dto.response.OutSleepingContentResponse
 import com.b.beep.domain.absence.controller.dto.response.OutSleepingStudentResponse
 import com.b.beep.domain.absence.repository.OutSleepingQueryRepository
 import org.springframework.stereotype.Service
@@ -13,15 +14,20 @@ class OutSleepingOpenApiService(
     private val outSleepingQueryRepository: OutSleepingQueryRepository,
 ) {
     fun search(date: LocalDate): OutSleepingResponse {
-        val students = outSleepingQueryRepository.findAllStudents(date).map {
-            OutSleepingStudentResponse(
+        val content = outSleepingQueryRepository.findAll(date).map {
+            OutSleepingContentResponse(
                 publicId = it.publicId,
-                name = it.name,
-                grade = it.grade,
-                room = it.room,
-                number = it.number,
+                reason = it.reason,
+                student = OutSleepingStudentResponse(
+                    name = it.studentName,
+                    grade = it.grade,
+                    room = it.room,
+                    number = it.number,
+                ),
+                startAt = it.startAt,
+                endAt = it.endAt,
             )
         }
-        return OutSleepingResponse(content = students)
+        return OutSleepingResponse(content = content)
     }
 }
