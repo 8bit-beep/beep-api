@@ -53,6 +53,7 @@ class SecurityConfig(
             it
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs").permitAll()
                 .requestMatchers("/auth/**", "/dauth/login", "/test/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/out-sleeping/openapi/search").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/users/my").authenticated()
                 .requestMatchers("/fcm/**").authenticated()
