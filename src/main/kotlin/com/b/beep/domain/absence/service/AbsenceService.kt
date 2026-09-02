@@ -149,13 +149,21 @@ class AbsenceService(
 
     @Transactional(readOnly = true)
     fun getAbsences(pageable: Pageable): Page<AbsenceResponse> {
-        val page = absenceRepository.findAllByIsDeletedFalseOrderByStartDateAscEndDateAsc(pageable)
-
-        val sorted = page.content.map { it.toResponse() }
+        val sorted = absenceRepository.findAllByIsDeletedFalse(Pageable.unpaged())
+            .content
+            .map { it.toResponse() }
             .map { it.copy(targetStudents = it.targetStudents.sortedWith(compareBy({ it.info?.grade ?: Int.MAX_VALUE }, { it.info?.classNumber ?: Int.MAX_VALUE }, { it.info?.num ?: Int.MAX_VALUE }))) }
-            .sortedWith(compareBy({ it.startDate }, { it.endDate }, { it.targetStudents.firstOrNull()?.info?.grade ?: Int.MAX_VALUE }, { it.targetStudents.firstOrNull()?.info?.classNumber ?: Int.MAX_VALUE }, { it.targetStudents.firstOrNull()?.info?.num ?: Int.MAX_VALUE }))
+            .sortedWith(compareBy(
+                { it.targetStudents.firstOrNull()?.info?.grade ?: Int.MAX_VALUE },
+                { it.targetStudents.firstOrNull()?.info?.classNumber ?: Int.MAX_VALUE },
+                { it.targetStudents.firstOrNull()?.info?.num ?: Int.MAX_VALUE }
+            ))
 
-        return PageImpl(sorted, pageable, page.totalElements)
+        if (pageable.isUnpaged) return PageImpl(sorted)
+
+        val start = pageable.offset.coerceAtMost(sorted.size.toLong()).toInt()
+        val end = (start + pageable.pageSize).coerceAtMost(sorted.size)
+        return PageImpl(sorted.subList(start, end), pageable, sorted.size.toLong())
     }
 
     @Transactional(readOnly = true)
@@ -182,8 +190,6 @@ class AbsenceService(
 
         val sorted = (registeredAbsences + manuallyChangedAbsences)
             .sortedWith(compareBy(
-                { it.startDate },
-                { it.endDate },
                 { it.targetStudents.firstOrNull()?.info?.grade ?: Int.MAX_VALUE },
                 { it.targetStudents.firstOrNull()?.info?.classNumber ?: Int.MAX_VALUE },
                 { it.targetStudents.firstOrNull()?.info?.num ?: Int.MAX_VALUE }
