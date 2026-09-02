@@ -15,7 +15,7 @@ interface AbsenceRepository : JpaRepository<AbsenceEntity, Long> {
         rangeEnd: LocalDate,
         rangeStart: LocalDate
     ): List<AbsenceEntity>
-    fun findAllByIsDeletedFalseOrderByStartDateAscEndDateAsc(pageable: Pageable): Page<AbsenceEntity>
+    fun findAllByIsDeletedFalse(pageable: Pageable): Page<AbsenceEntity>
     fun findByIdAndIsDeletedFalse(id: Long): AbsenceEntity?
     @Query("""
     SELECT a FROM AbsenceEntity a
