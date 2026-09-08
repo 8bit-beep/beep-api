@@ -14,8 +14,9 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
-
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 
 @ExtendWith(MockitoExtension::class)
@@ -36,7 +37,7 @@ class MemoServiceTest {
         grade = grade,
         eventBlock = eventBlock,
         manualContent = manualContent,
-        content = listOf(eventBlock, manualContent).filter { it.isNotBlank() }.joinToString("\n\n")
+        content = listOf(manualContent, eventBlock).filter { it.isNotBlank() }.joinToString("\n\n")
     )
 
     @Nested
@@ -65,7 +66,20 @@ class MemoServiceTest {
             memoService.replaceEventBlock(1, "8~9교시 체육대회 (3명 참여) - 천준범")
 
             assertEquals("내일 시험이니 조용히", existing.manualContent)
-            assertEquals("8~9교시 체육대회 (3명 참여) - 천준범\n\n내일 시험이니 조용히", existing.content)
+            assertEquals("내일 시험이니 조용히\n\n8~9교시 체육대회 (3명 참여) - 천준범", existing.content)
+        }
+
+        @Test
+        @DisplayName("수기가 없으면 content는 행사 블록만이다")
+        fun contentIsOnlyEventBlockWhenManualIsEmpty() {
+            `when`(memoRepository.findByGrade(1)).thenReturn(null)
+
+            memoService.replaceEventBlock(1, "8~9교시 체육대회 (3명 참여) - 천준범")
+
+            val captor = argumentCaptor<MemoEntity>()
+            verify(memoRepository).save(captor.capture())
+            assertEquals("8~9교시 체육대회 (3명 참여) - 천준범", captor.lastValue.content)
+            assertEquals("", captor.lastValue.manualContent)
         }
 
         @Test
@@ -91,10 +105,10 @@ class MemoServiceTest {
             val existing = memo(eventBlock = block, manualContent = "옛 메모")
             `when`(memoRepository.findByGrade(1)).thenReturn(existing)
 
-            memoService.updateMemo(1, UpdateMemoRequest("$block\n\n새 메모"))
+            memoService.updateMemo(1, UpdateMemoRequest("새 메모\n\n$block"))
 
             assertEquals("새 메모", existing.manualContent)
-            assertEquals("$block\n\n새 메모", existing.content)
+            assertEquals("새 메모\n\n$block", existing.content)
         }
     }
 
@@ -114,6 +128,61 @@ class MemoServiceTest {
             verify(memoRepository).save(captor.capture())
             assertSame(existing, captor.lastValue)
             assertEquals("새 메모", existing.manualContent)
+        }
+    }
+
+    @Nested
+    @DisplayName("행사 블록 일일 만료")
+    inner class ClearAllEventBlocks {
+
+        @Test
+        @DisplayName("수기 메모는 남기고 행사 블록만 비운다")
+        fun clearsEventBlockAndKeepsManualContent() {
+            val existing = memo(eventBlock = "8~9교시 체육대회 (3명 참여) - 천준범", manualContent = "내일 시험이니 조용히")
+            `when`(memoRepository.findAll()).thenReturn(listOf(existing))
+
+            memoService.clearAllEventBlocks()
+
+            assertEquals("", existing.eventBlock)
+            assertEquals("내일 시험이니 조용히", existing.manualContent)
+            assertEquals("내일 시험이니 조용히", existing.content)
+            verify(memoRepository).save(existing)
+        }
+
+        @Test
+        @DisplayName("행사 블록이 이미 비어 있으면 저장하지 않는다")
+        fun skipsSaveWhenEventBlockIsBlank() {
+            val existing = memo(manualContent = "내일 시험이니 조용히")
+            `when`(memoRepository.findAll()).thenReturn(listOf(existing))
+
+            memoService.clearAllEventBlocks()
+
+            verify(memoRepository, never()).save(any())
+        }
+
+        @Test
+        @DisplayName("메모가 없으면 아무 일도 하지 않는다")
+        fun doesNothingWhenNoMemosExist() {
+            `when`(memoRepository.findAll()).thenReturn(emptyList())
+
+            memoService.clearAllEventBlocks()
+
+            verify(memoRepository, never()).save(any())
+        }
+
+        @Test
+        @DisplayName("여러 학년 중 행사 블록이 있는 학년만 비운다")
+        fun clearsOnlyGradesWithEventBlock() {
+            val withBlock = memo(grade = 1, eventBlock = "8~9교시 체육대회 (3명 참여) - 천준범", manualContent = "1학년 메모")
+            val withoutBlock = memo(grade = 2, manualContent = "2학년 메모")
+            `when`(memoRepository.findAll()).thenReturn(listOf(withBlock, withoutBlock))
+
+            memoService.clearAllEventBlocks()
+
+            assertEquals("", withBlock.eventBlock)
+            assertEquals("1학년 메모", withBlock.content)
+            verify(memoRepository).save(withBlock)
+            verify(memoRepository, never()).save(withoutBlock)
         }
     }
 }
