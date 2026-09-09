@@ -26,7 +26,6 @@ class EventMemoComposerTest {
                 EventLine(
                     checkpointNames = listOf("8~9교시"),
                     eventName = "체육대회",
-                    teacherName = "천준범",
                     students = listOf("1101 김철수", "1102 이영희", "1103 박민수")
                 )
             )
@@ -35,7 +34,7 @@ class EventMemoComposerTest {
         assertEquals(
             """
             8월 26일
-            8~9교시 체육대회 (3명 참여) - 천준범
+            8~9교시 체육대회 (3명 참여)
             1101 김철수 / 1102 이영희 / 1103 박민수
             """.trimIndent(),
             block
@@ -51,14 +50,13 @@ class EventMemoComposerTest {
                 EventLine(
                     checkpointNames = listOf("8~9교시", "10~11교시"),
                     eventName = "체육대회",
-                    teacherName = "천준범",
                     students = listOf("1101 김철수")
                 )
             )
         )
 
         assertTrue(
-            block.contains("8~9교시, 10~11교시 체육대회 (1명 참여) - 천준범"),
+            block.contains("8~9교시, 10~11교시 체육대회 (1명 참여)"),
             "실제 블록: $block"
         )
     }
@@ -69,17 +67,17 @@ class EventMemoComposerTest {
         val block = composer.compose(
             date,
             listOf(
-                EventLine(listOf("8~9교시"), "체육대회", "천준범", listOf("1101 김철수")),
-                EventLine(listOf("10~11교시"), "동아리발표", "김지영", listOf("1104 최수연"))
+                EventLine(listOf("8~9교시"), "체육대회", listOf("1101 김철수")),
+                EventLine(listOf("10~11교시"), "동아리발표", listOf("1104 최수연"))
             )
         )
 
         assertEquals(
             """
             8월 26일
-            8~9교시 체육대회 (1명 참여) - 천준범
+            8~9교시 체육대회 (1명 참여)
             1101 김철수
-            10~11교시 동아리발표 (1명 참여) - 김지영
+            10~11교시 동아리발표 (1명 참여)
             1104 최수연
             """.trimIndent(),
             block

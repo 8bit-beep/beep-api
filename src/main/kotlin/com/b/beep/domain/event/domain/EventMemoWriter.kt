@@ -82,7 +82,6 @@ class EventMemoWriter(
         return EventLine(
             checkpointNames = eventCheckpoints.sortedBy { it.checkpoint.startAt }.map { it.checkpoint.name },
             eventName = event.name,
-            teacherName = event.createdBy.name,
             students = students
         )
     }
