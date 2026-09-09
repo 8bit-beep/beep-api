@@ -6,7 +6,6 @@ import java.time.LocalDate
 data class EventLine(
     val checkpointNames: List<String>,
     val eventName: String,
-    val teacherName: String,
     val students: List<String>
 )
 
@@ -23,7 +22,7 @@ class EventMemoComposer {
         val body = events.flatMap { event ->
             listOf(
                 "${event.checkpointNames.joinToString(CHECKPOINT_SEPARATOR)} ${event.eventName} " +
-                    "(${event.students.size}명 참여) - ${event.teacherName}",
+                    "(${event.students.size}명 참여)",
                 event.students.joinToString(STUDENT_SEPARATOR)
             )
         }

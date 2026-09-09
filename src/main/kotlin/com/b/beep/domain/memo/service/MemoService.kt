@@ -39,6 +39,15 @@ class MemoService(
         save(memo)
     }
 
+    fun clearAllEventBlocks() {
+        memoRepository.findAll()
+            .filter { it.eventBlock.isNotBlank() }
+            .forEach { memo ->
+                memo.eventBlock = ""
+                save(memo)
+            }
+    }
+
     fun getMemo(grade: Int): MemoResponse {
         val memo = getMemoEntityByGrade(grade)
         memo.isRead = true
@@ -47,7 +56,7 @@ class MemoService(
     }
 
     private fun save(memo: MemoEntity) {
-        memo.content = listOf(memo.eventBlock, memo.manualContent)
+        memo.content = listOf(memo.manualContent, memo.eventBlock)
             .filter { it.isNotBlank() }
             .joinToString(BLOCK_SEPARATOR)
         memoRepository.save(memo)
@@ -55,11 +64,11 @@ class MemoService(
 
     /**
      * 교사는 자동 영역까지 포함된 전체 텍스트를 보내온다.
-     * 앞머리의 행사 블록을 떼어낸 나머지가 수기 영역이다.
+     * 뒤쪽의 행사 블록을 떼어낸 나머지가 수기 영역이다.
      */
     private fun stripEventBlock(incoming: String, eventBlock: String): String {
         if (eventBlock.isBlank()) return incoming
-        return incoming.removePrefix(eventBlock).trimStart('\n')
+        return incoming.removeSuffix(eventBlock).removeSuffix(BLOCK_SEPARATOR)
     }
 
     private fun getOrCreateMemo(grade: Int): MemoEntity {
