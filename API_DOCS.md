@@ -447,6 +447,7 @@ Authorization: Bearer {accessToken}
 | `/attendances/cancel` | `PATCH` | 출석 취소 | 학생 |
 | `/attendances` | `GET` | 출석 현황 조회 | 교사 |
 | `/attendances/status` | `PATCH` | 출석 상태 변경 | 교사 |
+| `/attendances/statuses` | `PATCH` | 선택 학생 출석 상태 일괄 변경 | 교사 |
 | `/attendances/histories` | `GET` | 출석 히스토리 파일 목록 | 교사 |
 | `/attendances/histories/download` | `GET` | 출석 히스토리 다운로드 | 교사 |
 
@@ -534,7 +535,32 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 8.5 출석 히스토리 다운로드
+### 8.5 선택 학생 출석 상태 일괄 변경 (교사)
+
+**PATCH /attendances/statuses Request Body**
+```json
+{
+  "userIds": [1, 2, 3],
+  "typeId": 2,
+  "date": "2026-09-15",
+  "checkpointId": 1
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `userIds` | List\<Long\> | O | 변경할 학생 ID 목록 |
+| `typeId` | Long | O | 공통으로 적용할 출석 타입 ID |
+| `date` | LocalDate | X | 날짜 (기본: 오늘) |
+| `checkpointId` | Long | X | 체크포인트 ID (기본: 현재) |
+
+타입이 다른 학생 그룹은 `typeId`별로 요청을 나누어 호출합니다. 중복된 학생 ID는 한 번만 처리됩니다.
+
+**Response** `204 No Content`
+
+---
+
+### 8.6 출석 히스토리 다운로드
 
 **GET /attendances/histories/download Query Parameters**
 

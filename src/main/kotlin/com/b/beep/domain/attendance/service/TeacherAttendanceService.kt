@@ -1,6 +1,7 @@
 package com.b.beep.domain.attendance.service
 
 import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
+import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusesRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceTypeResponse
 import com.b.beep.domain.attendance.controller.dto.response.StatusResponse
@@ -42,6 +43,21 @@ class TeacherAttendanceService(
     private val attendancePlacementService: AttendancePlacementService,
     private val roomCheckpointResolver: RoomCheckpointResolver
 ) {
+    fun updateStudentStatuses(request: UpdateStatusesRequest) {
+        val targetDate = request.date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
+
+        request.userIds.distinct().forEach { userId ->
+            updateStudentStatus(
+                UpdateStatusRequest(
+                    userId = userId,
+                    statusId = request.typeId,
+                    date = targetDate,
+                    checkpointId = request.checkpointId
+                )
+            )
+        }
+    }
+
     fun updateStudentStatus(request: UpdateStatusRequest) {
         val user = userRepository.findByIdAndIsDeletedFalse(request.userId)
             ?: throw CustomException(UserError.USER_NOT_FOUND)

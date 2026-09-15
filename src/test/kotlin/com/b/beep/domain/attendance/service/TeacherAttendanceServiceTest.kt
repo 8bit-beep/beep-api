@@ -2,6 +2,7 @@ package com.b.beep.domain.attendance.service
 
 import com.b.beep.domain.absence.domain.entity.AbsenceEntity
 import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
+import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusesRequest
 import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.RoomCheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
@@ -17,6 +18,7 @@ import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.repository.StudentInfoRepository
 import com.b.beep.domain.user.repository.UserRepository
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -25,7 +27,9 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.time.LocalDate
 import java.time.LocalTime
@@ -49,6 +53,7 @@ class TeacherAttendanceServiceTest {
 
     private val date: LocalDate = LocalDate.of(2026, 8, 26)
     private val student = UserEntity(id = 11L, username = "s11", name = "김철수", role = UserRole.STUDENT)
+    private val secondStudent = UserEntity(id = 12L, username = "s12", name = "이영희", role = UserRole.STUDENT)
     private val teacher = UserEntity(id = 500L, username = "t", name = "천준범", role = UserRole.TEACHER)
     private val notAttended =
         AttendanceTypeEntity(id = 3L, name = AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME)
@@ -106,6 +111,29 @@ class TeacherAttendanceServiceTest {
         verify(roomCheckpointResolver).getCurrentCheckpointOrNearest(date, null, 1)
         verify(checkpointResolver, never()).getCurrentCheckpointOrNearest()
         verify(attendanceRepository).findByCheckpointAndUserAndDate(checkpoint, student, date)
+    }
+
+    @Test
+    @DisplayName("선택한 학생들만 동일한 출석 타입으로 변경한다")
+    fun updatesSelectedStudentsWithSameType() {
+        `when`(userRepository.findByIdAndIsDeletedFalse(11L)).thenReturn(student)
+        `when`(userRepository.findByIdAndIsDeletedFalse(12L)).thenReturn(secondStudent)
+        `when`(attendanceTypeService.getAttendanceTypeEntityById(1L)).thenReturn(attended)
+        `when`(checkpointRepository.findById(1L)).thenReturn(java.util.Optional.of(checkpoint))
+
+        service.updateStudentStatuses(
+            UpdateStatusesRequest(
+                userIds = listOf(11L, 12L, 11L),
+                typeId = 1L,
+                date = date,
+                checkpointId = 1L
+            )
+        )
+
+        val attendanceCaptor = argumentCaptor<AttendanceEntity>()
+        verify(attendanceRepository, times(2)).save(attendanceCaptor.capture())
+        assertEquals(setOf(11L, 12L), attendanceCaptor.allValues.map { it.user.id }.toSet())
+        assertEquals(setOf(1L), attendanceCaptor.allValues.map { it.type.id }.toSet())
     }
 
     @Nested
