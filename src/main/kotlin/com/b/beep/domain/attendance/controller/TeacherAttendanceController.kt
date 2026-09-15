@@ -1,6 +1,7 @@
 package com.b.beep.domain.attendance.controller
 
 import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusRequest
+import com.b.beep.domain.attendance.controller.dto.request.UpdateStatusesRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceStudentResponse
 import com.b.beep.domain.attendance.service.TeacherAttendanceService
 import io.swagger.v3.oas.annotations.Operation
@@ -29,6 +30,16 @@ class TeacherAttendanceController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateStatus(@Valid @RequestBody request: UpdateStatusRequest) {
         teacherAttendanceService.updateStudentStatus(request)
+    }
+
+    @Operation(
+        summary = "선택 학생 출석 상태 일괄 변경",
+        description = "선택한 학생들의 출석 상태를 동일한 출석 타입으로 일괄 변경합니다."
+    )
+    @PatchMapping("/statuses")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun updateStatuses(@Valid @RequestBody request: UpdateStatusesRequest) {
+        teacherAttendanceService.updateStudentStatuses(request)
     }
 
     @Operation(summary = "학생 조회", description = "조건에 맞는 학생 목록을 조회합니다. roomId 입력 시 해당 실 스케줄 학생만 조회됩니다.")
