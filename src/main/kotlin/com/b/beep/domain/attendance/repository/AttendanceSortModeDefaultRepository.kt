@@ -10,10 +10,4 @@ interface AttendanceSortModeDefaultRepository : JpaRepository<AttendanceSortMode
         dayOfWeek: DayOfWeek,
         checkpoints: Collection<AttendanceCheckpointEntity>
     ): List<AttendanceSortModeDefaultEntity>
-
-    fun existsByDayOfWeekAndCheckpointAndGrade(
-        dayOfWeek: DayOfWeek,
-        checkpoint: AttendanceCheckpointEntity,
-        grade: Int
-    ): Boolean
 }

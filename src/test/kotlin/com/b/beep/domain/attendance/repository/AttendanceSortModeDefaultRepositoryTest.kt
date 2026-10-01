@@ -83,29 +83,25 @@ class AttendanceSortModeDefaultRepositoryTest(
     }
 
     @Test
-    fun `수요일 초기 기본값은 학년별로 등록하고 재시작 시 기존 설정을 보존한다`() {
+    fun `서버 초기화는 기본값을 자동 등록하지 않고 별도 등록한 설정을 보존한다`() {
         val initializer = DataInitializer(
-            checkpointRepository, typeRepository, defaultRepository, TransactionTemplate(transactionManager)
+            checkpointRepository, typeRepository, TransactionTemplate(transactionManager)
         )
         initializer.run(DefaultApplicationArguments())
+        assertEquals(0L, defaultRepository.count())
+
         val checkpoint = checkpointRepository.findByNameAndIsDeletedFalse("10~11교시")!!
-        val initial = defaultRepository.findAllByDayOfWeekAndCheckpointInAndTypeIsDeletedFalse(
-            DayOfWeek.WEDNESDAY, listOf(checkpoint)
-        )
-        assertEquals(setOf(1, 2, 3), initial.map { it.grade }.toSet())
-        assertTrue(initial.all { it.type.name == AttendanceTypeEntity.CLUB_TYPE_NAME })
-        val firstGrade = initial.first { it.grade == 1 }
-        firstGrade.type = typeRepository.findByNameAndIsDeletedFalse(AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME)!!
-        defaultRepository.saveAndFlush(firstGrade)
+        val type = typeRepository.findByNameAndIsDeletedFalse(AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME)!!
+        val configured = saveDefault(DayOfWeek.WEDNESDAY, checkpoint, 1, type)
 
         initializer.run(DefaultApplicationArguments())
 
         val result = defaultRepository.findAllByDayOfWeekAndCheckpointInAndTypeIsDeletedFalse(
             DayOfWeek.WEDNESDAY, listOf(checkpoint)
         )
-        assertEquals(3, defaultRepository.count())
-        assertEquals(AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME, result.first { it.grade == 1 }.type.name)
-        assertEquals(initial.map { it.id }.toSet(), result.map { it.id }.toSet())
+        assertEquals(1L, defaultRepository.count())
+        assertEquals(configured.id, result.single().id)
+        assertEquals(type.id, result.single().type.id)
     }
 
     private fun saveCheckpoint(name: String) = checkpointRepository.save(AttendanceCheckpointEntity(

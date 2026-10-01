@@ -627,7 +627,7 @@ Authorization: Bearer {accessToken}
 
 화면 선택값은 `type ?? defaultType`으로 표시하고, 둘 다 없으면 기본 스케줄로 표시합니다. 초기 선택값을 표시할 때 PATCH를 호출하지 않습니다. 실제 학생 배치는 변경값이 없을 때 학생별 스케줄을 사용합니다.
 
-기본값은 `attendance_sort_mode_defaults`에 저장하고 `(day_of_week, checkpoint_id, grade)` 조합은 중복될 수 없습니다. 초기 등록은 수요일 10~11교시의 학년별 동아리 기본값만 포함합니다. 서버 재시작 시 기존 설정을 덮어쓰지 않습니다. 기본값 관리 API는 제공하지 않습니다.
+기본값은 `attendance_sort_mode_defaults`에 별도로 등록하고 `(day_of_week, checkpoint_id, grade)` 조합은 중복될 수 없습니다. 서버 기동·재시작 시 기본값을 자동 생성하거나 변경하지 않습니다. 기본값 관리 API는 제공하지 않습니다.
 
 **PATCH /attendance-sort-modes Request Body**
 

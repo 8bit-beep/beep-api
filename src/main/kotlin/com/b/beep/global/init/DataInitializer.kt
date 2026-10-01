@@ -1,8 +1,6 @@
 package com.b.beep.global.init
 
-import com.b.beep.domain.attendance.domain.entity.AttendanceSortModeDefaultEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
-import com.b.beep.domain.attendance.repository.AttendanceSortModeDefaultRepository
 import com.b.beep.domain.attendance.repository.AttendanceTypeRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.checkpoint.repository.AttendanceCheckpointRepository
@@ -17,7 +15,6 @@ import java.time.LocalTime
 class DataInitializer(
     private val checkpointRepository: AttendanceCheckpointRepository,
     private val typeRepository: AttendanceTypeRepository,
-    private val attendanceSortModeDefaultRepository: AttendanceSortModeDefaultRepository,
     private val transactionTemplate: org.springframework.transaction.support.TransactionTemplate,
 ) : ApplicationRunner {
     val logger = logger()
@@ -28,7 +25,6 @@ class DataInitializer(
         transactionTemplate.execute {
             createAttendanceTypes()
             createCheckpoints()
-            createSortModeDefaults()
         }
     }
 
@@ -96,31 +92,5 @@ class DataInitializer(
             }
         }
         logger.info("Checkpoints initialized")
-    }
-
-    private fun createSortModeDefaults() {
-        val dayOfWeek = DayOfWeek.WEDNESDAY
-        val checkpoint = checkNotNull(checkpointRepository.findByNameAndIsDeletedFalse("10~11교시")) {
-            "기본 스케줄 등록에 필요한 10~11교시 체크포인트가 없습니다"
-        }
-        val clubType = checkNotNull(typeRepository.findByNameAndIsDeletedFalse(AttendanceTypeEntity.CLUB_TYPE_NAME)) {
-            "기본 스케줄 등록에 필요한 동아리 타입이 없습니다"
-        }
-        if (checkpoint.dayOfWeek != null && checkpoint.dayOfWeek != dayOfWeek) return
-
-        (1..3).filter { checkpoint.grade == null || checkpoint.grade == it }.forEach { grade ->
-            // 운영 중 설정한 기본값은 재시작 시 덮어쓰지 않습니다.
-            if (!attendanceSortModeDefaultRepository.existsByDayOfWeekAndCheckpointAndGrade(dayOfWeek, checkpoint, grade)) {
-                attendanceSortModeDefaultRepository.save(
-                    AttendanceSortModeDefaultEntity(
-                        dayOfWeek = dayOfWeek,
-                        checkpoint = checkpoint,
-                        grade = grade,
-                        type = clubType
-                    )
-                )
-            }
-        }
-        logger.info("Sort mode defaults initialized")
     }
 }
