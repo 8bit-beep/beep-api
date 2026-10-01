@@ -22,14 +22,14 @@ import org.springframework.web.bind.annotation.RestController
 class AttendanceSortModeController(
     private val attendanceSortModeService: AttendanceSortModeService
 ) {
-    @Operation(summary = "재정렬 모드 조회", description = "오늘 날짜와 현재/가까운 체크포인트 기준으로 학년별 재정렬 모드를 조회합니다.")
+    @Operation(summary = "재정렬 모드 조회", description = "오늘 날짜와 현재/가까운 체크포인트 기준으로 학년별 변경값(type)과 요일별 기본값(defaultType)을 조회합니다. 기본 선택값은 type이 없으면 defaultType을 사용합니다.")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun getSortModes(): AttendanceSortModesResponse {
         return attendanceSortModeService.getSortModes()
     }
 
-    @Operation(summary = "재정렬 모드 변경", description = "오늘 날짜와 현재/가까운 체크포인트 기준으로 학년 하나의 재정렬 모드를 변경합니다.")
+    @Operation(summary = "재정렬 모드 변경", description = "오늘 날짜와 현재/가까운 체크포인트 기준으로 학년 하나의 재정렬 모드를 변경합니다. typeId가 null이면 변경값을 삭제하고 기본 스케줄로 복원합니다.")
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
     fun updateSortMode(
