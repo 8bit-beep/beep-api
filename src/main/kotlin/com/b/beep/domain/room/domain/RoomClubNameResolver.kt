@@ -1,19 +1,18 @@
 package com.b.beep.domain.room.domain
 
-import com.b.beep.domain.attendance.domain.RoomCheckpointResolver
+import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
-import com.b.beep.domain.attendance.repository.AttendanceQueryRepository
+import com.b.beep.domain.attendance.repository.AttendanceSortModeDefaultRepository
 import com.b.beep.domain.attendance.repository.AttendanceSortModeRepository
 import com.b.beep.domain.attendance.service.AttendanceTypeService
-import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 @Component
 class RoomClubNameResolver(
-    private val roomCheckpointResolver: RoomCheckpointResolver,
-    private val attendanceQueryRepository: AttendanceQueryRepository,
+    private val checkpointResolver: CheckpointResolver,
+    private val attendanceSortModeDefaultRepository: AttendanceSortModeDefaultRepository,
     private val attendanceSortModeRepository: AttendanceSortModeRepository,
     private val attendanceTypeService: AttendanceTypeService
 ) {
@@ -24,40 +23,30 @@ class RoomClubNameResolver(
         }
 
         val clubType = attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.CLUB_TYPE_NAME)
-        val checkpointByRoomId = clubRooms.associate { room ->
-            room.id!! to roomCheckpointResolver.getCurrentCheckpointOrNearest(date, room, room.grade)
-        }
-        val clubRoomIdsByCheckpointId = checkpointByRoomId.values
-            .distinctBy { it.id }
-            .associate { checkpoint -> checkpoint.id to findClubRoomIds(date, checkpoint, clubType) }
+        val checkpointByGrade = checkpointResolver.getCurrentCheckpointsOrNearest(GRADES, date.dayOfWeek)
+        val checkpoints = checkpointByGrade.values.distinctBy { it.id }
+        val modesByGradeAndCheckpoint = attendanceSortModeRepository
+            .findAllByDateAndCheckpointIn(date, checkpoints)
+            .associateBy { it.grade to it.checkpoint.id }
+        val defaultsByGradeAndCheckpoint = attendanceSortModeDefaultRepository
+            .findAllByDayOfWeekAndCheckpointInAndTypeIsDeletedFalse(date.dayOfWeek, checkpoints)
+            .associateBy { it.grade to it.checkpoint.id }
+        val clubGrades = GRADES.filter { grade ->
+            val checkpoint = checkpointByGrade.getValue(grade)
+            val sortModeType = modesByGradeAndCheckpoint[grade to checkpoint.id]?.type
+            val defaultType = defaultsByGradeAndCheckpoint[grade to checkpoint.id]?.type
+                ?.takeIf { it.name in AttendanceTypeEntity.SORT_MODE_TYPE_NAMES }
+            // 날짜별 변경값이 있으면 요일별 기본 스케줄보다 우선합니다.
+            val effectiveType = sortModeType ?: defaultType
+            effectiveType?.id == clubType.id
+        }.toSet()
 
         return rooms.mapNotNull { room ->
             val roomId = room.id ?: return@mapNotNull null
-            val checkpoint = checkpointByRoomId[roomId]
-            val isClubRoom = checkpoint != null && roomId in (clubRoomIdsByCheckpointId[checkpoint.id] ?: emptySet())
+            val isClubRoom = !room.clubName.isNullOrBlank() &&
+                (room.grade?.let { it in clubGrades } ?: clubGrades.isNotEmpty())
             roomId to if (isClubRoom) room.clubName!! else room.name
         }.toMap()
-    }
-
-    private fun findClubRoomIds(
-        date: LocalDate,
-        checkpoint: AttendanceCheckpointEntity,
-        clubType: AttendanceTypeEntity
-    ): Set<Long> {
-        val dayOfWeek = date.dayOfWeek
-        val scheduledClubRoomIds = attendanceQueryRepository
-            .findClubMajorityRoomIdsByDayCheckpoint(dayOfWeek, checkpoint, clubType)
-
-        val forcedClubRoomIds = GRADES
-            .filter { grade ->
-                attendanceSortModeRepository.findByDateAndCheckpointAndGrade(date, checkpoint, grade)
-                    ?.type?.id == clubType.id
-            }
-            .flatMap { grade ->
-                attendanceQueryRepository.findActivityRoomIdsByGradeDayOrCommonAndType(grade, dayOfWeek, clubType)
-            }
-
-        return scheduledClubRoomIds + forcedClubRoomIds
     }
 
     companion object {
