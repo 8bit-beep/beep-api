@@ -6,6 +6,7 @@ import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.error.AttendanceError
 import com.b.beep.domain.attendance.repository.AttendanceRepository
+import com.b.beep.domain.attendance.repository.AttendanceSortModeRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.domain.entity.RoomEntity
 import com.b.beep.domain.room.repository.RoomApprovalRepository
@@ -27,6 +28,7 @@ import java.time.ZoneId
 @Transactional
 class StudentAttendanceService(
     private val attendanceRepository: AttendanceRepository,
+    private val attendanceSortModeRepository: AttendanceSortModeRepository,
     private val contextHolder: ContextHolder,
     private val studentScheduleRepository: StudentScheduleRepository,
     private val studentInfoRepository: StudentInfoRepository,
@@ -50,7 +52,12 @@ class StudentAttendanceService(
         val notAttendType =
             attendanceTypeService.getAttendanceTypeEntityByName(AttendanceTypeEntity.NOT_ATTENDED_TYPE_NAME)
 
-        getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
+        val hasSortModeOverride = grade != null &&
+            attendanceSortModeRepository.existsByDateAndCheckpointAndGrade(today, checkpoint, grade)
+        // 날짜별 재정렬은 일시적인 배치이므로 반복 스케줄에 반영하지 않습니다.
+        if (!hasSortModeOverride) {
+            getOrCreateSchedule(user, dayOfWeek, checkpoint, type, room)
+        }
 
         val attendance = attendanceRepository.findByUserIdAndCheckpointIdAndDate(user.id!!, checkpoint.id!!, today)
             ?: attendanceRepository.saveAndFlush(

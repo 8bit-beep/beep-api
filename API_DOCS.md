@@ -450,6 +450,8 @@ Authorization: Bearer {accessToken}
 | `/attendances/statuses` | `PATCH` | 선택 학생 출석 상태 일괄 변경 | 교사 |
 | `/attendances/histories` | `GET` | 출석 히스토리 파일 목록 | 교사 |
 | `/attendances/histories/download` | `GET` | 출석 히스토리 다운로드 | 교사 |
+| `/attendance-sort-modes` | `GET` | 학년별 재정렬 변경값 및 기본값 조회 | 교사 |
+| `/attendance-sort-modes` | `PATCH` | 학년별 재정렬 변경 또는 기본 스케줄 복원 | 교사 |
 
 ### 8.2 출석하기 (학생)
 
@@ -469,7 +471,9 @@ Authorization: Bearer {accessToken}
 **주의사항**
 - 출석 가능 시간(`attendanceStartAt` ~ `attendanceEndAt`) 내에만 출석 가능
 - 이미 출석한 경우 `ALREADY_ATTENDED` 에러
-- 일정과 다른 타입/실로 출석 시 `TYPE_MISMATCH` / `ROOM_MISMATCH` 에러
+- 오늘 날짜·출석 체크포인트·학생 학년에 해당하는 재정렬 변경값이 없으면, 출석한 타입과 실로 학생의 요일별 스케줄을 생성하거나 갱신합니다.
+- 해당 조건의 재정렬 변경값이 있으면 학생 스케줄은 생성·수정하지 않고 당일 출석 기록만 저장합니다. 기본값과 동일한 타입을 선택한 변경값도 이 정책을 따릅니다.
+- QR 출석(`POST /attendances/help/scan`)에도 동일한 스케줄 갱신 정책을 적용합니다.
 
 ---
 
@@ -574,6 +578,69 @@ Authorization: Bearer {accessToken}
   "url": "https://s3.amazonaws.com/..."
 }
 ```
+
+---
+
+### 8.7 학년별 재정렬 모드와 기본값
+
+**GET /attendance-sort-modes**
+
+서울 시간 기준 오늘 요일과 학년별 현재/가까운 체크포인트로 조회합니다. 별도 쿼리 파라미터는 없습니다.
+
+**Response** `200 OK`
+
+다음은 수요일 10~11교시 응답 예시입니다. 체크포인트와 타입 ID는 환경별 실제 값을 사용합니다.
+
+```json
+{
+  "date": "2026-10-07",
+  "modes": [
+    {
+      "grade": 1,
+      "checkpoint": { "id": 2, "name": "10~11교시" },
+      "type": null,
+      "defaultType": { "id": 1, "name": "동아리" }
+    },
+    {
+      "grade": 2,
+      "checkpoint": { "id": 2, "name": "10~11교시" },
+      "type": null,
+      "defaultType": { "id": 1, "name": "동아리" }
+    },
+    {
+      "grade": 3,
+      "checkpoint": { "id": 2, "name": "10~11교시" },
+      "type": null,
+      "defaultType": { "id": 1, "name": "동아리" }
+    }
+  ]
+}
+```
+
+| 필드 | 설명 |
+|------|------|
+| `date` | 조회 기준 날짜 |
+| `modes[].grade` | 학년 (1~3) |
+| `modes[].checkpoint` | 해당 학년의 현재/가까운 체크포인트 |
+| `modes[].type` | 날짜별 재정렬 변경값. 변경값이 없으면 `null` |
+| `modes[].defaultType` | 요일·체크포인트·학년별 기본 타입. 미등록이거나 삭제된 타입 또는 지원하지 않는 타입이면 `null` |
+
+화면 선택값은 `type ?? defaultType`으로 표시하고, 둘 다 없으면 기본 스케줄로 표시합니다. 초기 선택값을 표시할 때 PATCH를 호출하지 않습니다. 실제 학생 배치는 변경값이 없을 때 학생별 스케줄을 사용합니다.
+
+기본값은 `attendance_sort_mode_defaults`에 저장하고 `(day_of_week, checkpoint_id, grade)` 조합은 중복될 수 없습니다. 초기 등록은 수요일 10~11교시의 학년별 동아리 기본값만 포함합니다. 서버 재시작 시 기존 설정을 덮어쓰지 않습니다. 기본값 관리 API는 제공하지 않습니다.
+
+**PATCH /attendance-sort-modes Request Body**
+
+```json
+{
+  "grade": 1,
+  "typeId": 2
+}
+```
+
+학년은 1~3이며, 선택 가능한 타입은 동아리·교실자습·나르샤·방과후입니다. `typeId: null`을 보내면 해당 학년의 오늘 현재/가까운 체크포인트 변경값을 삭제하여 기본 스케줄로 복원합니다. 이 경우 학생 출석에 따른 스케줄 갱신도 다시 허용됩니다.
+
+**Response** `200 OK`: GET과 동일한 형식으로 변경 후 학년별 변경값과 기본값을 반환합니다.
 
 ---
 

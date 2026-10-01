@@ -5,5 +5,6 @@ import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResp
 data class AttendanceSortModeResponse(
     val grade: Int,
     val checkpoint: CheckpointSimpleResponse,
-    val type: AttendanceTypeResponse?
+    val type: AttendanceTypeResponse?,
+    val defaultType: AttendanceTypeResponse?
 )

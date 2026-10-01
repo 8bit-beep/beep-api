@@ -22,6 +22,12 @@ interface AttendanceSortModeRepository : JpaRepository<AttendanceSortModeEntity,
         grade: Int
     ): AttendanceSortModeEntity?
 
+    fun existsByDateAndCheckpointAndGrade(
+        date: LocalDate,
+        checkpoint: AttendanceCheckpointEntity,
+        grade: Int
+    ): Boolean
+
     fun deleteByDateAndCheckpointAndGrade(
         date: LocalDate,
         checkpoint: AttendanceCheckpointEntity,

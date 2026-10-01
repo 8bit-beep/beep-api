@@ -8,6 +8,7 @@ import com.b.beep.domain.attendance.domain.CheckpointResolver
 import com.b.beep.domain.attendance.domain.entity.AttendanceSortModeEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.error.AttendanceTypeError
+import com.b.beep.domain.attendance.repository.AttendanceSortModeDefaultRepository
 import com.b.beep.domain.attendance.repository.AttendanceSortModeRepository
 import com.b.beep.domain.checkpoint.controller.dto.response.CheckpointSimpleResponse
 import com.b.beep.global.exception.CustomException
@@ -20,6 +21,7 @@ import java.time.ZoneId
 @Transactional
 class AttendanceSortModeService(
     private val attendanceSortModeRepository: AttendanceSortModeRepository,
+    private val attendanceSortModeDefaultRepository: AttendanceSortModeDefaultRepository,
     private val attendanceTypeService: AttendanceTypeService,
     private val checkpointResolver: CheckpointResolver
 ) {
@@ -71,10 +73,14 @@ class AttendanceSortModeService(
 
     internal fun getSortModes(date: LocalDate): AttendanceSortModesResponse {
         val checkpointByGrade = checkpointResolver.getCurrentCheckpointsOrNearest(GRADES, date.dayOfWeek)
+        val checkpoints = checkpointByGrade.values.distinctBy { it.id }
         val modesByGradeAndCheckpoint = attendanceSortModeRepository.findAllByDateAndCheckpointIn(
             date = date,
-            checkpoints = checkpointByGrade.values.distinctBy { it.id }
+            checkpoints = checkpoints
         ).associateBy { it.grade to it.checkpoint.id }
+        val defaultsByGradeAndCheckpoint = attendanceSortModeDefaultRepository
+            .findAllByDayOfWeekAndCheckpointInAndTypeIsDeletedFalse(date.dayOfWeek, checkpoints)
+            .associateBy { it.grade to it.checkpoint.id }
 
         return AttendanceSortModesResponse(
             date = date,
@@ -84,6 +90,9 @@ class AttendanceSortModeService(
                     grade = grade,
                     checkpoint = CheckpointSimpleResponse.of(checkpoint),
                     type = modesByGradeAndCheckpoint[grade to checkpoint.id]?.type
+                        ?.let { AttendanceTypeResponse.of(it) },
+                    defaultType = defaultsByGradeAndCheckpoint[grade to checkpoint.id]?.type
+                        ?.takeIf { it.name in AttendanceTypeEntity.SORT_MODE_TYPE_NAMES }
                         ?.let { AttendanceTypeResponse.of(it) }
                 )
             }
