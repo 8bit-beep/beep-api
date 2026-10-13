@@ -117,8 +117,8 @@ class RoomService(
         return LocalDate.now(ZoneId.of("Asia/Seoul"))
     }
 
-    // 현재 반 안에 있는 학생 수 = 이 실에 스케줄된 학생 중 현재 체크포인트 출석 타입이 "교실자습"인 학생 수
-    // 미출석(출석 기록 없음)을 포함해 교실자습이 아닌 학생은 전부 제외한다.
+    // 이 실에 스케줄된 학생 중 현재 체크포인트 출석 기록이 있고 외박·외출이 아닌 학생을 집계한다.
+    // 출석 기록이 없는 미출석 학생은 기존처럼 제외한다.
     private fun computeCurrentStudentCount(
         room: RoomEntity,
         checkpoint: AttendanceCheckpointEntity?,
@@ -137,7 +137,10 @@ class RoomService(
             .associate { it.user.id to it.type.name }
 
         return users.count { user ->
-            typeNameByUserId[user.id] == AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME
+            val typeName = typeNameByUserId[user.id]
+            typeName != null &&
+                typeName != AttendanceTypeEntity.OUT_SLEEPING_TYPE_NAME &&
+                typeName != AttendanceTypeEntity.OUTGOING_TYPE_NAME
         }
     }
 }

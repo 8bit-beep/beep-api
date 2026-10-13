@@ -21,6 +21,8 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -135,6 +137,46 @@ class RoomServiceTest {
     inner class GetRooms {
 
         @Test
+        @DisplayName("현재 학생 수 - 외박·외출과 출석 기록 없는 학생을 제외한다")
+        fun currentStudentCount_excludesOutSleepingOutgoingAndNoAttendance() {
+            val room = createRoomEntity()
+            val checkpoint = createCheckpoint()
+            val today = LocalDate.now()
+            val types = listOf(
+                AttendanceTypeEntity(id = 1L, name = AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME),
+                AttendanceTypeEntity(id = 2L, name = AttendanceTypeEntity.CLUB_TYPE_NAME),
+                AttendanceTypeEntity(id = 3L, name = AttendanceTypeEntity.OUT_SLEEPING_TYPE_NAME),
+                AttendanceTypeEntity(id = 4L, name = AttendanceTypeEntity.OUTGOING_TYPE_NAME)
+            )
+            val students = (1L..5L).map { createStudent(it) }
+            val schedules = students.map { student ->
+                StudentScheduleEntity(
+                    user = student,
+                    dayOfWeek = today.dayOfWeek,
+                    checkpoint = checkpoint,
+                    type = types.first(),
+                    room = room
+                )
+            }
+            val attendances = students.zip(types).map { (student, type) ->
+                AttendanceEntity(checkpoint = checkpoint, type = type, user = student, room = room, date = today)
+            }
+
+            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(listOf(room))
+            `when`(roomCheckpointResolver.getCurrentCheckpoints(any(), eq(listOf(room))))
+                .thenReturn(mapOf(room.id!! to checkpoint))
+            `when`(roomClubNameResolver.resolveDisplayNames(any(), any())).thenReturn(mapOf(room.id!! to room.name))
+            `when`(studentScheduleRepository.findAllByRoomAndDayOfWeekAndCheckpoint(eq(room), any(), eq(checkpoint)))
+                .thenReturn(schedules)
+            `when`(attendanceRepository.findAllByUsersAndCheckpointIdAndDate(eq(students), eq(checkpoint.id!!), any()))
+                .thenReturn(attendances)
+
+            val result = roomService.getRooms()
+
+            assertEquals(2, result.single().currentStudentCount)
+        }
+
+        @Test
         @DisplayName("목록 조회")
         fun success() {
             val rooms = listOf(
@@ -221,13 +263,14 @@ class RoomServiceTest {
             assertEquals(RoomError.ROOM_NOT_FOUND, exception.error)
         }
 
-        @Test
-        @DisplayName("현재 학생 수 - 교실자습 타입만 포함하고 다른 타입은 제외")
-        fun currentStudentCount_onlyClassroomStudyCounted() {
+        @ParameterizedTest
+        @ValueSource(strings = ["동아리", "나르샤", "방과후", "실이동", "교내 행사", "결석", "사용자 지정 상태"])
+        @DisplayName("현재 학생 수 - 교실자습 외에도 외박·외출이 아닌 상태는 포함한다")
+        fun currentStudentCount_includesOtherAttendanceTypes(typeName: String) {
             val room = createRoomEntity()
             val checkpoint = createCheckpoint()
             val classroomStudyType = AttendanceTypeEntity(id = 1L, name = AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME)
-            val clubType = AttendanceTypeEntity(id = 2L, name = "동아리")
+            val otherType = AttendanceTypeEntity(id = 2L, name = typeName)
             val student1 = createStudent(1L)
             val student2 = createStudent(2L)
             val schedules = listOf(
@@ -236,13 +279,45 @@ class RoomServiceTest {
             )
             val attendances = listOf(
                 AttendanceEntity(checkpoint = checkpoint, type = classroomStudyType, user = student1, room = room, date = LocalDate.now()),
-                AttendanceEntity(checkpoint = checkpoint, type = clubType, user = student2, room = room, date = LocalDate.now())
+                AttendanceEntity(checkpoint = checkpoint, type = otherType, user = student2, room = room, date = LocalDate.now())
             )
 
             `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(room)
             `when`(roomCheckpointResolver.getCurrentCheckpoints(any(), eq(listOf(room)))).thenReturn(mapOf(room.id!! to checkpoint))
             `when`(studentScheduleRepository.findAllByRoomAndDayOfWeekAndCheckpoint(eq(room), any(), eq(checkpoint))).thenReturn(schedules)
             `when`(attendanceRepository.findAllByUsersAndCheckpointIdAndDate(any(), eq(checkpoint.id!!), any())).thenReturn(attendances)
+
+            val result = roomService.getRoom(1L)
+
+            assertEquals(2, result.currentStudentCount)
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["외박", "외출"])
+        @DisplayName("현재 학생 수 - 외박·외출 상태는 제외한다")
+        fun currentStudentCount_excludesOutSleepingAndOutgoing(typeName: String) {
+            val room = createRoomEntity()
+            val checkpoint = createCheckpoint()
+            val classroomStudyType = AttendanceTypeEntity(id = 1L, name = AttendanceTypeEntity.CLASSROOM_STUDY_TYPE_NAME)
+            val excludedType = AttendanceTypeEntity(id = 2L, name = typeName)
+            val student1 = createStudent(1L)
+            val student2 = createStudent(2L)
+            val schedules = listOf(
+                StudentScheduleEntity(user = student1, dayOfWeek = DayOfWeek.MONDAY, checkpoint = checkpoint, type = classroomStudyType, room = room),
+                StudentScheduleEntity(user = student2, dayOfWeek = DayOfWeek.MONDAY, checkpoint = checkpoint, type = classroomStudyType, room = room)
+            )
+            val attendances = listOf(
+                AttendanceEntity(checkpoint = checkpoint, type = classroomStudyType, user = student1, room = room, date = LocalDate.now()),
+                AttendanceEntity(checkpoint = checkpoint, type = excludedType, user = student2, room = room, date = LocalDate.now())
+            )
+
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(room)
+            `when`(roomCheckpointResolver.getCurrentCheckpoints(any(), eq(listOf(room))))
+                .thenReturn(mapOf(room.id!! to checkpoint))
+            `when`(studentScheduleRepository.findAllByRoomAndDayOfWeekAndCheckpoint(eq(room), any(), eq(checkpoint)))
+                .thenReturn(schedules)
+            `when`(attendanceRepository.findAllByUsersAndCheckpointIdAndDate(any(), eq(checkpoint.id!!), any()))
+                .thenReturn(attendances)
 
             val result = roomService.getRoom(1L)
 
