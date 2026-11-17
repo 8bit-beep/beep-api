@@ -6,8 +6,14 @@ import com.sun.net.httpserver.HttpServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 class DodamNotificationClientTest {
@@ -61,7 +67,8 @@ class DodamNotificationClientTest {
     }
 
     @Test
-    fun `skips notification when app public id is missing`() {
+    @ExtendWith(OutputCaptureExtension::class)
+    fun `skips notification when app public id is missing`(output: CapturedOutput) {
         val client = DodamNotificationClient(
             properties(baseUrl = "http://localhost:1", appPublicId = "")
         )
@@ -69,6 +76,37 @@ class DodamNotificationClientTest {
         val result = client.send("title", "body", listOf("user-1"))
 
         assertThat(result).isNull()
+        assertThat(output.all).contains("DODAM_MINI_APP_PUBLIC_ID 환경변수가 설정되지 않았습니다.")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["", APP_PUBLIC_ID])
+    @ExtendWith(OutputCaptureExtension::class)
+    fun `disabled notifications make no HTTP request or configuration error log`(
+        appPublicId: String,
+        output: CapturedOutput,
+    ) {
+        val requestCount = AtomicInteger()
+        server = HttpServer.create(InetSocketAddress(0), 0).apply {
+            createContext("/notification/send") { exchange ->
+                requestCount.incrementAndGet()
+                exchange.sendResponseHeaders(204, -1)
+                exchange.close()
+            }
+            start()
+        }
+        val client = DodamNotificationClient(
+            properties(
+                baseUrl = "http://localhost:${server!!.address.port}",
+                appPublicId = appPublicId,
+            ).copy(notificationEnabled = false)
+        )
+
+        val result = client.send("title", "body", listOf("user-1"))
+
+        assertThat(result).isNull()
+        assertThat(requestCount.get()).isZero()
+        assertThat(output.all).doesNotContain("DODAM_MINI_APP_PUBLIC_ID 환경변수가 설정되지 않았습니다.")
     }
 
     private fun properties(
