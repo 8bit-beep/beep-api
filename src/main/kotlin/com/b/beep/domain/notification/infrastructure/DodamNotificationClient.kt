@@ -31,6 +31,10 @@ class DodamNotificationClient(
         body: String,
         targetUserPublicIds: List<String>,
     ): DodamNotificationResult? {
+        if (!properties.notificationEnabled) {
+            return null
+        }
+
         if (properties.appPublicId.isBlank()) {
             logger.error("도담 알림 발송을 건너뜁니다: DODAM_MINI_APP_PUBLIC_ID 환경변수가 설정되지 않았습니다.")
             return null

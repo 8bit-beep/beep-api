@@ -10,8 +10,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.support.CronTrigger
 import org.springframework.stereotype.Component
+import java.time.DayOfWeek
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.util.concurrent.ScheduledFuture
 
 @Component
@@ -36,26 +39,21 @@ class DynamicNotificationScheduler(
         val checkpoints = checkpointRepository.findAllByIsDeletedFalse()
 
         checkpoints.forEach { checkpoint ->
-            val attendanceStart = checkpoint.attendanceStartAt ?: return@forEach
+            val checkpointId = checkpoint.id ?: return@forEach
+            val attendanceStart = checkpoint.attendanceStartAt
 
-            scheduleDaily(attendanceStart, "${checkpoint.name} 출석 시작") {
+            scheduleDaily(attendanceStart, "${checkpoint.name} 출석 시작", checkpoint.dayOfWeek, SEOUL_ZONE) {
                 logger.info("${checkpoint.name} 출석 시작 알림 전송")
-                notificationService.sendToAll(
-                    title = "출석 시간입니다!",
-                    body = "${checkpoint.name} 출석이 시작되었습니다.",
-                    imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
-                )
+                notificationService.sendAttendanceStart(checkpointId, LocalDate.now(SEOUL_ZONE))
             }
 
-            val attendanceEnd = checkpoint.attendanceEndAt ?: return@forEach
+            val attendanceEnd = checkpoint.attendanceEndAt
+            if (Duration.between(attendanceStart, attendanceEnd).toMinutes() < 5) return@forEach
+
             val reminderTime = attendanceEnd.minusMinutes(5)
-            scheduleDaily(reminderTime, "${checkpoint.name} 마감 5분 전") {
+            scheduleDaily(reminderTime, "${checkpoint.name} 마감 5분 전", checkpoint.dayOfWeek, SEOUL_ZONE) {
                 logger.info("${checkpoint.name} 마감 임박 알림 전송")
-                notificationService.sendToNotAttended(
-                    title = "출석 마감 임박!",
-                    body = "${checkpoint.name} 출석이 5분 후 마감됩니다.",
-                    imageUrl = "https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png"
-                )
+                notificationService.sendAttendanceReminder(checkpointId, LocalDate.now(SEOUL_ZONE))
             }
         }
 
@@ -81,9 +79,16 @@ class DynamicNotificationScheduler(
         logger.info("동적 알림 스케줄 등록 완료: ${scheduledTasks.size}개")
     }
 
-    private fun scheduleDaily(time: LocalTime, description: String, task: Runnable) {
-        val cronExpression = "0 ${time.minute} ${time.hour} * * MON-THU"
-        val trigger = CronTrigger(cronExpression)
+    private fun scheduleDaily(
+        time: LocalTime,
+        description: String,
+        dayOfWeek: DayOfWeek? = null,
+        zoneId: ZoneId? = null,
+        task: Runnable,
+    ) {
+        val days = dayOfWeek?.name?.take(3) ?: "MON-THU"
+        val cronExpression = "0 ${time.minute} ${time.hour} * * $days"
+        val trigger = if (zoneId != null) CronTrigger(cronExpression, zoneId) else CronTrigger(cronExpression)
         val scheduledTask = taskScheduler.schedule(task, trigger)
         scheduledTask?.let {
             scheduledTasks.add(it)
@@ -95,5 +100,9 @@ class DynamicNotificationScheduler(
         scheduledTasks.forEach { it.cancel(false) }
         scheduledTasks.clear()
         logger.info("기존 스케줄 전체 취소")
+    }
+
+    companion object {
+        private val SEOUL_ZONE = ZoneId.of("Asia/Seoul")
     }
 }
