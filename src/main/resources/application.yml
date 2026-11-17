@@ -64,6 +64,7 @@ dodam:
     client-secret: "${DODAM_MINI_APP_CLIENT_SECRET:}"
     redirect-uri: "${DODAM_MINI_APP_REDIRECT_URI:}"
     app-public-id: "${DODAM_MINI_APP_PUBLIC_ID:}"
+    notification-enabled: ${DODAM_NOTIFICATION_ENABLED:true}
     scope: "profile:read notification:write"
 qvik:
   openapi:
