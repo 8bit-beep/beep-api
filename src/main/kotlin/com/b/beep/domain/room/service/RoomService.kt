@@ -6,6 +6,7 @@ import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
+import com.b.beep.domain.room.controller.dto.response.RoomListResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.RoomClubNameResolver
 import com.b.beep.domain.room.domain.entity.RoomEntity
@@ -25,7 +26,8 @@ class RoomService(
     private val roomCheckpointResolver: RoomCheckpointResolver,
     private val studentScheduleRepository: StudentScheduleRepository,
     private val attendanceRepository: AttendanceRepository,
-    private val roomClubNameResolver: RoomClubNameResolver
+    private val roomClubNameResolver: RoomClubNameResolver,
+    private val beaconService: BeaconService
 ) {
     fun createRoom(request: CreateRoomRequest): RoomResponse {
         if (roomRepository.existsByNameAndIsDeletedFalse(request.name)) {
@@ -44,7 +46,7 @@ class RoomService(
     }
 
     @Transactional(readOnly = true)
-    fun getRooms(): List<RoomResponse> {
+    fun getRooms(): List<RoomListResponse> {
         val rooms = roomRepository.findAllByIsDeletedFalse()
             .sortedWith(compareBy(
                 { it.floor ?: Int.MAX_VALUE },
@@ -59,11 +61,12 @@ class RoomService(
         val displayNameByRoomId = roomClubNameResolver.resolveDisplayNames(rooms, today)
 
         return rooms.map { room ->
-            RoomResponse.of(
+            val roomResponse = RoomResponse.of(
                 room,
                 name = displayNameByRoomId[room.id] ?: room.name,
                 currentStudentCount = computeCurrentStudentCount(room, checkpointByRoomId[room.id], today)
             )
+            RoomListResponse.of(roomResponse, beaconService.getBeacon(room))
         }
     }
 
