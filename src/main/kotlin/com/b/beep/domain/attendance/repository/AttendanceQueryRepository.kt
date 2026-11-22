@@ -88,8 +88,11 @@ class AttendanceQueryRepository(
         val studentInfoEntity = QStudentInfoEntity.studentInfoEntity
         val scheduleEntity = QStudentScheduleEntity.studentScheduleEntity
         val attendanceEntity = QAttendanceEntity.attendanceEntity
+        val historicalAttendanceEntity = QAttendanceEntity("historicalAttendance")
 
-        val targetDate = date ?: LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val today = LocalDate.now(ZoneId.of("Asia/Seoul"))
+        val targetDate = date ?: today
+        val isPastDate = targetDate.isBefore(today)
         val dayOfWeek = targetDate.dayOfWeek
         val targetCheckpoint = checkpoint ?: if (isCurrentCheckpoint) {
             checkpointResolver.getCurrentCheckpointOrNearest()
@@ -111,7 +114,21 @@ class AttendanceQueryRepository(
 
         val whereBuilder = BooleanBuilder()
         whereBuilder.and(userEntity.role.eq(UserRole.STUDENT))
-        whereBuilder.and(userEntity.isDeleted.eq(false))
+        val activeUser = userEntity.isDeleted.isFalse
+        if (isPastDate) {
+            // 자퇴생은 조회 날짜와 체크포인트에 실제 출석 기록이 있을 때만 과거 명단에 포함한다.
+            val historicalAttendance = JPAExpressions
+                .selectOne()
+                .from(historicalAttendanceEntity)
+                .where(
+                    historicalAttendanceEntity.user.id.eq(userEntity.id),
+                    historicalAttendanceEntity.date.eq(targetDate),
+                    targetCheckpoint?.let { historicalAttendanceEntity.checkpoint.id.eq(it.id) }
+                )
+            whereBuilder.and(activeUser.or(historicalAttendance.exists()))
+        } else {
+            whereBuilder.and(activeUser)
+        }
 
         grade?.let { whereBuilder.and(studentInfoEntity.grade.eq(it)) }
         classNumber?.let { whereBuilder.and(studentInfoEntity.classNumber.eq(it)) }
@@ -134,7 +151,22 @@ class AttendanceQueryRepository(
                         scheduleEntity.checkpoint.id.`in`(overlappingIds)
                     else null
                 )
-            whereBuilder.and(subQuery.exists())
+            if (isPastDate) {
+                val historicalRoomAttendance = JPAExpressions
+                    .selectOne()
+                    .from(historicalAttendanceEntity)
+                    .where(
+                        historicalAttendanceEntity.user.id.eq(userEntity.id),
+                        historicalAttendanceEntity.date.eq(targetDate),
+                        historicalAttendanceEntity.room.id.eq(room.id),
+                        targetCheckpoint?.let { historicalAttendanceEntity.checkpoint.id.eq(it.id) }
+                    )
+                whereBuilder.and(
+                    subQuery.exists().or(userEntity.isDeleted.isTrue.and(historicalRoomAttendance.exists()))
+                )
+            } else {
+                whereBuilder.and(subQuery.exists())
+            }
         }
 
         if (status != null && targetCheckpoint != null) {

@@ -13,6 +13,7 @@ import com.b.beep.global.config.QueryDslConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.whenever
+import org.mockito.kotlin.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
@@ -90,6 +91,56 @@ class NotificationTargetQueryRepositoryTest(
         entityManager.flush()
 
         assertThat(repository.findAllNotAttendedPublicIds()).isEmpty()
+    }
+
+    @Test
+    fun `limits active targets to requested grades`() {
+        saveStudent("grade-1", grade = 1)
+        saveStudent("grade-2", grade = 2)
+        saveStudent("grade-3", grade = 3)
+        saveStudent("deleted", grade = 1, isDeleted = true)
+        saveStudent(null, grade = 1)
+        entityManager.flush()
+
+        assertThat(repository.findAllActiveStudentPublicIds(listOf(1))).containsExactly("grade-1")
+        assertThat(repository.findAllActiveStudentPublicIds(emptyList())).isEmpty()
+    }
+
+    @Test
+    fun `checks attendance against the requested checkpoint date and grades`() {
+        val date = LocalDate.of(2026, 11, 16)
+        val checkpoint = saveCheckpoint()
+        val otherCheckpoint = saveCheckpoint()
+        val attendanceType = persistAndReturn(AttendanceTypeEntity(name = "정상 출석"))
+        saveStudent("missing", grade = 1)
+        val attended = saveStudent("attended", grade = 1)
+        val otherPeriod = saveStudent("other-checkpoint", grade = 1)
+        val otherDate = saveStudent("other-date", grade = 1)
+        val absent = saveStudent("absent", grade = 1)
+        val deletedAbsence = saveStudent("deleted-absence", grade = 1)
+        val expiredAbsence = saveStudent("expired-absence", grade = 1)
+        saveStudent("grade-2", grade = 2)
+        saveStudent("grade-3", grade = 3)
+        saveStudent("deleted", grade = 1, isDeleted = true)
+        saveStudent(null, grade = 1)
+
+        listOf(
+            AttendanceEntity(checkpoint = checkpoint, type = attendanceType, user = attended, date = date),
+            AttendanceEntity(checkpoint = otherCheckpoint, type = attendanceType, user = otherPeriod, date = date),
+            AttendanceEntity(checkpoint = checkpoint, type = attendanceType, user = otherDate, date = date.minusDays(1)),
+        ).forEach { entityManager.persist(withAudit(it)) }
+        saveAbsence(absent, date, isDeleted = false, attendanceType = attendanceType)
+        saveAbsence(deletedAbsence, date, isDeleted = true, attendanceType = attendanceType)
+        saveAbsence(expiredAbsence, date.minusDays(3), isDeleted = false, attendanceType = attendanceType)
+        entityManager.flush()
+
+        val result = repository.findAllNotAttendedPublicIds(checkpoint.id!!, date, listOf(1))
+
+        assertThat(result).containsExactlyInAnyOrder(
+            "missing", "other-checkpoint", "other-date", "deleted-absence", "expired-absence",
+        )
+        assertThat(repository.findAllNotAttendedPublicIds(checkpoint.id!!, date, emptyList())).isEmpty()
+        verifyNoInteractions(checkpointResolver)
     }
 
     private fun saveStudent(

@@ -65,8 +65,16 @@ class AttendanceHistoryService(
 
         val checkpoints = checkpointRepository.findAllByIsDeletedFalse().sortedBy { it.startAt }
         val attendanceTypes = attendanceTypeRepository.findAllByIsDeletedFalse().map { it.name }
-        val allStudents = studentInfoRepository.findAllByUserIsDeletedFalse()
         val attendances = attendanceRepository.findAllByDate(date)
+        val activeStudents = studentInfoRepository.findAllByUserIsDeletedFalse()
+        val recordedUsers = attendances.map { it.user }.distinctBy { it.id }
+        val recordedStudents = if (recordedUsers.isEmpty()) {
+            emptyList()
+        } else {
+            studentInfoRepository.findAllByUserIn(recordedUsers)
+        }
+        // 자퇴 여부와 관계없이 해당 날짜에 기록이 있는 학생의 이름과 학번을 보존한다.
+        val allStudents = (activeStudents + recordedStudents).distinctBy { it.user.id }
         val rooms = roomRepository.findAllByIsDeletedFalse()
         val roomApprovals = checkpoints.flatMap { cp ->
             roomApprovalRepository.findAllByCheckpointAndDate(cp, date)

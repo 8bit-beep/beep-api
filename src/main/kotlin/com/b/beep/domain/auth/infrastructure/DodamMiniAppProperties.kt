@@ -10,4 +10,5 @@ data class DodamMiniAppProperties(
     val appPublicId: String = "",
     val baseUrl: String = "https://dodam-api.b1nd.com",
     val scope: String = "profile:read notification:write",
+    val notificationEnabled: Boolean = true,
 )
