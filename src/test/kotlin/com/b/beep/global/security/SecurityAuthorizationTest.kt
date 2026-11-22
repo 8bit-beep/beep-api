@@ -1,9 +1,15 @@
 package com.b.beep.global.security
 
 import com.b.beep.domain.attendance.controller.AttendanceSortModeController
+import com.b.beep.domain.attendance.controller.BeaconAttendanceController
+import com.b.beep.domain.attendance.controller.StudentAttendanceController
+import com.b.beep.domain.attendance.controller.dto.request.CreateAttendanceRequest
+import com.b.beep.domain.attendance.controller.dto.request.ScanHelpQrRequest
 import com.b.beep.domain.attendance.controller.dto.request.UpdateAttendanceSortModeRequest
 import com.b.beep.domain.attendance.controller.dto.response.AttendanceSortModesResponse
+import com.b.beep.domain.attendance.service.AttendanceHelpService
 import com.b.beep.domain.attendance.service.AttendanceSortModeService
+import com.b.beep.domain.attendance.service.StudentAttendanceService
 import com.b.beep.domain.auth.service.CustomOAuth2UserService
 import com.b.beep.domain.event.controller.EventController
 import com.b.beep.domain.event.service.EventService
@@ -19,7 +25,11 @@ import com.b.beep.global.security.jwt.filter.JwtExceptionFilter
 import com.b.beep.global.security.jwt.handler.JwtAccessDeniedHandler
 import com.b.beep.global.security.jwt.handler.JwtAuthenticationEntryPoint
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -27,16 +37,27 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext
+import org.springframework.http.MediaType
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
+import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
 import java.time.LocalDate
 
-@WebMvcTest(controllers = [StudentController::class, AttendanceSortModeController::class, EventController::class])
+@WebMvcTest(
+    controllers = [
+        StudentController::class,
+        AttendanceSortModeController::class,
+        EventController::class,
+        BeaconAttendanceController::class,
+        StudentAttendanceController::class,
+    ]
+)
 @EnableConfigurationProperties(QvikOpenApiProperties::class)
 @Import(
     SecurityConfig::class,
@@ -60,6 +81,12 @@ class SecurityAuthorizationTest {
     private lateinit var attendanceSortModeService: AttendanceSortModeService
 
     @MockBean
+    private lateinit var studentAttendanceService: StudentAttendanceService
+
+    @MockBean
+    private lateinit var attendanceHelpService: AttendanceHelpService
+
+    @MockBean
     private lateinit var eventService: EventService
 
     @MockBean
@@ -79,6 +106,80 @@ class SecurityAuthorizationTest {
 
     @MockBean(name = "jpaMappingContext")
     private lateinit var jpaMappingContext: JpaMetamodelMappingContext
+
+    @Test
+    @WithMockUser(roles = ["STUDENT"])
+    fun `학생은 비콘 출석을 요청할 수 있다`() {
+        mockMvc.post("/attendances/beacon") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"roomId":3,"typeId":1}"""
+        }.andExpect {
+            status { isCreated() }
+            content { string("") }
+        }
+
+        verify(studentAttendanceService).attend(CreateAttendanceRequest(3, 1))
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            """{"typeId":1}""",
+            """{"roomId":3}""",
+            """{"roomId":0,"typeId":1}""",
+            """{"roomId":3,"typeId":-1}""",
+        ]
+    )
+    @WithMockUser(roles = ["STUDENT"])
+    fun `비콘 출석에 누락되거나 양수가 아닌 ID를 사용할 수 없다`(requestBody: String) {
+        mockMvc.post("/attendances/beacon") {
+            contentType = MediaType.APPLICATION_JSON
+            content = requestBody
+        }.andExpect { status { isBadRequest() } }
+
+        verifyNoInteractions(studentAttendanceService)
+    }
+
+    @Test
+    fun `미인증 사용자는 비콘 출석을 요청할 수 없다`() {
+        mockMvc.post("/attendances/beacon") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"roomId":3,"typeId":1}"""
+        }.andExpect { status { isUnauthorized() } }
+
+        verifyNoInteractions(studentAttendanceService)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["TEACHER", "ADMIN"])
+    fun `교사와 관리자는 비콘 출석을 요청할 수 없다`(role: String) {
+        mockMvc.post("/attendances/beacon") {
+            with(user("test-user").roles(role))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"roomId":3,"typeId":1}"""
+        }.andExpect { status { isForbidden() } }
+
+        verifyNoInteractions(studentAttendanceService)
+    }
+
+    @Test
+    @WithMockUser(roles = ["STUDENT"])
+    fun `학생은 일반 출석과 QR 출석 및 출석 취소 경로를 사용할 수 있다`() {
+        mockMvc.post("/attendances") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"roomId":3,"typeId":1}"""
+        }.andExpect { status { isCreated() } }
+        mockMvc.post("/attendances/help/scan") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"token":"qr-token","typeId":1}"""
+        }.andExpect { status { isCreated() } }
+        mockMvc.patch("/attendances/cancel")
+            .andExpect { status { isNoContent() } }
+
+        verify(studentAttendanceService).attend(CreateAttendanceRequest(3, 1))
+        verify(attendanceHelpService).scanHelpQr(ScanHelpQrRequest("qr-token", 1))
+        verify(studentAttendanceService).cancelAttendance()
+    }
 
     @Test
     @WithMockUser(roles = ["ADMIN"])

@@ -335,6 +335,31 @@ Authorization: Bearer {accessToken}
 
 원 스케줄 기준으로 집계하며, 실이동으로 이 실에 들어온 학생은 별도로 더하지 않습니다.
 
+### 4.6 실 목록의 비콘 정보
+
+`GET /rooms` 배열의 각 항목에는 `beacon` 필드가 포함됩니다. 비콘이 등록된 실의 항목 예시는 다음과 같습니다.
+
+```json
+{
+  "id": 3,
+  "name": "3-1",
+  "grade": 3,
+  "classNumber": 1,
+  "floor": 3,
+  "clubName": null,
+  "currentStudentCount": 10,
+  "beacon": {
+    "uuid": "e2c56db5-dffb-48d2-b060-d0f5a71096e0",
+    "major": 1,
+    "minor": 3
+  }
+}
+```
+
+`uuid`는 하이픈이 포함된 소문자 UUID 문자열입니다. `major`와 `minor`는 각각 `0`부터 `65535`까지의 정수입니다. 비콘이 미등록이거나 값이 유효하지 않으면 `"beacon": null`을 반환합니다. 앱은 선택한 실의 비콘을 찾으면 `POST /attendances/beacon`에 `roomId`와 `typeId`를 보냅니다.
+
+설치 후에는 대상 환경의 `rooms.id`와 실측 식별자를 확인합니다. 같은 식별자 조합이 여러 활성 실에 등록되지 않도록 확인한 뒤, `beacon_uuid`, `beacon_major`, `beacon_minor`를 한 트랜잭션에서 갱신합니다.
+
 ---
 
 ## 5. 실 승인 (Room Approval)
@@ -419,12 +444,16 @@ Authorization: Bearer {accessToken}
 {
   "id": 1,
   "name": "1차 자습",
-  "startAt": "19:00",
-  "endAt": "21:00",
-  "attendanceStartAt": "18:50",
-  "attendanceEndAt": "19:10"
+  "startAt": "19:00:00",
+  "endAt": "21:00:00",
+  "attendanceStartAt": "18:50:00",
+  "attendanceEndAt": "19:10:00"
 }
 ```
+
+`attendanceStartAt`과 `attendanceEndAt`은 날짜나 시간대가 포함되지 않는 `LocalTime` 문자열입니다. 기본 형식은 `HH:mm:ss`이며, 소수 초 값이 있으면 `19:10:05.123456`처럼 붙습니다.
+
+앱은 서울 시간 기준 오늘 요일과 일치하는 `/schedules/my` 항목의 `checkpoint.id`를 `/checkpoints`의 `id`에 연결하고, `attendanceStartAt ≤ 현재 시각 < attendanceEndAt`이면 해당 스케줄의 실과 출석 종류를 기본값으로 사용할 수 있습니다.
 
 ---
 
@@ -475,6 +504,7 @@ Authorization: Bearer {accessToken}
 | URL | Method | 설명 | 대상 |
 |-----|--------|------|------|
 | `/attendances` | `POST` | 출석하기 | 학생 |
+| `/attendances/beacon` | `POST` | 비콘으로 출석하기 | 학생 |
 | `/attendances/cancel` | `PATCH` | 출석 취소 | 학생 |
 | `/attendances` | `GET` | 출석 현황 조회 | 교사 |
 | `/attendances/status` | `PATCH` | 출석 상태 변경 | 교사 |
@@ -486,7 +516,8 @@ Authorization: Bearer {accessToken}
 
 ### 8.2 출석하기 (학생)
 
-**POST /attendances Request Body**
+`POST /attendances`와 `POST /attendances/beacon`은 학생 액세스 토큰과 아래 요청 본문을 사용합니다. 성공하면 본문 없이 `201 Created`를 반환합니다.
+
 ```json
 {
   "roomId": 1,
@@ -496,8 +527,8 @@ Authorization: Bearer {accessToken}
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
-| `roomId` | Long | O | 출석할 실 ID |
-| `typeId` | Long | O | 출석 타입 ID |
+| `roomId` | Long | O | 출석할 실 ID (양수) |
+| `typeId` | Long | O | 출석 타입 ID (양수) |
 
 **주의사항**
 - 출석 가능 시간(`attendanceStartAt` ~ `attendanceEndAt`) 내에만 출석 가능

@@ -5,6 +5,7 @@ import com.b.beep.domain.attendance.domain.entity.AttendanceEntity
 import com.b.beep.domain.attendance.domain.entity.AttendanceTypeEntity
 import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
+import com.b.beep.domain.room.controller.RoomController
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
 import com.b.beep.domain.room.domain.RoomClubNameResolver
@@ -16,6 +17,7 @@ import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
+import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -25,9 +27,14 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Spy
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -50,6 +57,9 @@ class RoomServiceTest {
     @Mock
     private lateinit var roomClubNameResolver: RoomClubNameResolver
 
+    @Spy
+    private var beaconService = BeaconService()
+
     @InjectMocks
     private lateinit var roomService: RoomService
 
@@ -70,14 +80,20 @@ class RoomServiceTest {
         grade: Int? = 1,
         classNumber: Int? = 1,
         floor: Int? = 1,
-        clubName: String? = null
+        clubName: String? = null,
+        beaconUuid: String? = null,
+        beaconMajor: Int? = null,
+        beaconMinor: Int? = null
     ) = RoomEntity(
         id = id,
         name = name,
         grade = grade,
         classNumber = classNumber,
         floor = floor,
-        clubName = clubName
+        clubName = clubName,
+        beaconUuid = beaconUuid,
+        beaconMajor = beaconMajor,
+        beaconMinor = beaconMinor
     )
 
 
@@ -194,6 +210,36 @@ class RoomServiceTest {
             assertEquals(2, result.size)
             assertEquals("Room A", result[0].name)
             assertEquals("Room B", result[1].name)
+        }
+
+        @Test
+        @DisplayName("실 목록에만 비콘 객체 또는 명시적인 null을 반환한다")
+        fun beaconResponse() {
+            val uuid = "E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"
+            val registered = createRoomEntity(id = 1L, name = "1-1", beaconUuid = uuid, beaconMajor = 0, beaconMinor = 65_535)
+            val unregistered = createRoomEntity(id = 2L, name = "1-2")
+            val incomplete = createRoomEntity(id = 3L, name = "1-3", beaconUuid = uuid, beaconMajor = 1)
+            val invalidUuid = createRoomEntity(id = 4L, name = "1-4", beaconUuid = "1-1-1-1-1", beaconMajor = 1, beaconMinor = 4)
+            val invalidRange = createRoomEntity(id = 5L, name = "1-5", beaconUuid = uuid, beaconMajor = 65_536, beaconMinor = 5)
+            `when`(roomRepository.findAllByIsDeletedFalse())
+                .thenReturn(listOf(invalidRange, invalidUuid, incomplete, unregistered, registered))
+            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(registered)
+            val mockMvc = MockMvcBuilders.standaloneSetup(RoomController(roomService)).build()
+
+            mockMvc.perform(get("/rooms"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].beacon.uuid").value("e2c56db5-dffb-48d2-b060-d0f5a71096e0"))
+                .andExpect(jsonPath("$[0].beacon.major").value(0))
+                .andExpect(jsonPath("$[0].beacon.minor").value(65_535))
+                .andExpect(jsonPath("$[1].beacon").value(nullValue()))
+                .andExpect(jsonPath("$[2].beacon").value(nullValue()))
+                .andExpect(jsonPath("$[3].beacon").value(nullValue()))
+                .andExpect(jsonPath("$[4].beacon").value(nullValue()))
+
+            mockMvc.perform(get("/rooms/1"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.beacon").doesNotHaveJsonPath())
         }
 
         @Test

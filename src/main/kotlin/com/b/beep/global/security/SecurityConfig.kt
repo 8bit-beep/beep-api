@@ -59,7 +59,7 @@ class SecurityConfig(
                 .requestMatchers("/fcm/**").authenticated()
 
                 // STUDENT
-                .requestMatchers(HttpMethod.POST, "/attendances").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.POST, "/attendances", "/attendances/beacon").hasRole("STUDENT")
                 .requestMatchers(HttpMethod.PATCH, "/attendances/cancel").hasRole("STUDENT")
                 .requestMatchers(HttpMethod.POST, "/shifts").hasRole("STUDENT")
                 .requestMatchers(HttpMethod.GET, "/shifts/my").hasRole("STUDENT")

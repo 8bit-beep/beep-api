@@ -26,5 +26,14 @@ class RoomEntity(
     var clubName: String? = null,
 
     @Column(nullable = false)
-    var isDeleted: Boolean = false
+    var isDeleted: Boolean = false,
+
+    @Column(name = "beacon_uuid", length = 36, nullable = true)
+    val beaconUuid: String? = null,
+
+    @Column(name = "beacon_major", nullable = true)
+    val beaconMajor: Int? = null,
+
+    @Column(name = "beacon_minor", nullable = true)
+    val beaconMinor: Int? = null
 ) : BaseEntity()
