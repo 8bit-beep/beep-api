@@ -356,7 +356,7 @@ Authorization: Bearer {accessToken}
 }
 ```
 
-`uuid`는 하이픈이 포함된 소문자 UUID 문자열입니다. `major`와 `minor`는 각각 `0`부터 `65535`까지의 정수입니다. 비콘이 미등록이거나 값이 유효하지 않으면 `"beacon": null`을 반환합니다. 앱은 선택한 실의 비콘을 찾으면 `POST /attendances`에 `roomId`와 `typeId`를 보냅니다.
+`uuid`는 하이픈이 포함된 소문자 UUID 문자열입니다. `major`와 `minor`는 각각 `0`부터 `65535`까지의 정수입니다. 비콘이 미등록이거나 값이 유효하지 않으면 `"beacon": null`을 반환합니다. 앱은 선택한 실의 비콘을 찾으면 `POST /attendances/beacon`에 `roomId`와 `typeId`를 보냅니다.
 
 설치 후에는 대상 환경의 `rooms.id`와 실측 식별자를 확인합니다. 같은 식별자 조합이 여러 활성 실에 등록되지 않도록 확인한 뒤, `beacon_uuid`, `beacon_major`, `beacon_minor`를 한 트랜잭션에서 갱신합니다.
 
@@ -504,6 +504,7 @@ Authorization: Bearer {accessToken}
 | URL | Method | 설명 | 대상 |
 |-----|--------|------|------|
 | `/attendances` | `POST` | 출석하기 | 학생 |
+| `/attendances/beacon` | `POST` | 비콘으로 출석하기 | 학생 |
 | `/attendances/cancel` | `PATCH` | 출석 취소 | 학생 |
 | `/attendances` | `GET` | 출석 현황 조회 | 교사 |
 | `/attendances/status` | `PATCH` | 출석 상태 변경 | 교사 |
@@ -515,7 +516,8 @@ Authorization: Bearer {accessToken}
 
 ### 8.2 출석하기 (학생)
 
-**POST /attendances Request Body**
+`POST /attendances`와 `POST /attendances/beacon`은 학생 액세스 토큰과 아래 요청 본문을 사용합니다. 성공하면 본문 없이 `201 Created`를 반환합니다.
+
 ```json
 {
   "roomId": 1,
@@ -525,8 +527,8 @@ Authorization: Bearer {accessToken}
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
-| `roomId` | Long | O | 출석할 실 ID |
-| `typeId` | Long | O | 출석 타입 ID |
+| `roomId` | Long | O | 출석할 실 ID (양수) |
+| `typeId` | Long | O | 출석 타입 ID (양수) |
 
 **주의사항**
 - 출석 가능 시간(`attendanceStartAt` ~ `attendanceEndAt`) 내에만 출석 가능
