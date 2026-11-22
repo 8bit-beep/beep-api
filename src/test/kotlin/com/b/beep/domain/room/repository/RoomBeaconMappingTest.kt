@@ -29,22 +29,24 @@ class RoomBeaconMappingTest(
     }
 
     @Test
-    fun `실 정보 수정은 DB에 별도로 등록한 비콘 값을 보존한다`() {
-        val room = entityManager.persistAndFlush(RoomEntity(name = "1-1"))
+    fun `등록된 비콘 값을 조회한 후 실 이름을 수정해도 비콘 값이 유지된다`() {
+        val roomId = entityManager.persistAndFlush(RoomEntity(name = "1-1")).id
         val uuid = "e2c56db5-dffb-48d2-b060-d0f5a71096e0"
 
         entityManager.entityManager.createNativeQuery(
             "UPDATE rooms SET beacon_uuid = :uuid, beacon_major = 1, beacon_minor = 3 WHERE id = :roomId"
         )
             .setParameter("uuid", uuid)
-            .setParameter("roomId", room.id)
+            .setParameter("roomId", roomId)
             .executeUpdate()
 
+        entityManager.clear()
+        val room = entityManager.find(RoomEntity::class.java, roomId)
         room.name = "1-1 수정"
         entityManager.flush()
         entityManager.clear()
 
-        val updated = entityManager.find(RoomEntity::class.java, room.id)
+        val updated = entityManager.find(RoomEntity::class.java, roomId)
         assertEquals("1-1 수정", updated.name)
         assertEquals(uuid, updated.beaconUuid)
         assertEquals(1, updated.beaconMajor)
