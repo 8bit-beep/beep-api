@@ -2,7 +2,7 @@ package com.b.beep.domain.room.controller
 
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
-import com.b.beep.domain.room.controller.dto.response.RoomListResponse
+import com.b.beep.domain.room.controller.dto.response.RoomBeaconResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.service.RoomService
 import io.swagger.v3.oas.annotations.Operation
@@ -30,8 +30,15 @@ class RoomController(
     @Operation(summary = "실 전체 조회")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun getRooms(): List<RoomListResponse> {
+    fun getRooms(): List<RoomResponse> {
         return roomService.getRooms()
+    }
+
+    @Operation(summary = "비콘 등록 반 조회")
+    @GetMapping("/beacons")
+    @ResponseStatus(HttpStatus.OK)
+    fun getBeaconRooms(): List<RoomBeaconResponse> {
+        return roomService.getBeaconRooms()
     }
 
     @Operation(summary = "실 상세 조회")

@@ -269,6 +269,7 @@ Authorization: Bearer {accessToken}
 |-----|--------|------|
 | `/rooms` | `POST` | 실 생성 |
 | `/rooms` | `GET` | 실 목록 조회 |
+| `/rooms/beacons` | `GET` | 비콘 등록 반 조회 |
 | `/rooms/{roomId}` | `GET` | 실 상세 조회 |
 | `/rooms/{roomId}` | `PATCH` | 실 수정 |
 | `/rooms/{roomId}` | `DELETE` | 실 삭제 |
@@ -335,28 +336,27 @@ Authorization: Bearer {accessToken}
 
 원 스케줄 기준으로 집계하며, 실이동으로 이 실에 들어온 학생은 별도로 더하지 않습니다.
 
-### 4.6 실 목록의 비콘 정보
+### 4.6 비콘 등록 반 조회
 
-`GET /rooms` 배열의 각 항목에는 `beacon` 필드가 포함됩니다. 비콘이 등록된 실의 항목 예시는 다음과 같습니다.
+`GET /rooms/beacons`는 유효한 비콘이 등록된 활성 반을 학년·반·실 ID 순으로 반환합니다. 학생·교사·관리자가 조회할 수 있으며, 대상 반이 없으면 `200 OK`와 빈 배열(`[]`)을 반환합니다. `name`은 DB에 저장된 실 이름입니다.
 
 ```json
-{
-  "id": 3,
-  "name": "3-1",
-  "grade": 3,
-  "classNumber": 1,
-  "floor": 3,
-  "clubName": null,
-  "currentStudentCount": 10,
-  "beacon": {
-    "uuid": "e2c56db5-dffb-48d2-b060-d0f5a71096e0",
-    "major": 1,
-    "minor": 3
+[
+  {
+    "id": 3,
+    "name": "3-1",
+    "grade": 3,
+    "classNumber": 1,
+    "beacon": {
+      "uuid": "e2c56db5-dffb-48d2-b060-d0f5a71096e0",
+      "major": 1,
+      "minor": 3
+    }
   }
-}
+]
 ```
 
-`uuid`는 하이픈이 포함된 소문자 UUID 문자열입니다. `major`와 `minor`는 각각 `0`부터 `65535`까지의 정수입니다. 비콘이 미등록이거나 값이 유효하지 않으면 `"beacon": null`을 반환합니다. 앱은 선택한 실의 비콘을 찾으면 `POST /attendances/beacon`에 `roomId`와 `typeId`를 보냅니다.
+`uuid`는 하이픈이 포함된 소문자 UUID 문자열입니다. `major`와 `minor`는 각각 `0`부터 `65535`까지의 정수입니다. 앱은 이 목록에서 선택한 반의 비콘을 찾으면 `POST /attendances/beacon`에 항목의 `id`를 `roomId`로 하여 `typeId`와 함께 보냅니다.
 
 설치 후에는 대상 환경의 `rooms.id`와 실측 식별자를 확인합니다. 같은 식별자 조합이 여러 활성 실에 등록되지 않도록 확인한 뒤, `beacon_uuid`, `beacon_major`, `beacon_minor`를 한 트랜잭션에서 갱신합니다.
 
