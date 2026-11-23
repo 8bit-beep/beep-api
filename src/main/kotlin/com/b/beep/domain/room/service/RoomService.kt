@@ -6,7 +6,7 @@ import com.b.beep.domain.attendance.repository.AttendanceRepository
 import com.b.beep.domain.checkpoint.domain.entity.AttendanceCheckpointEntity
 import com.b.beep.domain.room.controller.dto.request.CreateRoomRequest
 import com.b.beep.domain.room.controller.dto.request.UpdateRoomRequest
-import com.b.beep.domain.room.controller.dto.response.RoomListResponse
+import com.b.beep.domain.room.controller.dto.response.RoomBeaconResponse
 import com.b.beep.domain.room.controller.dto.response.RoomResponse
 import com.b.beep.domain.room.domain.RoomClubNameResolver
 import com.b.beep.domain.room.domain.entity.RoomEntity
@@ -46,7 +46,7 @@ class RoomService(
     }
 
     @Transactional(readOnly = true)
-    fun getRooms(): List<RoomListResponse> {
+    fun getRooms(): List<RoomResponse> {
         val rooms = roomRepository.findAllByIsDeletedFalse()
             .sortedWith(compareBy(
                 { it.floor ?: Int.MAX_VALUE },
@@ -61,13 +61,28 @@ class RoomService(
         val displayNameByRoomId = roomClubNameResolver.resolveDisplayNames(rooms, today)
 
         return rooms.map { room ->
-            val roomResponse = RoomResponse.of(
+            RoomResponse.of(
                 room,
                 name = displayNameByRoomId[room.id] ?: room.name,
                 currentStudentCount = computeCurrentStudentCount(room, checkpointByRoomId[room.id], today)
             )
-            RoomListResponse.of(roomResponse, beaconService.getBeacon(room))
         }
+    }
+
+    @Transactional(readOnly = true)
+    fun getBeaconRooms(): List<RoomBeaconResponse> {
+        return roomRepository.findAllByGradeIsNotNullAndClassNumberIsNotNullAndIsDeletedFalse()
+            .mapNotNull { room ->
+                val beacon = beaconService.getBeacon(room) ?: return@mapNotNull null
+                RoomBeaconResponse(
+                    id = room.id!!,
+                    name = room.name,
+                    grade = room.grade!!,
+                    classNumber = room.classNumber!!,
+                    beacon = beacon
+                )
+            }
+            .sortedWith(compareBy({ it.grade }, { it.classNumber }, { it.id }))
     }
 
     private fun getRoomSortPriority(room: RoomEntity): Int {

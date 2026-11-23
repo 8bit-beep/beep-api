@@ -15,6 +15,8 @@ import com.b.beep.domain.event.controller.EventController
 import com.b.beep.domain.event.service.EventService
 import com.b.beep.domain.auth.service.OAuth2FailureHandler
 import com.b.beep.domain.auth.service.OAuth2SuccessHandler
+import com.b.beep.domain.room.controller.RoomController
+import com.b.beep.domain.room.service.RoomService
 import com.b.beep.domain.user.controller.StudentController
 import com.b.beep.domain.user.service.StudentActivityRoomService
 import com.b.beep.domain.user.service.StudentService
@@ -56,6 +58,7 @@ import java.time.LocalDate
         EventController::class,
         BeaconAttendanceController::class,
         StudentAttendanceController::class,
+        RoomController::class,
     ]
 )
 @EnableConfigurationProperties(QvikOpenApiProperties::class)
@@ -87,6 +90,9 @@ class SecurityAuthorizationTest {
     private lateinit var attendanceHelpService: AttendanceHelpService
 
     @MockBean
+    private lateinit var roomService: RoomService
+
+    @MockBean
     private lateinit var eventService: EventService
 
     @MockBean
@@ -106,6 +112,26 @@ class SecurityAuthorizationTest {
 
     @MockBean(name = "jpaMappingContext")
     private lateinit var jpaMappingContext: JpaMetamodelMappingContext
+
+    @ParameterizedTest
+    @ValueSource(strings = ["STUDENT", "TEACHER", "ADMIN"])
+    fun `실 조회 권한으로 비콘 등록 반을 조회할 수 있다`(role: String) {
+        whenever(roomService.getBeaconRooms()).thenReturn(emptyList())
+
+        mockMvc.get("/rooms/beacons") {
+            with(user("test-user").roles(role))
+        }.andExpect { status { isOk() } }
+
+        verify(roomService).getBeaconRooms()
+    }
+
+    @Test
+    fun `미인증 사용자는 비콘 등록 반을 조회할 수 없다`() {
+        mockMvc.get("/rooms/beacons")
+            .andExpect { status { isUnauthorized() } }
+
+        verifyNoInteractions(roomService)
+    }
 
     @Test
     @WithMockUser(roles = ["STUDENT"])

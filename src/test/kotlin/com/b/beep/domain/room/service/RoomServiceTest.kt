@@ -17,7 +17,7 @@ import com.b.beep.domain.user.domain.entity.UserEntity
 import com.b.beep.domain.user.domain.enums.UserRole
 import com.b.beep.domain.user.repository.StudentScheduleRepository
 import com.b.beep.global.exception.CustomException
-import org.hamcrest.Matchers.nullValue
+import org.hamcrest.Matchers.contains
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -32,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.*
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -213,33 +214,21 @@ class RoomServiceTest {
         }
 
         @Test
-        @DisplayName("실 목록에만 비콘 객체 또는 명시적인 null을 반환한다")
-        fun beaconResponse() {
-            val uuid = "E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"
-            val registered = createRoomEntity(id = 1L, name = "1-1", beaconUuid = uuid, beaconMajor = 0, beaconMinor = 65_535)
+        @DisplayName("전체 실 목록에 등록 여부와 관계없이 모든 활성 실을 반환한다")
+        fun includesAllRoomsWithoutBeaconField() {
+            val registered = createRoomEntity(
+                id = 1L, name = "1-1", beaconUuid = "e2c56db5-dffb-48d2-b060-d0f5a71096e0",
+                beaconMajor = 1, beaconMinor = 1
+            )
             val unregistered = createRoomEntity(id = 2L, name = "1-2")
-            val incomplete = createRoomEntity(id = 3L, name = "1-3", beaconUuid = uuid, beaconMajor = 1)
-            val invalidUuid = createRoomEntity(id = 4L, name = "1-4", beaconUuid = "1-1-1-1-1", beaconMajor = 1, beaconMinor = 4)
-            val invalidRange = createRoomEntity(id = 5L, name = "1-5", beaconUuid = uuid, beaconMajor = 65_536, beaconMinor = 5)
-            `when`(roomRepository.findAllByIsDeletedFalse())
-                .thenReturn(listOf(invalidRange, invalidUuid, incomplete, unregistered, registered))
-            `when`(roomRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(registered)
+            val sharedRoom = createRoomEntity(id = 3L, name = "공용실", grade = null, classNumber = null)
+            `when`(roomRepository.findAllByIsDeletedFalse()).thenReturn(listOf(sharedRoom, unregistered, registered))
             val mockMvc = MockMvcBuilders.standaloneSetup(RoomController(roomService)).build()
 
             mockMvc.perform(get("/rooms"))
                 .andExpect(status().isOk)
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].beacon.uuid").value("e2c56db5-dffb-48d2-b060-d0f5a71096e0"))
-                .andExpect(jsonPath("$[0].beacon.major").value(0))
-                .andExpect(jsonPath("$[0].beacon.minor").value(65_535))
-                .andExpect(jsonPath("$[1].beacon").value(nullValue()))
-                .andExpect(jsonPath("$[2].beacon").value(nullValue()))
-                .andExpect(jsonPath("$[3].beacon").value(nullValue()))
-                .andExpect(jsonPath("$[4].beacon").value(nullValue()))
-
-            mockMvc.perform(get("/rooms/1"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.beacon").doesNotHaveJsonPath())
+                .andExpect(jsonPath("$[*].id", contains(1, 2, 3)))
+                .andExpect(jsonPath("$[*].beacon").doesNotHaveJsonPath())
         }
 
         @Test
@@ -264,6 +253,51 @@ class RoomServiceTest {
             val result = roomService.getRooms()
 
             assertEquals("밴드부", result[0].name)
+        }
+    }
+
+    @Nested
+    @DisplayName("getBeaconRooms")
+    inner class GetBeaconRooms {
+        @Test
+        @DisplayName("유효한 비콘이 등록된 반을 학년과 반 및 실 ID 순으로 반환한다")
+        fun returnsRegisteredClassroomsInOrder() {
+            val uuid = "E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"
+            val rooms = listOf(
+                createRoomEntity(id = 1L, name = "2-1", grade = 2, beaconUuid = uuid, beaconMajor = 1, beaconMinor = 0),
+                createRoomEntity(id = 5L, name = "1-2 별관", classNumber = 2, beaconUuid = uuid, beaconMajor = 1, beaconMinor = 5),
+                createRoomEntity(id = 3L, name = "1-2", classNumber = 2, beaconUuid = uuid, beaconMajor = 0, beaconMinor = 65_535),
+                createRoomEntity(id = 4L, name = "1-1", beaconUuid = uuid, beaconMajor = 1, beaconMinor = 4),
+                createRoomEntity(id = 6L, name = "1-3"),
+                createRoomEntity(id = 7L, name = "1-4", beaconUuid = uuid, beaconMajor = 1),
+                createRoomEntity(id = 8L, name = "1-5", beaconUuid = "1-1-1-1-1", beaconMajor = 1, beaconMinor = 8),
+                createRoomEntity(id = 9L, name = "1-6", beaconUuid = uuid, beaconMajor = 65_536, beaconMinor = 9),
+            )
+            `when`(roomRepository.findAllByGradeIsNotNullAndClassNumberIsNotNullAndIsDeletedFalse()).thenReturn(rooms)
+            val mockMvc = MockMvcBuilders.standaloneSetup(RoomController(roomService)).build()
+
+            mockMvc.perform(get("/rooms/beacons"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$[*].id", contains(4, 3, 5, 1)))
+                .andExpect(jsonPath("$[1].name").value("1-2"))
+                .andExpect(jsonPath("$[1].grade").value(1))
+                .andExpect(jsonPath("$[1].classNumber").value(2))
+                .andExpect(jsonPath("$[1].beacon.uuid").value("e2c56db5-dffb-48d2-b060-d0f5a71096e0"))
+                .andExpect(jsonPath("$[1].beacon.major").value(0))
+                .andExpect(jsonPath("$[1].beacon.minor").value(65_535))
+                .andExpect(jsonPath("$[3].beacon.minor").value(0))
+        }
+
+        @Test
+        @DisplayName("등록 반이 없으면 빈 배열을 반환한다")
+        fun returnsEmptyArrayWithoutRegisteredRooms() {
+            `when`(roomRepository.findAllByGradeIsNotNullAndClassNumberIsNotNullAndIsDeletedFalse())
+                .thenReturn(listOf(createRoomEntity()))
+            val mockMvc = MockMvcBuilders.standaloneSetup(RoomController(roomService)).build()
+
+            mockMvc.perform(get("/rooms/beacons"))
+                .andExpect(status().isOk)
+                .andExpect(content().json("[]"))
         }
     }
 

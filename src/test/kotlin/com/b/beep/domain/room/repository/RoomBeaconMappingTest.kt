@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
 )
 class RoomBeaconMappingTest(
     @Autowired private val entityManager: TestEntityManager,
+    @Autowired private val roomRepository: RoomRepository,
 ) {
     @Test
     fun `실을 생성할 때 지정한 비콘 값을 저장한다`() {
@@ -51,5 +52,19 @@ class RoomBeaconMappingTest(
         assertEquals(uuid, updated.beaconUuid)
         assertEquals(1, updated.beaconMajor)
         assertEquals(3, updated.beaconMinor)
+    }
+
+    @Test
+    fun `반 조회에서 삭제된 실과 학년 또는 반이 없는 실을 제외한다`() {
+        listOf(
+            RoomEntity(name = "1-1", grade = 1, classNumber = 1),
+            RoomEntity(name = "1-2", grade = 1, classNumber = 2, isDeleted = true),
+            RoomEntity(name = "학년 공용실", grade = 1),
+            RoomEntity(name = "학년 미지정실", classNumber = 3),
+        ).forEach { entityManager.persist(it) }
+
+        val rooms = roomRepository.findAllByGradeIsNotNullAndClassNumberIsNotNullAndIsDeletedFalse()
+
+        assertEquals(listOf("1-1"), rooms.map { it.name })
     }
 }
